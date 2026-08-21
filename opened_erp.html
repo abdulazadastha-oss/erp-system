@@ -7163,10 +7163,15 @@
           <button class="data-io-btn data-io-btn-export" onclick="manualSyncToCloud()" style="background:#22c55e;">⬆️ Sync All to Cloud</button>
           <button class="data-io-btn data-io-btn-import" onclick="manualLoadFromCloud()" style="margin-left:8px;">⬇️ Load from Cloud</button>
           <button class="data-io-btn" onclick="testFirebaseConnection()" style="background:#8b5cf6; margin-left:8px;">🔍 Test Connection</button>
-
-          <hr style="margin:16px 0; border:none; border-top:1px dashed #cbd5e1;">
-          <p style="font-size:0.8rem; color:#64748b;">📊 Google Sheets Database — সব ফর্ম সেভ করলেই স্বয়ংক্রিয়ভাবে ব্যাকগ্রাউন্ডে সিঙ্ক হয়, কোনো বাটনের দরকার নেই।</p>
           <div class="data-io-status" id="syncStatus"></div>
+        </div>
+
+        <!-- Google Sheet Sync Section (remaining MM modules — same MM Sheet as PR/RFQ/CS/PO/Gate In) -->
+        <div class="data-io-section" style="border-left:3px solid #16a34a;">
+          <h3>📦 Google Sheet Sync (MM Module — GRN/QC/Stock/Transfers)</h3>
+          <p>GRN, QC1, QC2, Stock, Stock Transactions, Vendor/Unit, Goods Outward, Material Issue/Return, Store Requisition, Stock Transfer Note/Requisition, Transfer Order are auto-pushed (a few seconds after saving) to their own tabs in the same MM Google Sheet that PR/RFQ/CS/PO/Gate In already use. Use these buttons to push everything right now.</p>
+          <button class="data-io-btn data-io-btn-export" onclick="manualSyncAllToMmGoogleSheet()" style="background:#16a34a;">⬆️ Push MM Data to Google Sheet</button>
+          <div class="data-io-status" id="mmSheetSyncStatus"></div>
         </div>
 
         <!-- Google Sheet Sync Section -->
@@ -7194,6 +7199,15 @@
           <button class="data-io-btn data-io-btn-export" onclick="manualSyncAllToMfgGoogleSheet()" style="background:#d35400;">⬆️ Push MFG Data to Google Sheet</button>
           <button class="data-io-btn" onclick="testMfgGoogleSheetConnection()" style="background:#8b5cf6; margin-left:8px;">🔍 Test Connection</button>
           <div class="data-io-status" id="mfgSheetSyncStatus"></div>
+        </div>
+
+        <!-- Google Sheet Sync Section (HR Module) -->
+        <div class="data-io-section" style="border-left:3px solid #7c3aed;">
+          <h3>👥 Google Sheet Sync (HR Module)</h3>
+          <p>Employee, Attendance, Leave, Recruitment, Payroll, Performance, and Training data are auto-pushed (a few seconds after saving) to their own tabs in your separate HR Google Sheet. Use these buttons to push everything right now, or test the connection.</p>
+          <button class="data-io-btn data-io-btn-export" onclick="manualSyncAllToHrGoogleSheet()" style="background:#7c3aed;">⬆️ Push HR Data to Google Sheet</button>
+          <button class="data-io-btn" onclick="testHrGoogleSheetConnection()" style="background:#8b5cf6; margin-left:8px;">🔍 Test Connection</button>
+          <div class="data-io-status" id="hrSheetSyncStatus"></div>
         </div>
 
       </div>
@@ -10981,10 +10995,6 @@
     var _origSetItem = localStorage.setItem;
     var _origGetItem = localStorage.getItem;
     localStorage.setItem = function(key, val) {
-      var _mysqlOldVal = null;
-      if (!_ignoreFirebaseUpdate && typeof MYSQL_SYNC_KEYS !== 'undefined' && MYSQL_SYNC_KEYS.indexOf(key) !== -1) {
-        _mysqlOldVal = _origGetItem.call(localStorage, key);
-      }
       _origSetItem.call(localStorage, key, val);
       if (!_ignoreFirebaseUpdate && _firebaseReady && FB_SYNC_KEYS.indexOf(key) !== -1) {
         clearTimeout(window.__fbSyncTimer);
@@ -11002,9 +11012,13 @@
         clearTimeout(_mfgSheetSyncTimers[key]);
         _mfgSheetSyncTimers[key] = setTimeout(function() { pushMfgModuleToGoogleSheet(key); }, 800);
       }
-      // Auto-sync to local MySQL (XAMPP) — every module write mirrors to its MySQL table
-      if (!_ignoreFirebaseUpdate && typeof MYSQL_SYNC_KEYS !== 'undefined' && MYSQL_SYNC_KEYS.indexOf(key) !== -1) {
-        saveKeyToMySQL(key, _mysqlOldVal, val);
+      if (!_ignoreFirebaseUpdate && typeof isHrSheetSyncKey !== 'undefined' && isHrSheetSyncKey(key)) {
+        clearTimeout(_hrSheetSyncTimers[key]);
+        _hrSheetSyncTimers[key] = setTimeout(function() { pushHrModuleToGoogleSheet(key); }, 800);
+      }
+      if (!_ignoreFirebaseUpdate && typeof isMmSheetSyncKey !== 'undefined' && isMmSheetSyncKey(key)) {
+        clearTimeout(_mmSheetSyncTimers[key]);
+        _mmSheetSyncTimers[key] = setTimeout(function() { pushMmModuleToGoogleSheet(key); }, 800);
       }
     };
 
@@ -11028,339 +11042,6 @@
       } catch(e) { console.error('syncAllToFirebase error:', e); _pendingLocalWrites = 0; _ignoreFirebaseUpdate = false; }
     }
 
-    // ============================================================
-    // ===== GOOGLE APPS SCRIPT + SHEETS SYNC (database backend) =====
-    // সব 161টা module key কভার করে। HTML এই ফাইলটা GitHub Pages (বা
-    // যেকোনো সাধারণ static hosting) এ থাকে, আর ডেটাবেস হিসেবে Google
-    // Sheets ব্যবহার হয় — Apps Script এর মাধ্যমে (Code.gs, আলাদা ফাইলে)।
-    // ============================================================
-    var ERP_DB_GAS_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'; // .../exec দিয়ে শেষ হবে
-    var _mysqlReady = false;
-    var _mysqlSyncTimers = {};
-
-    var MYSQL_RECORD_KEYS, MYSQL_BLOB_KEYS, MYSQL_SYNC_KEYS;
-    MYSQL_RECORD_KEYS = [
-      'erp_ap_inv_records',
-      'erp_ap_pay_records',
-      'erp_appraisal_records',
-      'erp_ar_inv_records',
-      'erp_ar_rec_records',
-      'erp_asset_dep_records',
-      'erp_asset_records',
-      'erp_asset_transfer_records',
-      'erp_attendance_records',
-      'erp_bank_reco_marks',
-      'erp_bank_reco_records',
-      'erp_budget_alloc_records',
-      'erp_candidate_records',
-      'erp_cc_records',
-      'erp_cheque_records',
-      'erp_coa_records',
-      'erp_cost_alloc_records',
-      'erp_cs_records',
-      'erp_dep_run_records',
-      'erp_emp_records',
-      'erp_emp_transfer_records',
-      'erp_fund_transfer_records',
-      'erp_gi_records',
-      'erp_go_records',
-      'erp_grn_records',
-      'erp_interview_records',
-      'erp_je_records',
-      'erp_jobposting_records',
-      'erp_kpi_records',
-      'erp_leave_records',
-      'erp_mfgbmt_records',
-      'erp_mfgbom_records',
-      'erp_mfgcap_records',
-      'erp_mfgdowntime_records',
-      'erp_mfgmachine_records',
-      'erp_mfgmrp_records',
-      'erp_mfgpmt_records',
-      'erp_mfgpo_records',
-      'erp_mfgqcf_records',
-      'erp_mfgqcip_records',
-      'erp_mfgrework_records',
-      'erp_mfgrouting_records',
-      'erp_mfgshift_records',
-      'erp_mfgspare_records',
-      'erp_mfgwoc_records',
-      'erp_mfgwoco_records',
-      'erp_mfgwor_records',
-      'erp_mi_records',
-      'erp_mr_records',
-      'erp_onboarding_records',
-      'erp_password_overrides',
-      'erp_payrun_records',
-      'erp_payslip_records',
-      'erp_perfreview_records',
-      'erp_po_records',
-      'erp_pr_records',
-      'erp_qc1_records',
-      'erp_qc2_records',
-      'erp_rfq_records',
-      'erp_salstruct_records',
-      'erp_sdamd_records',
-      'erp_sdapr_records',
-      'erp_sdcm_records',
-      'erp_sdcustomer_records',
-      'erp_sddm_records',
-      'erp_sddn_records',
-      'erp_sdinv_records',
-      'erp_sdpack_records',
-      'erp_sdpick_records',
-      'erp_sdra_records',
-      'erp_sdso_records',
-      'erp_sdsr_records',
-      'erp_sdtarget_records',
-      'erp_sr_records',
-      'erp_stn_records',
-      'erp_stock_records',
-      'erp_str_records',
-      'erp_to_records',
-      'erp_trcal_records',
-      'erp_trenr_records',
-      'erp_trfb_records',
-      'erp_vu_records',
-      'erp_weight_records'
-      ];
-    MYSQL_BLOB_KEYS = [
-      'erp_ap_inv_serial',
-      'erp_ap_pay_serial',
-      'erp_appraisal_serial',
-      'erp_ar_inv_serial',
-      'erp_ar_rec_serial',
-      'erp_asset_dep_serial',
-      'erp_asset_serial',
-      'erp_asset_transfer_serial',
-      'erp_bank_reco_serial',
-      'erp_budget_alloc_serial',
-      'erp_candidate_serial',
-      'erp_cheque_serial',
-      'erp_cost_alloc_serial',
-      'erp_cs_serial',
-      'erp_dep_run_serial',
-      'erp_emp_serial',
-      'erp_emp_transfer_serial',
-      'erp_fund_transfer_serial',
-      'erp_gi_serial',
-      'erp_go_serial',
-      'erp_grn_serial',
-      'erp_interview_serial',
-      'erp_je_serial',
-      'erp_jobposting_serial',
-      'erp_kpi_serial',
-      'erp_leave_serial',
-      'erp_mfgbmt_serial',
-      'erp_mfgbom_serial',
-      'erp_mfgcap_serial',
-      'erp_mfgdowntime_serial',
-      'erp_mfgmachine_serial',
-      'erp_mfgmrp_serial',
-      'erp_mfgpmt_serial',
-      'erp_mfgpo_serial',
-      'erp_mfgqcf_serial',
-      'erp_mfgqcip_serial',
-      'erp_mfgrework_serial',
-      'erp_mfgrouting_serial',
-      'erp_mfgshift_serial',
-      'erp_mfgspare_serial',
-      'erp_mfgwoc_serial',
-      'erp_mfgwoco_serial',
-      'erp_mfgwor_serial',
-      'erp_mi_serial',
-      'erp_mr_serial',
-      'erp_onboarding_serial',
-      'erp_payrun_serial',
-      'erp_payslip_serial',
-      'erp_perfreview_serial',
-      'erp_po_serial',
-      'erp_pr_serial',
-      'erp_qc1_serial',
-      'erp_qc2_serial',
-      'erp_rfq_serial',
-      'erp_salstruct_serial',
-      'erp_sdamd_serial',
-      'erp_sdapr_serial',
-      'erp_sdcm_serial',
-      'erp_sdcustomer_serial',
-      'erp_sddm_serial',
-      'erp_sddn_serial',
-      'erp_sdinv_serial',
-      'erp_sdpack_serial',
-      'erp_sdpick_serial',
-      'erp_sdra_serial',
-      'erp_sdso_serial',
-      'erp_sdsr_serial',
-      'erp_sr_serial',
-      'erp_stn_serial',
-      'erp_stock_transactions',
-      'erp_str_notifications',
-      'erp_str_serial',
-      'erp_to_serial',
-      'erp_trcal_serial',
-      'erp_trenr_serial',
-      'erp_trfb_serial',
-      'erp_vu_serial',
-      'erp_weight_serial'
-      ];
-    MYSQL_SYNC_KEYS = MYSQL_RECORD_KEYS.concat(MYSQL_BLOB_KEYS);
-
-    async function testMySQLConnection() {
-      if (!ERP_DB_GAS_URL || ERP_DB_GAS_URL.indexOf('PASTE_YOUR') === 0) {
-        showDataMsg('syncStatus', 'error', 'আগে ERP_DB_GAS_URL সেট করো (Apps Script deploy করার পর যে URL পাবে)।');
-        updateMysqlIndicator(false);
-        return;
-      }
-      try {
-        var res = await fetch(ERP_DB_GAS_URL + '?key=erp_pr_records');
-        if (res.ok) {
-          _mysqlReady = true;
-          showDataMsg('syncStatus', 'success', '✅ Google Sheets database reachable!');
-          updateMysqlIndicator(true);
-        } else {
-          _mysqlReady = false;
-          showDataMsg('syncStatus', 'error', 'API responded with status ' + res.status);
-          updateMysqlIndicator(false);
-        }
-      } catch (e) {
-        _mysqlReady = false;
-        showDataMsg('syncStatus', 'error', 'Cannot reach database: ' + e.message);
-        updateMysqlIndicator(false);
-      }
-    }
-
-    function updateMysqlIndicator(ok) {
-      var el = document.getElementById('mysqlSyncIndicator');
-      if (!el) return;
-      el.textContent = ok ? '📊 Sheets DB: Connected' : '📊 Sheets DB: Offline';
-      el.style.color = ok ? '#22c55e' : '#ef4444';
-    }
-
-    // fetch() POST কে ERP_DB_GAS_URL এ পাঠানোর সময় সবসময় text/plain ব্যবহার করা হয়
-    // (application/json দিলে browser একটা preflight OPTIONS request পাঠায়, যেটা Apps
-    // Script handle করতে পারে না, ফলে CORS error আসে)। সার্ভার সাইডে (Code.gs) তবুও
-    // e.postData.contents কে JSON.parse() করে নেওয়া হয় — তাই ডেটা ঠিকই JSON থাকে।
-    async function gasPost_(bodyObj) {
-      return fetch(ERP_DB_GAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(bodyObj)
-      });
-    }
-
-    var _mysqlPendingDiff = {}; // key -> { updates: {ref: dataStr}, deletes: Set }
-
-    // RECORD_KEYS: diff old vs new dict, batch the changed/added/removed records,
-    // flush one request per key after the debounce.
-    // BLOB_KEYS: sync the whole value (serial counters, logs) — unchanged behavior.
-    function saveKeyToMySQL(key, oldValStr, newValStr) {
-      if (MYSQL_SYNC_KEYS.indexOf(key) === -1) return;
-      clearTimeout(_mysqlSyncTimers[key]);
-
-      if (MYSQL_RECORD_KEYS.indexOf(key) !== -1) {
-        try {
-          var oldObj = oldValStr ? JSON.parse(oldValStr) : {};
-          var newObj = newValStr ? JSON.parse(newValStr) : {};
-        } catch (e) {
-          oldObj = {}; newObj = {};
-        }
-        if (!_mysqlPendingDiff[key]) _mysqlPendingDiff[key] = { updates: {}, deletes: {} };
-        var pending = _mysqlPendingDiff[key];
-
-        Object.keys(newObj).forEach(function(ref) {
-          var oldStr = oldObj[ref] !== undefined ? JSON.stringify(oldObj[ref]) : undefined;
-          var newStr = JSON.stringify(newObj[ref]);
-          if (oldStr !== newStr) {
-            pending.updates[ref] = newStr;
-            delete pending.deletes[ref];
-          }
-        });
-        Object.keys(oldObj).forEach(function(ref) {
-          if (newObj[ref] === undefined) {
-            pending.deletes[ref] = true;
-            delete pending.updates[ref];
-          }
-        });
-
-        _mysqlSyncTimers[key] = setTimeout(async function() {
-          var toSend = _mysqlPendingDiff[key];
-          delete _mysqlPendingDiff[key];
-          if (!toSend || (!Object.keys(toSend.updates).length && !Object.keys(toSend.deletes).length)) return;
-          try {
-            await gasPost_({
-              key: key,
-              updates: toSend.updates,
-              deletes: Object.keys(toSend.deletes)
-            });
-          } catch (e) {
-            console.error('saveKeyToMySQL (record diff) error:', key, e);
-          }
-        }, 800);
-        return;
-      }
-
-      // BLOB_KEYS: whole-value sync (serial counters, logs)
-      _mysqlSyncTimers[key] = setTimeout(async function() {
-        try {
-          var val = _origGetItem.call(localStorage, key);
-          if (val === null) return;
-          await gasPost_({ key: key, data: val });
-        } catch (e) {
-          console.error('saveKeyToMySQL (blob) error:', key, e);
-        }
-      }, 800);
-    }
-
-    // Manual: push EVERY module's current localStorage data to Sheets in one request
-    async function syncAllToMySQL() {
-      showDataMsg('syncStatus', 'info', 'Syncing all modules to Google Sheets...');
-      var payload = {};
-      MYSQL_SYNC_KEYS.forEach(function(key) {
-        var val = _origGetItem.call(localStorage, key);
-        if (val !== null) payload[key] = val;
-      });
-      try {
-        var res = await gasPost_({ bulk: true, payload: payload });
-        var json = await res.json();
-        if (json.success) {
-          _mysqlReady = true;
-          updateMysqlIndicator(true);
-          showDataMsg('syncStatus', 'success', '✅ Synced ' + json.saved + ' module(s) to Google Sheets.');
-        } else {
-          showDataMsg('syncStatus', 'error', 'Sync failed: ' + (json.error || 'unknown error'));
-        }
-      } catch (e) {
-        showDataMsg('syncStatus', 'error', 'Sync failed: ' + e.message);
-      }
-    }
-
-    // Pull ALL modules' data from Sheets into localStorage (used at login & manual "Load")
-    async function loadAllFromMySQL(callback) {
-      if (!ERP_DB_GAS_URL || ERP_DB_GAS_URL.indexOf('PASTE_YOUR') === 0) {
-        if (callback) callback(false);
-        return;
-      }
-      try {
-        var res = await fetch(ERP_DB_GAS_URL);
-        if (!res.ok) throw new Error('status ' + res.status);
-        var cloudData = await res.json();
-        _mysqlReady = true;
-        updateMysqlIndicator(true);
-        Object.keys(cloudData).forEach(function(key) {
-          if (MYSQL_SYNC_KEYS.indexOf(key) === -1) return;
-          _ignoreFirebaseUpdate = true; // reuse the same "don't re-trigger sync" flag
-          _origSetItem.call(localStorage, key, cloudData[key]);
-          _ignoreFirebaseUpdate = false;
-        });
-        if (callback) callback(true);
-      } catch (e) {
-        _mysqlReady = false;
-        updateMysqlIndicator(false);
-        console.warn('loadAllFromMySQL: could not reach Google Sheets database, staying on local data.', e);
-        if (callback) callback(false);
-      }
-    }
 
     // This is a DIFFERENT spreadsheet from the one GAS_WEB_APP_URL (below) points to.
     // 1) Google Sheet এ একটা নতুন/আলাদা "FICO" স্প্রেডশিট বানান (বা খুলুন)
@@ -11468,13 +11149,28 @@
     const SD_GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbynf9zzBkFhnKbuUwzVGsiDicQ7_PIt5rbXHysJso4tk_NC9k2Q6FNHU_qXgpxN_fitZA/exec'; // SD Google Sheet deployment URL
 
     var SD_SHEET_SYNC_KEYS = [
-      'erp_sdcustomer_records'
+      'erp_sdcustomer_records',
+      'erp_sdso_records', 'erp_sddn_records', 'erp_sdinv_records', 'erp_sdamd_records',
+      'erp_sdapr_records', 'erp_sdcm_records', 'erp_sddm_records', 'erp_sdra_records',
+      'erp_sdpick_records', 'erp_sdpack_records', 'erp_sdsr_records', 'erp_sdtarget_records'
     ];
 
     // erp_sdcustomer_records -> "Customer" tab (unlike the FICO auto-naming,
     // SD tab names are given explicitly here for friendlier sheet-tab names).
     var SD_SHEET_TAB_MAP = {
-      erp_sdcustomer_records: 'Customer'
+      erp_sdcustomer_records: 'Customer',
+      erp_sdso_records: 'SalesOrder',
+      erp_sddn_records: 'DeliveryNote',
+      erp_sdinv_records: 'Invoice',
+      erp_sdamd_records: 'Amendment',
+      erp_sdapr_records: 'Approval',
+      erp_sdcm_records: 'CreditMemo',
+      erp_sddm_records: 'DebitMemo',
+      erp_sdra_records: 'ReturnAuthorization',
+      erp_sdpick_records: 'Picking',
+      erp_sdpack_records: 'Packing',
+      erp_sdsr_records: 'SalesReturn',
+      erp_sdtarget_records: 'Target'
     };
 
     function isSdSheetSyncKey(key) {
@@ -11545,12 +11241,32 @@
     const MFG_GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzjkXyemncL9asg7jEGfKmVh-haWExmkxIf3QxodCeMwKR6I385EurM87dv6ToEK8WR/exec'; // MFG Google Sheet deployment URL
 
     var MFG_SHEET_SYNC_KEYS = [
-      'erp_mfgpo_records'
+      'erp_mfgpo_records',
+      'erp_mfgbom_records', 'erp_mfgrouting_records', 'erp_mfgmrp_records', 'erp_mfgcap_records',
+      'erp_mfgwoc_records', 'erp_mfgwor_records', 'erp_mfgwoco_records', 'erp_mfgmachine_records',
+      'erp_mfgshift_records', 'erp_mfgdowntime_records', 'erp_mfgqcip_records', 'erp_mfgqcf_records',
+      'erp_mfgrework_records', 'erp_mfgpmt_records', 'erp_mfgbmt_records', 'erp_mfgspare_records'
     ];
 
     // erp_mfgpo_records -> "ProductionOrder" tab
     var MFG_SHEET_TAB_MAP = {
-      erp_mfgpo_records: 'ProductionOrder'
+      erp_mfgpo_records: 'ProductionOrder',
+      erp_mfgbom_records: 'BOM',
+      erp_mfgrouting_records: 'Routing',
+      erp_mfgmrp_records: 'MRP',
+      erp_mfgcap_records: 'CapacityPlanning',
+      erp_mfgwoc_records: 'WorkOrder',
+      erp_mfgwor_records: 'WorkOrderRelease',
+      erp_mfgwoco_records: 'WorkOrderCompletion',
+      erp_mfgmachine_records: 'Machine',
+      erp_mfgshift_records: 'Shift',
+      erp_mfgdowntime_records: 'Downtime',
+      erp_mfgqcip_records: 'QCInProcess',
+      erp_mfgqcf_records: 'QCFinal',
+      erp_mfgrework_records: 'Rework',
+      erp_mfgpmt_records: 'PreventiveMaintenance',
+      erp_mfgbmt_records: 'BreakdownMaintenance',
+      erp_mfgspare_records: 'SpareParts'
     };
 
     function isMfgSheetSyncKey(key) {
@@ -11630,6 +11346,187 @@
       }).catch(function(err) {
         showDataMsg('mfgSheetSyncStatus', 'error', 'Google Sheet error: ' + err.message);
       });
+    }
+
+    // =====================================================================
+    // ===== HR module data -> its OWN, SEPARATE Google Sheet =====
+    // MM/FICO/SD/MFG এর ঠিক একই "bulkSync" প্যাটার্ন, নিজস্ব আলাদা স্প্রেডশিটে।
+    // Employee, Attendance, Leave, Recruitment, Payroll, Performance, Training —
+    // HR মেনুর প্রতিটা sub-module সেভ হলেই স্বয়ংক্রিয়ভাবে এখানে push হবে।
+    // 1) একটা নতুন/আলাদা "HR" স্প্রেডশিট বানান (বা খুলুন)
+    // 2) Extensions -> Apps Script -> সাথের Code.gs কোড পেস্ট করুন (একই bulkSync handler, MFG এর মতোই)
+    // 3) Deploy -> New deployment -> Web app -> Execute as: Me, Who has access: Anyone
+    // 4) সেই আলাদা HR স্প্রেডশিটের Web app URL নিচে PASTE করুন
+    const HR_GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby4MmxiiLjVvAjaNkx-SlYqBjfW-0TGtMWPqHyvss9YrooyomxTOrLz5IiCPO5uYeVG/exec'; // HR Google Sheet deployment URL
+
+    var HR_SHEET_SYNC_KEYS = [
+      'erp_emp_records',
+      'erp_onboarding_records',
+      'erp_emp_transfer_records',
+      'erp_attendance_records',
+      'erp_leave_records',
+      'erp_jobposting_records',
+      'erp_candidate_records',
+      'erp_interview_records',
+      'erp_salstruct_records',
+      'erp_payrun_records',
+      'erp_payslip_records',
+      'erp_kpi_records',
+      'erp_appraisal_records',
+      'erp_perfreview_records',
+      'erp_trcal_records',
+      'erp_trenr_records',
+      'erp_trfb_records'
+    ];
+
+    // module key -> friendly Sheet tab name
+    var HR_SHEET_TAB_MAP = {
+      erp_emp_records: 'Employee',
+      erp_onboarding_records: 'Onboarding',
+      erp_emp_transfer_records: 'EmployeeTransfer',
+      erp_attendance_records: 'Attendance',
+      erp_leave_records: 'Leave',
+      erp_jobposting_records: 'JobPosting',
+      erp_candidate_records: 'Candidate',
+      erp_interview_records: 'Interview',
+      erp_salstruct_records: 'SalaryStructure',
+      erp_payrun_records: 'PayRun',
+      erp_payslip_records: 'Payslip',
+      erp_kpi_records: 'KPI',
+      erp_appraisal_records: 'Appraisal',
+      erp_perfreview_records: 'PerformanceReview',
+      erp_trcal_records: 'TrainingCalendar',
+      erp_trenr_records: 'TrainingEnrollment',
+      erp_trfb_records: 'TrainingFeedback'
+    };
+
+    function isHrSheetSyncKey(key) {
+      return HR_SHEET_SYNC_KEYS.indexOf(key) !== -1;
+    }
+
+    function hrSheetTabNameForKey(key) {
+      return HR_SHEET_TAB_MAP[key] || key.replace(/^erp_/, '').replace(/_records$|_transactions$/, '').toUpperCase();
+    }
+
+    var _hrSheetSyncTimers = {};
+    function pushHrModuleToGoogleSheet(key) {
+      if (!HR_GAS_WEB_APP_URL || HR_GAS_WEB_APP_URL === '#' || HR_GAS_WEB_APP_URL.indexOf('PASTE_') === 0) return;
+      var raw = _origGetItem.call(localStorage, key);
+      var parsed;
+      try { parsed = JSON.parse(raw || '{}'); } catch (e) { return; }
+      var rows = Array.isArray(parsed) ? parsed : Object.keys(parsed).map(function(k) { return parsed[k]; });
+      var tab = hrSheetTabNameForKey(key);
+      fetch(HR_GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'bulkSync', form: tab, rows: rows })
+      }).then(function(res) {
+        if (!res.ok) console.warn('HR Google Sheet bulk sync HTTP ' + res.status + ' for ' + tab);
+      }).catch(function(err) {
+        console.warn('HR Google Sheet bulk sync failed for ' + tab + ':', err);
+      });
+    }
+
+    function manualSyncAllToHrGoogleSheet() {
+      if (!HR_GAS_WEB_APP_URL || HR_GAS_WEB_APP_URL === '#' || HR_GAS_WEB_APP_URL.indexOf('PASTE_') === 0) {
+        showDataMsg('hrSheetSyncStatus', 'error', 'HR Google Sheet URL not configured (HR_GAS_WEB_APP_URL).');
+        return;
+      }
+      showDataMsg('hrSheetSyncStatus', 'info', 'Pushing all HR module data to Google Sheet...');
+      HR_SHEET_SYNC_KEYS.forEach(function(key) { pushHrModuleToGoogleSheet(key); });
+      setTimeout(function() {
+        showDataMsg('hrSheetSyncStatus', 'success', HR_SHEET_SYNC_KEYS.length + ' module(s) pushed to Google Sheet — check your Sheet tabs.');
+      }, 1500);
+    }
+
+    function testHrGoogleSheetConnection() {
+      if (!HR_GAS_WEB_APP_URL || HR_GAS_WEB_APP_URL === '#' || HR_GAS_WEB_APP_URL.indexOf('PASTE_') === 0) {
+        showDataMsg('hrSheetSyncStatus', 'error', 'HR Google Sheet URL not configured (HR_GAS_WEB_APP_URL).');
+        return;
+      }
+      showDataMsg('hrSheetSyncStatus', 'info', 'Testing Google Sheet connection...');
+      fetch(HR_GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'bulkSync', form: '_CONNECTION_TEST', rows: [{ timestamp: new Date().toISOString(), message: 'Connection OK' }] })
+      }).then(function(res) {
+        if (res.ok) showDataMsg('hrSheetSyncStatus', 'success', 'Google Sheet connection OK! Check the "_CONNECTION_TEST" tab.');
+        else showDataMsg('hrSheetSyncStatus', 'error', 'Google Sheet responded with HTTP ' + res.status + '.');
+      }).catch(function(err) {
+        showDataMsg('hrSheetSyncStatus', 'error', 'Google Sheet error: ' + err.message);
+      });
+    }
+
+    // =====================================================================
+    // ===== MM (Material Management) — remaining sub-modules -> SAME MM Sheet =====
+    // PR/RFQ/CS/PO/Gate In/Weight ইতিমধ্যে GAS_WEB_APP_URL দিয়ে (তাদের নিজস্ব
+    // per-submit পদ্ধতিতে) সেই MM স্প্রেডশিটে যাচ্ছে। বাকি MM sub-module
+    // (GRN, QC1/QC2, Stock, STR/TO/SR/MI/MR/STN, Vendor/Unit) এখানে একই
+    // GAS_WEB_APP_URL (একই MM স্প্রেডশিট) ব্যবহার করে, কিন্তু bulkSync
+    // প্যাটার্নে (FICO/SD/MFG/HR এর মতোই) নতুন ট্যাব হিসেবে যোগ হবে।
+    // ⚠️ যদি তোমার MM স্প্রেডশিটের Apps Script-এ এখনো 'bulkSync' action
+    // হ্যান্ডেল করার কোড না থাকে, তাহলে সেই Code.gs তে doPost() ফাংশনে
+    // MFG/HR এর Code.gs থেকে handleBulkSync_() ফাংশনটা যোগ করে দিতে হবে।
+    var MM_SHEET_SYNC_KEYS = [
+      'erp_grn_records', 'erp_qc1_records', 'erp_qc2_records',
+      'erp_stock_records', 'erp_stock_transactions', 'erp_vu_records',
+      'erp_go_records', 'erp_mi_records', 'erp_mr_records',
+      'erp_sr_records', 'erp_stn_records', 'erp_str_records', 'erp_to_records'
+    ];
+
+    var MM_SHEET_TAB_MAP = {
+      erp_grn_records: 'GRN',
+      erp_qc1_records: 'QC1',
+      erp_qc2_records: 'QC2',
+      erp_stock_records: 'Stock',
+      erp_stock_transactions: 'StockTransactions',
+      erp_vu_records: 'VendorUnit',
+      erp_go_records: 'GoodsOutward',
+      erp_mi_records: 'MaterialIssue',
+      erp_mr_records: 'MaterialReturn',
+      erp_sr_records: 'StoreRequisition',
+      erp_stn_records: 'StockTransferNote',
+      erp_str_records: 'StockTransferRequisition',
+      erp_to_records: 'TransferOrder'
+    };
+
+    function isMmSheetSyncKey(key) {
+      return MM_SHEET_SYNC_KEYS.indexOf(key) !== -1;
+    }
+
+    function mmSheetTabNameForKey(key) {
+      return MM_SHEET_TAB_MAP[key] || key.replace(/^erp_/, '').replace(/_records$|_transactions$/, '').toUpperCase();
+    }
+
+    var _mmSheetSyncTimers = {};
+    function pushMmModuleToGoogleSheet(key) {
+      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL === '#' || GAS_WEB_APP_URL.indexOf('PASTE_') === 0) return;
+      var raw = _origGetItem.call(localStorage, key);
+      var parsed;
+      try { parsed = JSON.parse(raw || (key === 'erp_stock_transactions' ? '[]' : '{}')); } catch (e) { return; }
+      var rows = Array.isArray(parsed) ? parsed : Object.keys(parsed).map(function(k) { return parsed[k]; });
+      var tab = mmSheetTabNameForKey(key);
+      fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'bulkSync', form: tab, rows: rows })
+      }).then(function(res) {
+        if (!res.ok) console.warn('MM Google Sheet bulk sync HTTP ' + res.status + ' for ' + tab);
+      }).catch(function(err) {
+        console.warn('MM Google Sheet bulk sync failed for ' + tab + ':', err);
+      });
+    }
+
+    function manualSyncAllToMmGoogleSheet() {
+      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL === '#' || GAS_WEB_APP_URL.indexOf('PASTE_') === 0) {
+        showDataMsg('mmSheetSyncStatus', 'error', 'MM Google Sheet URL not configured (GAS_WEB_APP_URL).');
+        return;
+      }
+      showDataMsg('mmSheetSyncStatus', 'info', 'Pushing remaining MM module data to Google Sheet...');
+      MM_SHEET_SYNC_KEYS.forEach(function(key) { pushMmModuleToGoogleSheet(key); });
+      setTimeout(function() {
+        showDataMsg('mmSheetSyncStatus', 'success', MM_SHEET_SYNC_KEYS.length + ' module(s) pushed to Google Sheet — check your MM Sheet tabs.');
+      }, 1500);
     }
 
     // ===== USER DATABASE WITH USER-ID BASED PERMISSIONS =====
@@ -12268,11 +12165,6 @@
 
       errorEl.classList.remove('show');
       currentUser = user;
-
-      // Load shared company data from local MySQL server (XAMPP) — runs in parallel,
-      // does not block login; if the MySQL server isn't reachable the app keeps
-      // working normally on whatever data is already in localStorage.
-      loadAllFromMySQL();
 
       // Load data from Firebase cloud
       loadFromFirebase(function() {
@@ -33310,12 +33202,7 @@
       if (currentUser && db) {
         db.ref('users/' + currentUser.id + '/data').remove();
       }
-      if (typeof MYSQL_SYNC_KEYS !== 'undefined') {
-        MYSQL_SYNC_KEYS.forEach(function(key) {
-          gasPost_({ action: 'delete', key: key }).catch(function(){});
-        });
-      }
-      showDataMsg('importStatus', 'info', 'All data has been reset (local + cloud + MySQL). Please refresh the page.');
+      showDataMsg('importStatus', 'info', 'All data has been reset (local + cloud). Please refresh the page.');
     }
 
     // ===== Manual Cloud Sync Functions =====
