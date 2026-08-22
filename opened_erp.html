@@ -25504,8 +25504,9 @@
       if (current) sel.value = current;
     }
 
-    // Account Name dropdown lists the same Sub Accounts (scoped to the chosen Main Account)
-    // but shows the name as the visible text, so the line can be picked by name instead of code.
+    // Account Name dropdown lists the same Sub Accounts (scoped to the chosen Main Account),
+    // showing just the name as visible text — lets the line be picked by name instead of code.
+    // Kept in sync with the Sub Account dropdown (selecting either updates the other).
     function jeFillAccountNameSelect(sel, mainAccount) {
       if (!sel) return;
       var current = sel.value;
