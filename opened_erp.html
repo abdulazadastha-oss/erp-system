@@ -2757,8 +2757,6 @@
           <a href="#">📒 General Ledger ▾</a>
           <div class="dropdown" data-parent="fico_gl">
             <a href="#" data-sub="fico_coa" onclick="event.preventDefault(); openCoaList(); return false;"><span class="arrow">▶</span> Chart of Accounts</a>
-            <a href="#" data-sub="fico_main_account" onclick="event.preventDefault(); openMainAccList(); return false;"><span class="arrow">▶</span> Main Account Master</a>
-            <a href="#" data-sub="fico_sub_account" onclick="event.preventDefault(); openSubAccList(); return false;"><span class="arrow">▶</span> Sub Account Master</a>
             <a href="#" data-sub="fico_journal_entry" onclick="event.preventDefault(); openJeList(); return false;"><span class="arrow">▶</span> Journal Entry</a>
             <a href="#" data-sub="fico_gl_posting" onclick="event.preventDefault(); openGlPosting(); return false;"><span class="arrow">▶</span> GL Posting</a>
           </div>
@@ -2997,6 +2995,7 @@
             <a href="#" data-sub="hr_employee_master" onclick="event.preventDefault(); openEmpList(); return false;"><span class="arrow">▶</span> Employee Master</a>
             <a href="#" data-sub="hr_onboarding" onclick="event.preventDefault(); openOnboardList(); return false;"><span class="arrow">▶</span> Employee Onboarding</a>
             <a href="#" data-sub="hr_transfer" onclick="event.preventDefault(); openEtList(); return false;"><span class="arrow">▶</span> Employee Transfer</a>
+            <a href="#" data-sub="hr_erp_setup" onclick="event.preventDefault(); openErpSetupList(); return false;"><span class="arrow">▶</span> Employee ERP Setup</a>
           </div>
         </div>
         <!-- Attendance -->
@@ -7821,134 +7820,6 @@
     </div>
   </div>
 
-  <!-- ===================== FICO: Main Account Master List View ===================== -->
-  <div class="pr-list-overlay" id="mainAccListOverlay" onclick="if(event.target===this) closeMainAccList()">
-    <div class="pr-list-outer">
-      <div class="pr-list-header">
-        <h2>🗂 Main Account Master</h2>
-        <div class="pr-list-actions">
-          <button class="pr-add-btn" onclick="openMainAccFormFromList()">➕ Add Main Account</button>
-          <button class="pr-close-list-btn" onclick="closeMainAccList()">X</button>
-        </div>
-      </div>
-      <div class="pr-search-row">
-        <input type="text" id="mainAccSearchInput" placeholder="🔍 Search by Code, Name..." oninput="filterMainAccList()">
-      </div>
-      <div class="pr-table-wrap">
-        <table class="pr-table">
-          <thead>
-            <tr>
-              <th>SL#</th><th>Main Account Code</th><th>Main Account Name</th><th>Status</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="mainAccTableBody"></tbody>
-        </table>
-        <div class="pr-empty-msg" id="mainAccEmptyMsg">
-          <span>🗂</span>
-          No Main Account found.<br>Click "Add Main Account" to create one.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== FICO: Main Account Master Form ===================== -->
-  <div class="weight-modal-overlay" id="mainAccFormOverlay" onclick="if(event.target===this) closeMainAccForm()">
-    <div class="erp-form-outer">
-      <div class="erp-form-titlebar"><h2>🗂 Main Account Master</h2></div>
-      <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Main Account Information (1)</span></div>
-      <div class="erp-form-card">
-        <div class="erp-form-header">
-          <span>Main Account Master [Insert mode]</span>
-          <button type="button" class="erp-close-btn" onclick="closeMainAccForm()">X</button>
-        </div>
-        <form id="mainAccForm" onsubmit="return submitMainAccForm(event)">
-          <div class="erp-form-body">
-            <div class="erp-field-grid">
-              <div class="erp-field"><div class="erp-field-label-row"><label for="ma_code">Main Account Code</label><span class="erp-info-icon">i</span></div><input type="text" id="ma_code" required="" style="font-weight:700; color:#2563eb;"></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="ma_name">Main Account Name</label><span class="erp-info-icon">i</span></div><input type="text" id="ma_name" required=""></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="ma_status">Status</label><span class="erp-info-icon">i</span></div><select id="ma_status"><option value="Active">Active</option><option value="Blocked">Blocked</option></select></div>
-            </div>
-            <div class="erp-form-messages">
-              <div class="error-msg" id="mainAccFormError"></div>
-              <div class="success-msg" id="mainAccFormSuccess"></div>
-            </div>
-          </div>
-          <div class="erp-form-actions">
-            <button type="button" class="erp-btn erp-btn-show-message" onclick="showGenericMessage('mainAccFormError','mainAccFormSuccess')">Show Message</button>
-            <button type="submit" class="erp-btn erp-btn-update">💾 Save</button>
-            <button type="button" class="erp-btn erp-btn-exit" onclick="closeMainAccForm()">Exit</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== FICO: Sub Account Master List View ===================== -->
-  <div class="pr-list-overlay" id="subAccListOverlay" onclick="if(event.target===this) closeSubAccList()">
-    <div class="pr-list-outer">
-      <div class="pr-list-header">
-        <h2>🗃 Sub Account Master</h2>
-        <div class="pr-list-actions">
-          <button class="pr-add-btn" onclick="openSubAccFormFromList()">➕ Add Sub Account</button>
-          <button class="pr-close-list-btn" onclick="closeSubAccList()">X</button>
-        </div>
-      </div>
-      <div class="pr-search-row">
-        <input type="text" id="subAccSearchInput" placeholder="🔍 Search by Code, Name..." oninput="filterSubAccList()">
-        <select id="subAccMainFilter" onchange="filterSubAccList()">
-          <option value="">All Main Accounts</option>
-        </select>
-      </div>
-      <div class="pr-table-wrap">
-        <table class="pr-table">
-          <thead>
-            <tr>
-              <th>SL#</th><th>Sub Account Code</th><th>Sub Account Name</th><th>Main Account</th><th>Status</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="subAccTableBody"></tbody>
-        </table>
-        <div class="pr-empty-msg" id="subAccEmptyMsg">
-          <span>🗃</span>
-          No Sub Account found.<br>Click "Add Sub Account" to create one.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== FICO: Sub Account Master Form ===================== -->
-  <div class="weight-modal-overlay" id="subAccFormOverlay" onclick="if(event.target===this) closeSubAccForm()">
-    <div class="erp-form-outer">
-      <div class="erp-form-titlebar"><h2>🗃 Sub Account Master</h2></div>
-      <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Sub Account Information (1)</span></div>
-      <div class="erp-form-card">
-        <div class="erp-form-header">
-          <span>Sub Account Master [Insert mode]</span>
-          <button type="button" class="erp-close-btn" onclick="closeSubAccForm()">X</button>
-        </div>
-        <form id="subAccForm" onsubmit="return submitSubAccForm(event)">
-          <div class="erp-form-body">
-            <div class="erp-field-grid">
-              <div class="erp-field"><div class="erp-field-label-row"><label for="sa_main_account">Main Account</label><span class="erp-info-icon">i</span></div><select id="sa_main_account" required=""><option value="">-- Select Main Account --</option></select></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="sa_code">Sub Account Code</label><span class="erp-info-icon">i</span></div><input type="text" id="sa_code" required="" style="font-weight:700; color:#2563eb;"></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="sa_name">Sub Account Name</label><span class="erp-info-icon">i</span></div><input type="text" id="sa_name" required=""></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="sa_status">Status</label><span class="erp-info-icon">i</span></div><select id="sa_status"><option value="Active">Active</option><option value="Blocked">Blocked</option></select></div>
-            </div>
-            <div class="erp-form-messages">
-              <div class="error-msg" id="subAccFormError"></div>
-              <div class="success-msg" id="subAccFormSuccess"></div>
-            </div>
-          </div>
-          <div class="erp-form-actions">
-            <button type="button" class="erp-btn erp-btn-show-message" onclick="showGenericMessage('subAccFormError','subAccFormSuccess')">Show Message</button>
-            <button type="submit" class="erp-btn erp-btn-update">💾 Save</button>
-            <button type="button" class="erp-btn erp-btn-exit" onclick="closeSubAccForm()">Exit</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
   <!-- ===================== FICO: Journal Entry List View ===================== -->
   <div class="pr-list-overlay" id="jeListOverlay" onclick="if(event.target===this) closeJeList()">
     <div class="pr-list-outer">
@@ -8022,19 +7893,19 @@
                 <table class="pr-items-table">
                   <thead>
                     <tr>
-                      <th>Line No.</th><th>Main Account</th><th>Sub Account</th><th>Account Name</th><th>Debit</th><th>Credit</th><th>Narration</th><th></th>
+                      <th>Line No.</th><th>GL Account</th><th>Account Name</th><th>Debit</th><th>Credit</th><th>Narration</th><th></th>
                     </tr>
                   </thead>
                   <tbody id="jeItemsBody"></tbody>
                   <tfoot>
                     <tr>
-                      <td colspan="4" style="text-align:right; font-weight:700;">Total:</td>
+                      <td colspan="3" style="text-align:right; font-weight:700;">Total:</td>
                       <td id="jeTotalDebit" style="font-weight:700;">0.00</td>
                       <td id="jeTotalCredit" style="font-weight:700;">0.00</td>
                       <td colspan="2"></td>
                     </tr>
                     <tr>
-                      <td colspan="4" style="text-align:right; font-weight:700;">Difference (Dr - Cr):</td>
+                      <td colspan="3" style="text-align:right; font-weight:700;">Difference (Dr - Cr):</td>
                       <td colspan="2" id="jeDifference" style="font-weight:700;">0.00</td>
                       <td colspan="2"></td>
                     </tr>
@@ -9615,6 +9486,84 @@
     </div>
   </div>
 
+  <!-- ===================== HR: Employee ERP Setup List View ===================== -->
+  <div class="pr-list-overlay" id="erpSetupListOverlay" onclick="if(event.target===this) closeErpSetupList()">
+    <div class="pr-list-outer">
+      <div class="pr-list-header">
+        <h2>🔐 Employee ERP Setup</h2>
+        <button class="pr-list-close" onclick="closeErpSetupList()">✕</button>
+      </div>
+      <div class="pr-list-toolbar">
+        <input type="text" id="erpSetupSearchInput" placeholder="Search by employee, user ID, company..." oninput="renderErpSetupTable()">
+        <button class="erp-btn erp-btn-update" onclick="openErpSetupForm()">➕ New Access Setup</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="str-table">
+          <thead>
+            <tr>
+              <th>SL#</th><th>Employee</th><th>Login User ID</th><th>Company</th>
+              <th>BU</th><th>Workstation</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="erpSetupTableBody"></tbody>
+        </table>
+        <div id="erpSetupEmptyMsg" style="display:none; text-align:center; padding:30px; color:#94a3b8;">No access setup records yet. Click "New Access Setup" to add one.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== HR: Employee ERP Setup Form ===================== -->
+  <div class="pr-list-overlay" id="erpSetupFormOverlay" onclick="if(event.target===this) closeErpSetupForm()">
+    <div class="pr-list-outer" style="max-width:920px;">
+      <div class="pr-list-header">
+        <h2 id="erpSetupFormTitle">🔐 New Employee ERP Access Setup</h2>
+        <button class="pr-list-close" onclick="closeErpSetupForm()">✕</button>
+      </div>
+      <div style="padding:20px; max-height:75vh; overflow-y:auto;">
+        <input type="hidden" id="erpsetup_original_userid">
+        <div id="erpSetupFormError" class="error-msg"></div>
+        <div id="erpSetupFormSuccess" class="success-msg"></div>
+
+        <div class="erp-field-grid">
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="erpsetup_employee">Employee</label><span class="erp-info-icon">i</span></div>
+            <select id="erpsetup_employee" required onchange="onErpSetupEmployeeChange()"><option value="">-- Select Employee --</option></select>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="erpsetup_userid">Login User ID</label><span class="erp-info-icon">i</span></div>
+            <select id="erpsetup_userid" required><option value="">-- Select Login User ID --</option></select>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="erpsetup_company">Company</label><span class="erp-info-icon">i</span></div>
+            <select id="erpsetup_company" class="org-company-select" onchange="onErpSetupCompanyChange()"><option value="">-- Select Company --</option></select>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="erpsetup_bu">Business Unit</label><span class="erp-info-icon">i</span></div>
+            <select id="erpsetup_bu" onchange="onErpSetupBuChange()"><option value="">-- Select BU --</option></select>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="erpsetup_pc">Profit Center</label><span class="erp-info-icon">i</span></div>
+            <select id="erpsetup_pc"><option value="">-- Select Profit Center --</option></select>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="erpsetup_workstation">Workstation</label><span class="erp-info-icon">i</span></div>
+            <input type="text" id="erpsetup_workstation" placeholder="e.g. PC-Store-01 / Counter-3">
+          </div>
+        </div>
+
+        <h4 style="margin:20px 0 8px; font-size:0.92rem; color:#1e293b;">ERP Module, Menu &amp; Submenu Access</h4>
+        <p style="font-size:0.78rem; color:#64748b; margin-bottom:10px;">যা যা টিক দেবে, লগইন করার পর সেই employee শুধু সেগুলোই দেখতে/ব্যবহার করতে পারবে। একটা Module-এর checkbox uncheck করলে পুরো module-ই হাইড হয়ে যাবে।</p>
+        <div id="erpSetupAccessTree" style="border:1px solid #e2e8f0; border-radius:6px; padding:12px; max-height:340px; overflow-y:auto; background:#f8fafc;"></div>
+
+        <div class="erp-form-actions" style="margin-top:18px;">
+          <button type="button" class="erp-btn erp-btn-update" onclick="saveErpSetupForm()">💾 Save</button>
+          <button type="button" class="erp-btn erp-btn-exit" onclick="closeErpSetupForm()">Exit</button>
+          <button type="button" id="erpSetupDeleteBtn" class="erp-btn" style="display:none; background:#e74c3c;" onclick="deleteErpSetupFromForm()">🗑 Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== HR: Employee Transfer List View ===================== -->
   <div class="pr-list-overlay" id="empTransferListOverlay" onclick="if(event.target===this) closeEmpTransferList()">
     <div class="pr-list-outer">
@@ -11099,6 +11048,7 @@
       'erp_budget_alloc_records','erp_budget_alloc_serial',
       'erp_cost_alloc_records','erp_cost_alloc_serial',
       'erp_emp_records','erp_emp_serial',
+      'erp_erpsetup_records',
       'erp_onboarding_records','erp_onboarding_serial',
       'erp_emp_transfer_records','erp_emp_transfer_serial',
       'erp_attendance_records',
@@ -11487,6 +11437,7 @@
 
     var HR_SHEET_SYNC_KEYS = [
       'erp_emp_records',
+      'erp_erpsetup_records',
       'erp_onboarding_records',
       'erp_emp_transfer_records',
       'erp_attendance_records',
@@ -11508,6 +11459,7 @@
     // module key -> friendly Sheet tab name
     var HR_SHEET_TAB_MAP = {
       erp_emp_records: 'Employee',
+      erp_erpsetup_records: 'EmployeeErpSetup',
       erp_onboarding_records: 'Onboarding',
       erp_emp_transfer_records: 'EmployeeTransfer',
       erp_attendance_records: 'Attendance',
@@ -12316,6 +12268,16 @@
         subMenuConfig = { favorite: false };
         menuConfig = { home: true };
         moduleConfig = { ...DEFAULT_MODULE_CONFIG };
+      }
+
+      // HR > Employee > Employee ERP Setup: if this user has a saved access
+      // setup record, its module/menu/submenu choices win over the above
+      // (lets HR grant/restrict access per employee without touching code).
+      var erpSetupForThisUser = (typeof applyErpSetupOverride === 'function') ? applyErpSetupOverride(userId) : null;
+      if (erpSetupForThisUser) {
+        subMenuConfig = { ...subMenuConfig, ...(erpSetupForThisUser.subMenu || {}) };
+        menuConfig = { ...menuConfig, ...(erpSetupForThisUser.menu || {}) };
+        moduleConfig = { ...moduleConfig, ...(erpSetupForThisUser.modules || {}) };
       }
 
       // show dashboard
@@ -16757,20 +16719,14 @@
       });
     }
 
-    // Sales & Distribution module: menu/submenu UI is ready, screens are pending.
-    function sdComingSoon(featureName) {
-      alert('🚧 ' + featureName + '\n\nThis Sales & Distribution screen is coming soon — the menu structure is ready and the workflow will be built here next.');
-    }
+    // Sales & Distribution module: "Coming Soon" alerts removed per request — buttons now do nothing silently.
+    function sdComingSoon(featureName) {}
 
-    // FICO module: menu/submenu UI is ready, screens are pending.
-    function ficoComingSoon(featureName) {
-      alert('🚧 ' + featureName + '\n\nThis FICO screen is coming soon — the menu structure is ready and the workflow will be built here next.');
-    }
+    // FICO module: "Coming Soon" alerts removed per request — buttons now do nothing silently.
+    function ficoComingSoon(featureName) {}
 
-    // Manufacturing module: menu/submenu UI is ready, screens are pending.
-    function mfgComingSoon(featureName) {
-      alert('🚧 ' + featureName + '\n\nThis Manufacturing screen is coming soon — the menu structure is ready and the workflow will be built here next.');
-    }
+    // Manufacturing module: "Coming Soon" alerts removed per request — buttons now do nothing silently.
+    function mfgComingSoon(featureName) {}
 
     // ===================================================================
     // Manufacturing: Production Order / MRP Run / Capacity Planning
@@ -19168,10 +19124,8 @@
 
 
 
-    // HR module: menu/submenu UI is ready, screens are pending.
-    function hrComingSoon(featureName) {
-      alert('🚧 ' + featureName + '\n\nThis HR screen is coming soon — the menu structure is ready and the workflow will be built here next.');
-    }
+    // HR module: "Coming Soon" alerts removed per request — buttons now do nothing silently.
+    function hrComingSoon(featureName) {}
 
     // Called right after login: opens Materials Management by default,
     // or the user's first accessible module if MM isn't available to them.
@@ -19243,58 +19197,6 @@
         })
         .catch(function(err) {
           console.error('Failed to load Company/BU/Profit Center data from Google Sheet:', err);
-        });
-    }
-
-    // =====================================================================
-    // ===== FICO: Main Account / Sub Account — validated LIVE from the "Accounts" =====
-    // ===== tab of your FICO Google Sheet (same pattern as PR_ORG_SHEET_CSV_URL above) =====
-    // 1. FICO Google Sheet-এ একটা "Accounts" ট্যাব বানান, কলাম হবে (এই order-এ):
-    //    Main Account Code | Main Account Name | Sub Account Code | Sub Account Name
-    //    (একই Main Account-এর একাধিক Sub Account-এর জন্য একাধিক row দিন, Main Account
-    //    কলাম দুটো প্রতি row-এ রিপিট করে লিখুন — ঠিক PR_ORG শিটের মতো।)
-    // 2. File -> Share -> Publish to web -> ওই "Accounts" ট্যাব -> CSV -> Publish
-    // 3. পাবলিশড CSV লিংক নিচে PASTE_YOUR... জায়গায় বসান।
-    // Journal Entry Line-এর Main Account dropdown এই ডেটা থেকেই validate/populate হয়;
-    // Main Account সিলেক্ট করলে Sub Account + Account Name অটো-ফিল্টার/সিঙ্ক হয়ে যাবে।
-    var FICO_ACCOUNTS_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQdJfJqIgaxBJy-dnzRtJaNmnbNUQ59SyRj1-JalMCUHCrQpfOzi8TG1_No2oaXPJ19X1jI6cDlcxct/pub?gid=1817069517&single=true&output=csv';
-
-    var FICO_ACCOUNTS_DATA = { mainAccounts: [], mainNameMap: {}, subsByMain: {}, subNameMap: {}, subMainMap: {} };
-
-    function ficoBuildAccountsData(rows) {
-      var mainAccounts = [], mainNameMap = {}, subsByMain = {}, subNameMap = {}, subMainMap = {};
-      for (var i = 1; i < rows.length; i++) { // skip header row
-        var row = rows[i];
-        var mainCode = row[0], mainName = row[1], subCode = row[2], subName = row[3];
-        if (!mainCode) continue;
-        if (!mainNameMap[mainCode]) {
-          mainNameMap[mainCode] = mainName || mainCode;
-          mainAccounts.push({ code: mainCode, name: mainNameMap[mainCode] });
-          subsByMain[mainCode] = [];
-        }
-        if (subCode && !subNameMap[subCode]) {
-          subNameMap[subCode] = subName || subCode;
-          subMainMap[subCode] = mainCode;
-          subsByMain[mainCode].push({ code: subCode, name: subNameMap[subCode] });
-        }
-      }
-      return { mainAccounts: mainAccounts, mainNameMap: mainNameMap, subsByMain: subsByMain, subNameMap: subNameMap, subMainMap: subMainMap };
-    }
-
-    function loadFicoAccountsData() {
-      if (!FICO_ACCOUNTS_SHEET_CSV_URL || FICO_ACCOUNTS_SHEET_CSV_URL.indexOf('PASTE_YOUR') === 0) {
-        console.warn('FICO_ACCOUNTS_SHEET_CSV_URL not set yet — Journal Entry Main/Sub Account dropdowns will be empty.');
-        return;
-      }
-      fetch(FICO_ACCOUNTS_SHEET_CSV_URL)
-        .then(function(res) { return res.text(); })
-        .then(function(text) {
-          FICO_ACCOUNTS_DATA = ficoBuildAccountsData(prParseCsv(text));
-          // Refresh Main Account dropdowns already on screen (e.g. an open JE form)
-          document.querySelectorAll('.je-main-account-select').forEach(function(sel) { jeFillMainAccountSelect(sel); });
-        })
-        .catch(function(err) {
-          console.error('Failed to load Main/Sub Account data from FICO Google Sheet:', err);
         });
     }
 
@@ -20324,8 +20226,6 @@
       applyLinks();
       // Load Company/BU/Profit Center dropdown data for the PR form
       loadPrOrgData();
-      // Load Main Account / Sub Account data for Journal Entry, live from the FICO Google Sheet's "Accounts" tab
-      loadFicoAccountsData();
       // Load Item Group/Item Name/Item Code/UOM dropdown data for the PR form
       loadPrItemData();
       // Load Product/FG Name dropdown data for the Production Order form
@@ -23772,25 +23672,14 @@
         'po_vs_receive', 'qc_parameter'
       ];
 
-      // Create toast element
-      var toast = document.createElement('div');
-      toast.id = 'comingSoonToast';
-      toast.style.cssText = 'display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#1e293b; color:#fff; padding:12px 24px; border-radius:8px; font-size:0.85rem; font-weight:600; z-index:9999; box-shadow:0 4px 20px rgba(0,0,0,0.3); transition:opacity 0.3s;';
-      toast.textContent = '🚧 Coming Soon — Feature under development';
-      document.body.appendChild(toast);
-
+      // "Coming Soon" toast removed per request — clicking these menu items
+      // now does nothing (silently), instead of showing a notice.
       document.addEventListener('click', function(e) {
         var link = e.target.closest('a[data-sub]');
         if (!link) return;
         var sub = link.getAttribute('data-sub');
         if (comingSoonItems.indexOf(sub) !== -1) {
           e.preventDefault();
-          toast.style.display = 'block';
-          toast.style.opacity = '1';
-          setTimeout(function() {
-            toast.style.opacity = '0';
-            setTimeout(function() { toast.style.display = 'none'; }, 300);
-          }, 2500);
         }
       });
     })();
@@ -25178,232 +25067,6 @@
       return Object.keys(records).sort().map(function(code) { return records[code]; });
     }
 
-    // ===== FICO: MAIN ACCOUNT MASTER =====
-    function getAllMainAccRecords() {
-      var records = JSON.parse(localStorage.getItem('erp_main_account_records') || '{}');
-      return Object.keys(records).sort().map(function(code) { return records[code]; });
-    }
-
-    function openMainAccList() {
-      document.getElementById('mainAccSearchInput').value = '';
-      renderMainAccTable();
-      document.getElementById('mainAccListOverlay').classList.add('active');
-    }
-    function closeMainAccList() { document.getElementById('mainAccListOverlay').classList.remove('active'); }
-    function openMainAccFormFromList() { closeMainAccList(); setTimeout(function() { openMainAccForm(); }, 200); }
-
-    function openMainAccForm(code) {
-      var form = document.getElementById('mainAccForm');
-      form.reset();
-      document.getElementById('mainAccFormError').classList.remove('show');
-      document.getElementById('mainAccFormSuccess').classList.remove('show');
-
-      var isEdit = !!code;
-      var records = JSON.parse(localStorage.getItem('erp_main_account_records') || '{}');
-      var record = isEdit ? (records[code] || {}) : {};
-
-      document.getElementById('ma_code').dataset.isEdit = isEdit ? '1' : '';
-      document.getElementById('ma_code').value = isEdit ? code : '';
-      document.getElementById('ma_code').readOnly = isEdit;
-      document.getElementById('ma_name').value = record.name || '';
-      document.getElementById('ma_status').value = record.status || 'Active';
-
-      document.querySelector('#mainAccFormOverlay .erp-form-header span').textContent =
-        'Main Account Master [' + (isEdit ? 'Edit mode' : 'Insert mode') + ']';
-
-      document.getElementById('mainAccFormOverlay').classList.add('active');
-    }
-    function closeMainAccForm() { document.getElementById('mainAccFormOverlay').classList.remove('active'); }
-
-    function submitMainAccForm(e) {
-      e.preventDefault();
-      var errEl = document.getElementById('mainAccFormError');
-      var successEl = document.getElementById('mainAccFormSuccess');
-      errEl.classList.remove('show'); successEl.classList.remove('show');
-
-      var code = document.getElementById('ma_code').value.trim();
-      var name = document.getElementById('ma_name').value.trim();
-      if (!code || !name) {
-        errEl.textContent = '❌ Main Account Code and Main Account Name are required.';
-        errEl.classList.add('show');
-        return false;
-      }
-
-      var isEdit = document.getElementById('ma_code').readOnly;
-      var records = JSON.parse(localStorage.getItem('erp_main_account_records') || '{}');
-      if (!isEdit && records[code]) {
-        errEl.textContent = '❌ Main Account Code ' + code + ' already exists.';
-        errEl.classList.add('show');
-        return false;
-      }
-
-      records[code] = {
-        code: code,
-        name: name,
-        status: document.getElementById('ma_status').value
-      };
-      localStorage.setItem('erp_main_account_records', JSON.stringify(records));
-
-      successEl.textContent = '✅ Main Account saved! (Code: ' + code + ')';
-      successEl.classList.add('show');
-      setTimeout(closeMainAccForm, 1400);
-      return false;
-    }
-
-    function renderMainAccTable() {
-      var records = getAllMainAccRecords();
-      var search = document.getElementById('mainAccSearchInput').value.toLowerCase();
-      var filtered = records.filter(function(r) {
-        return !search ||
-          (r.code || '').toLowerCase().indexOf(search) !== -1 ||
-          (r.name || '').toLowerCase().indexOf(search) !== -1;
-      });
-
-      var tbody = document.getElementById('mainAccTableBody');
-      var emptyMsg = document.getElementById('mainAccEmptyMsg');
-      if (filtered.length === 0) { tbody.innerHTML = ''; emptyMsg.style.display = 'block'; return; }
-      emptyMsg.style.display = 'none';
-
-      tbody.innerHTML = filtered.map(function(r, i) {
-        return '<tr>' +
-          '<td>' + (i + 1) + '</td>' +
-          '<td><strong style="color:#2563eb;">' + r.code + '</strong></td>' +
-          '<td>' + (r.name || '') + '</td>' +
-          '<td>' + (r.status || '') + '</td>' +
-          '<td><button class="pr-action-btn pr-btn-view" onclick="openMainAccForm(\'' + r.code + '\')" title="View / Edit">👁 View</button></td>' +
-          '</tr>';
-      }).join('');
-    }
-    function filterMainAccList() { renderMainAccTable(); }
-
-    // ===== FICO: SUB ACCOUNT MASTER =====
-    function getAllSubAccRecords() {
-      var records = JSON.parse(localStorage.getItem('erp_sub_account_records') || '{}');
-      return Object.keys(records).sort().map(function(code) { return records[code]; });
-    }
-
-    function subAccFillMainSelect(sel) {
-      if (!sel) return;
-      var current = sel.value;
-      var accounts = getAllMainAccRecords().filter(function(a) { return a.status !== 'Blocked'; });
-      sel.innerHTML = '<option value="">-- Select Main Account --</option>' + accounts.map(function(a) {
-        return '<option value="' + a.code + '">' + a.code + ' - ' + a.name + '</option>';
-      }).join('');
-      if (current) sel.value = current;
-    }
-
-    function openSubAccList() {
-      document.getElementById('subAccSearchInput').value = '';
-      var mainFilter = document.getElementById('subAccMainFilter');
-      var current = mainFilter.value;
-      mainFilter.innerHTML = '<option value="">All Main Accounts</option>' + getAllMainAccRecords().map(function(a) {
-        return '<option value="' + a.code + '">' + a.code + ' - ' + a.name + '</option>';
-      }).join('');
-      if (current) mainFilter.value = current;
-      renderSubAccTable();
-      document.getElementById('subAccListOverlay').classList.add('active');
-    }
-    function closeSubAccList() { document.getElementById('subAccListOverlay').classList.remove('active'); }
-    function openSubAccFormFromList() { closeSubAccList(); setTimeout(function() { openSubAccForm(); }, 200); }
-
-    function openSubAccForm(code) {
-      var form = document.getElementById('subAccForm');
-      form.reset();
-      document.getElementById('subAccFormError').classList.remove('show');
-      document.getElementById('subAccFormSuccess').classList.remove('show');
-
-      subAccFillMainSelect(document.getElementById('sa_main_account'));
-
-      var isEdit = !!code;
-      var records = JSON.parse(localStorage.getItem('erp_sub_account_records') || '{}');
-      var record = isEdit ? (records[code] || {}) : {};
-
-      document.getElementById('sa_code').dataset.isEdit = isEdit ? '1' : '';
-      document.getElementById('sa_main_account').value = record.main_account || '';
-      document.getElementById('sa_code').value = isEdit ? code : '';
-      document.getElementById('sa_code').readOnly = isEdit;
-      document.getElementById('sa_name').value = record.name || '';
-      document.getElementById('sa_status').value = record.status || 'Active';
-
-      document.querySelector('#subAccFormOverlay .erp-form-header span').textContent =
-        'Sub Account Master [' + (isEdit ? 'Edit mode' : 'Insert mode') + ']';
-
-      document.getElementById('subAccFormOverlay').classList.add('active');
-    }
-    function closeSubAccForm() { document.getElementById('subAccFormOverlay').classList.remove('active'); }
-
-    function submitSubAccForm(e) {
-      e.preventDefault();
-      var errEl = document.getElementById('subAccFormError');
-      var successEl = document.getElementById('subAccFormSuccess');
-      errEl.classList.remove('show'); successEl.classList.remove('show');
-
-      var mainAccount = document.getElementById('sa_main_account').value;
-      var code = document.getElementById('sa_code').value.trim();
-      var name = document.getElementById('sa_name').value.trim();
-      if (!mainAccount || !code || !name) {
-        errEl.textContent = '❌ Main Account, Sub Account Code and Sub Account Name are required.';
-        errEl.classList.add('show');
-        return false;
-      }
-
-      var isEdit = document.getElementById('sa_code').readOnly;
-      var records = JSON.parse(localStorage.getItem('erp_sub_account_records') || '{}');
-      if (!isEdit && records[code]) {
-        errEl.textContent = '❌ Sub Account Code ' + code + ' already exists.';
-        errEl.classList.add('show');
-        return false;
-      }
-
-      records[code] = {
-        code: code,
-        name: name,
-        main_account: mainAccount,
-        status: document.getElementById('sa_status').value
-      };
-      localStorage.setItem('erp_sub_account_records', JSON.stringify(records));
-
-      successEl.textContent = '✅ Sub Account saved! (Code: ' + code + ')';
-      successEl.classList.add('show');
-      setTimeout(closeSubAccForm, 1400);
-      return false;
-    }
-
-    function subAccLabel(code) {
-      var records = JSON.parse(localStorage.getItem('erp_main_account_records') || '{}');
-      return records[code] ? (records[code].code + ' - ' + records[code].name) : (code || '—');
-    }
-
-    function renderSubAccTable() {
-      var records = getAllSubAccRecords();
-      var search = document.getElementById('subAccSearchInput').value.toLowerCase();
-      var mainFilter = document.getElementById('subAccMainFilter').value;
-      var filtered = records.filter(function(r) {
-        var matchesSearch = !search ||
-          (r.code || '').toLowerCase().indexOf(search) !== -1 ||
-          (r.name || '').toLowerCase().indexOf(search) !== -1;
-        var matchesMain = !mainFilter || r.main_account === mainFilter;
-        return matchesSearch && matchesMain;
-      });
-
-      var tbody = document.getElementById('subAccTableBody');
-      var emptyMsg = document.getElementById('subAccEmptyMsg');
-      if (filtered.length === 0) { tbody.innerHTML = ''; emptyMsg.style.display = 'block'; return; }
-      emptyMsg.style.display = 'none';
-
-      tbody.innerHTML = filtered.map(function(r, i) {
-        return '<tr>' +
-          '<td>' + (i + 1) + '</td>' +
-          '<td><strong style="color:#2563eb;">' + r.code + '</strong></td>' +
-          '<td>' + (r.name || '') + '</td>' +
-          '<td>' + subAccLabel(r.main_account) + '</td>' +
-          '<td>' + (r.status || '') + '</td>' +
-          '<td><button class="pr-action-btn pr-btn-view" onclick="openSubAccForm(\'' + r.code + '\')" title="View / Edit">👁 View</button></td>' +
-          '</tr>';
-      }).join('');
-    }
-    function filterSubAccList() { renderSubAccTable(); }
-
     function renderCoaTable() {
       var records = getAllCoaRecords();
       var search = document.getElementById('coaSearchInput').value.toLowerCase();
@@ -25460,24 +25123,18 @@
       tr.id = 'je_item_row_' + rowId;
       tr.innerHTML =
         '<td><input type="text" readonly class="pr-line-no" value="' + lineNo + '"></td>' +
-        '<td><select class="je-main-account-select" id="je_main_account_' + rowId + '" onchange="onJeMainAccountChange(' + rowId + ')"><option value="">-- Select --</option></select></td>' +
-        '<td><select class="je-sub-account-select" id="je_sub_account_' + rowId + '" onchange="onJeSubAccountChange(' + rowId + ')"><option value="">-- Select --</option></select></td>' +
-        '<td><select class="je-account-name-select" id="je_account_name_' + rowId + '" onchange="onJeAccountNameChange(' + rowId + ')"><option value="">-- Select --</option></select></td>' +
+        '<td><select class="je-gl-account-select" id="je_gl_account_' + rowId + '" onchange="onJeGlAccountChange(' + rowId + ')"><option value="">-- Select --</option></select></td>' +
+        '<td><input type="text" id="je_account_name_' + rowId + '" readonly style="background:#f0f0f0;"></td>' +
         '<td><input type="number" step="0.01" placeholder="0.00" id="je_debit_' + rowId + '" oninput="calcJeTotals()"></td>' +
         '<td><input type="number" step="0.01" placeholder="0.00" id="je_credit_' + rowId + '" oninput="calcJeTotals()"></td>' +
         '<td><input type="text" id="je_narration_' + rowId + '" placeholder="Line narration"></td>' +
         '<td><button type="button" class="pr-remove-item-btn" onclick="removeJeItemRow(' + rowId + ')">✕</button></td>';
       tbody.appendChild(tr);
-      jeFillMainAccountSelect(document.getElementById('je_main_account_' + rowId));
+      jeFillGlAccountSelect(document.getElementById('je_gl_account_' + rowId));
 
       if (existingItem) {
-        var mainAcc = existingItem.main_account || '';
-        var subAcc = existingItem.sub_account || existingItem.gl_account || '';
-        document.getElementById('je_main_account_' + rowId).value = mainAcc;
-        jeFillSubAccountSelect(document.getElementById('je_sub_account_' + rowId), mainAcc);
-        jeFillAccountNameSelect(document.getElementById('je_account_name_' + rowId), mainAcc);
-        document.getElementById('je_sub_account_' + rowId).value = subAcc;
-        document.getElementById('je_account_name_' + rowId).value = subAcc;
+        document.getElementById('je_gl_account_' + rowId).value = existingItem.gl_account || '';
+        document.getElementById('je_account_name_' + rowId).value = existingItem.account_name || '';
         document.getElementById('je_debit_' + rowId).value = existingItem.debit || '';
         document.getElementById('je_credit_' + rowId).value = existingItem.credit || '';
         document.getElementById('je_narration_' + rowId).value = existingItem.narration || '';
@@ -25485,58 +25142,20 @@
       return rowId;
     }
 
-    function jeFillMainAccountSelect(sel) {
+    function jeFillGlAccountSelect(sel) {
       if (!sel) return;
       var current = sel.value;
-      sel.innerHTML = '<option value="">-- Select --</option>' + FICO_ACCOUNTS_DATA.mainAccounts.map(function(a) {
-        return '<option value="' + a.code + '">' + a.code + ' - ' + a.name + '</option>';
-      }).join('');
-      if (current) sel.value = current;
-    }
-
-    function jeFillSubAccountSelect(sel, mainAccount) {
-      if (!sel) return;
-      var current = sel.value;
-      var accounts = FICO_ACCOUNTS_DATA.subsByMain[mainAccount] || [];
+      var accounts = getAllCoaRecords().filter(function(a) { return a.status !== 'Blocked'; });
       sel.innerHTML = '<option value="">-- Select --</option>' + accounts.map(function(a) {
         return '<option value="' + a.code + '">' + a.code + ' - ' + a.name + '</option>';
       }).join('');
       if (current) sel.value = current;
     }
 
-    // Account Name dropdown lists the same Sub Accounts (scoped to the chosen Main Account),
-    // showing just the name as visible text — lets the line be picked by name instead of code.
-    // Kept in sync with the Sub Account dropdown (selecting either updates the other).
-    function jeFillAccountNameSelect(sel, mainAccount) {
-      if (!sel) return;
-      var current = sel.value;
-      var accounts = FICO_ACCOUNTS_DATA.subsByMain[mainAccount] || [];
-      sel.innerHTML = '<option value="">-- Select --</option>' + accounts.map(function(a) {
-        return '<option value="' + a.code + '">' + a.name + '</option>';
-      }).join('');
-      if (current) sel.value = current;
-    }
-
-    function onJeMainAccountChange(rowId) {
-      var mainAccount = document.getElementById('je_main_account_' + rowId).value;
-      jeFillSubAccountSelect(document.getElementById('je_sub_account_' + rowId), mainAccount);
-      jeFillAccountNameSelect(document.getElementById('je_account_name_' + rowId), mainAccount);
-      // If this Main Account has exactly one Sub Account, auto-select it (no extra click needed)
-      var subs = FICO_ACCOUNTS_DATA.subsByMain[mainAccount] || [];
-      if (subs.length === 1) {
-        document.getElementById('je_sub_account_' + rowId).value = subs[0].code;
-        document.getElementById('je_account_name_' + rowId).value = subs[0].code;
-      }
-    }
-
-    function onJeSubAccountChange(rowId) {
-      var code = document.getElementById('je_sub_account_' + rowId).value;
-      document.getElementById('je_account_name_' + rowId).value = code;
-    }
-
-    function onJeAccountNameChange(rowId) {
-      var code = document.getElementById('je_account_name_' + rowId).value;
-      document.getElementById('je_sub_account_' + rowId).value = code;
+    function onJeGlAccountChange(rowId) {
+      var code = document.getElementById('je_gl_account_' + rowId).value;
+      var accounts = JSON.parse(localStorage.getItem('erp_coa_records') || '{}');
+      document.getElementById('je_account_name_' + rowId).value = accounts[code] ? accounts[code].name : '';
     }
 
     function removeJeItemRow(rowId) {
@@ -25560,15 +25179,12 @@
       var items = [];
       document.querySelectorAll('#jeItemsBody tr').forEach(function(tr) {
         var rowId = tr.id.replace('je_item_row_', '');
-        var mainAccount = document.getElementById('je_main_account_' + rowId).value;
-        var subAccount = document.getElementById('je_sub_account_' + rowId).value;
-        if (!mainAccount || !subAccount) return;
+        var glAccount = document.getElementById('je_gl_account_' + rowId).value;
+        if (!glAccount) return;
         items.push({
           line_no: tr.querySelector('.pr-line-no').value,
-          main_account: mainAccount,
-          sub_account: subAccount,
-          gl_account: subAccount, // kept for backward-compat with GL Posting / Reports / Reconciliation lookups
-          account_name: FICO_ACCOUNTS_DATA.subNameMap[subAccount] || '',
+          gl_account: glAccount,
+          account_name: document.getElementById('je_account_name_' + rowId).value,
           debit: parseFloat(document.getElementById('je_debit_' + rowId).value) || 0,
           credit: parseFloat(document.getElementById('je_credit_' + rowId).value) || 0,
           narration: document.getElementById('je_narration_' + rowId).value.trim()
@@ -25752,8 +25368,7 @@
       if (!r) return;
 
       var itemRows = (r.items || []).map(function(it) {
-        return '<tr><td style="border:1px solid #333; padding:5px;">' + (it.main_account || '') + '</td>' +
-          '<td style="border:1px solid #333; padding:5px;">' + (it.sub_account || it.gl_account || '') + '</td>' +
+        return '<tr><td style="border:1px solid #333; padding:5px;">' + (it.gl_account || '') + '</td>' +
           '<td style="border:1px solid #333; padding:5px;">' + (it.account_name || '') + '</td>' +
           '<td style="border:1px solid #333; padding:5px;">' + (it.narration || '') + '</td>' +
           '<td style="border:1px solid #333; padding:5px; text-align:right;">' + (it.debit ? Number(it.debit).toFixed(2) : '') + '</td>' +
@@ -25777,8 +25392,8 @@
         '<div><b>Status:</b> ' + (r.status || '') + '</div>' +
         '<div style="grid-column:1/-1;"><b>Reference/Header Text:</b> ' + (r.reference || '') + '</div>' +
         '</div>' +
-        '<table><thead><tr><th>Main Account</th><th>Sub Account</th><th>Account Name</th><th>Narration</th><th>Debit</th><th>Credit</th></tr></thead><tbody>' + itemRows +
-        '</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:700;border:1px solid #333;padding:6px;">Total</td>' +
+        '<table><thead><tr><th>GL Account</th><th>Account Name</th><th>Narration</th><th>Debit</th><th>Credit</th></tr></thead><tbody>' + itemRows +
+        '</tbody><tfoot><tr><td colspan="3" style="text-align:right;font-weight:700;border:1px solid #333;padding:6px;">Total</td>' +
         '<td style="text-align:right;font-weight:700;border:1px solid #333;padding:6px;">' + Number(r.total_debit || 0).toFixed(2) + '</td>' +
         '<td style="text-align:right;font-weight:700;border:1px solid #333;padding:6px;">' + Number(r.total_credit || 0).toFixed(2) + '</td></tr></tfoot></table>' +
         '<div class="no-print" style="text-align:center;margin-top:20px;"><button onclick="window.print()" style="padding:10px 30px;background:#3b82f6;color:#fff;border:none;border-radius:4px;font-size:1rem;cursor:pointer;">🖨 Print</button> <button onclick="window.close()" style="padding:10px 30px;background:#ef4444;color:#fff;border:none;border-radius:4px;font-size:1rem;cursor:pointer;">Close</button></div>' +
@@ -25821,22 +25436,8 @@
     function openGlPosting() {
       var sel = document.getElementById('gl_ledger_account');
       var current = sel.value;
-      // Merge Chart of Accounts (AP/AR/Bank/Asset postings) + FICO Sheet Sub Accounts (Journal Entry postings)
-      // so every code that can actually appear on a JE line/ledger shows up here. Dedup by code.
-      var seen = {};
-      var options = [];
-      getAllCoaRecords().forEach(function(a) {
-        if (seen[a.code]) return;
-        seen[a.code] = true;
-        options.push({ code: a.code, name: a.name });
-      });
-      Object.keys(FICO_ACCOUNTS_DATA.subNameMap).forEach(function(code) {
-        if (seen[code]) return;
-        seen[code] = true;
-        options.push({ code: code, name: FICO_ACCOUNTS_DATA.subNameMap[code] });
-      });
-      options.sort(function(x, y) { return x.code.localeCompare(y.code); });
-      sel.innerHTML = '<option value="">[ Select GL Account ]</option>' + options.map(function(a) {
+      var accounts = getAllCoaRecords();
+      sel.innerHTML = '<option value="">[ Select GL Account ]</option>' + accounts.map(function(a) {
         return '<option value="' + a.code + '">' + a.code + ' - ' + a.name + '</option>';
       }).join('');
       if (current) sel.value = current;
@@ -29451,6 +29052,290 @@
         return '<option value="' + e.code + '">' + e.code + ' - ' + e.name + '</option>';
       }).join('');
       if (keepCode) sel.value = keepCode;
+    }
+
+    // =====================================================================
+    // ===== Employee ERP Setup: per-employee Company/BU/PC + Module/Menu/
+    // Submenu/Workstation access control =====
+    // Storage: erp_erpsetup_records, keyed by login "Login User ID" (the
+    // same ID used at the login screen, e.g. '2422') — this is the join key
+    // used at login time to decide what that person can see.
+    // =====================================================================
+    var ERPSETUP_STORAGE_KEY = 'erp_erpsetup_records';
+
+    function getAllErpSetupRecords() {
+      var records = JSON.parse(localStorage.getItem(ERPSETUP_STORAGE_KEY) || '{}');
+      return Object.keys(records).map(function(uid) { return records[uid]; });
+    }
+
+    // Scan the actual rendered menu DOM to build a live Module -> Menu -> Submenu
+    // tree, so this always matches the real app menu without manual upkeep.
+    function buildErpAccessTree() {
+      var tree = [];
+      document.querySelectorAll('.module-tab[data-module]').forEach(function(tab) {
+        var moduleKey = tab.getAttribute('data-module');
+        var moduleLabel = tab.textContent.trim();
+        var moduleContent = document.getElementById('module-' + moduleKey);
+        var menus = [];
+        if (moduleContent) {
+          moduleContent.querySelectorAll('.menu-item[data-menu]').forEach(function(menuEl) {
+            var menuKey = menuEl.getAttribute('data-menu');
+            var menuLinkEl = menuEl.querySelector('a');
+            var menuLabel = menuLinkEl ? menuLinkEl.textContent.replace('▾', '').trim() : menuKey;
+            var subs = [];
+            menuEl.querySelectorAll('.dropdown a[data-sub]').forEach(function(subEl) {
+              var subKey = subEl.getAttribute('data-sub');
+              var subLabel = subEl.textContent.replace(/^[^A-Za-z0-9]*/, '').trim();
+              subs.push({ key: subKey, label: subLabel || subKey });
+            });
+            menus.push({ key: menuKey, label: menuLabel || menuKey, subs: subs });
+          });
+        }
+        tree.push({ key: moduleKey, label: moduleLabel || moduleKey, menus: menus });
+      });
+      return tree;
+    }
+
+    function renderErpAccessTree(saved) {
+      var tree = buildErpAccessTree();
+      var modules = (saved && saved.modules) || {};
+      var menuCfg = (saved && saved.menu) || {};
+      var subCfg = (saved && saved.subMenu) || {};
+      var html = '';
+
+      tree.forEach(function(mod) {
+        var modChecked = modules.hasOwnProperty(mod.key) ? !!modules[mod.key] : true;
+        html += '<div style="margin-bottom:10px; border:1px solid #e2e8f0; border-radius:6px; background:#fff;">';
+        html += '<div style="display:flex; align-items:center; gap:8px; padding:8px 10px; background:#eef2ff; border-radius:6px 6px 0 0;">';
+        html += '<input type="checkbox" class="erpsetup-mod-cb" id="erpsetup_mod_' + mod.key + '" data-mod="' + mod.key + '" ' + (modChecked ? 'checked' : '') + ' onchange="onErpSetupModuleToggle(\'' + mod.key + '\')">';
+        html += '<label for="erpsetup_mod_' + mod.key + '" style="font-weight:700; font-size:0.85rem; color:#1e293b;">' + mod.label + '</label>';
+        html += '</div>';
+        html += '<div id="erpsetup_mod_body_' + mod.key + '" style="padding:8px 10px 10px 28px;' + (modChecked ? '' : ' display:none;') + '">';
+
+        mod.menus.forEach(function(menu) {
+          var menuChecked = menuCfg.hasOwnProperty(menu.key) ? !!menuCfg[menu.key] : true;
+          html += '<div style="margin:6px 0;">';
+          html += '<div style="display:flex; align-items:center; gap:6px;">';
+          html += '<input type="checkbox" class="erpsetup-menu-cb" id="erpsetup_menu_' + menu.key + '" data-menu="' + menu.key + '" data-mod="' + mod.key + '" ' + (menuChecked ? 'checked' : '') + ' onchange="onErpSetupMenuToggle(\'' + menu.key + '\')">';
+          html += '<label for="erpsetup_menu_' + menu.key + '" style="font-weight:600; font-size:0.8rem; color:#334155;">' + menu.label + '</label>';
+          html += '</div>';
+          if (menu.subs.length) {
+            html += '<div style="padding-left:24px; display:flex; flex-wrap:wrap; gap:4px 16px;">';
+            menu.subs.forEach(function(sub) {
+              var subChecked = subCfg.hasOwnProperty(sub.key) ? !!subCfg[sub.key] : true;
+              html += '<label style="font-size:0.76rem; color:#475569; display:flex; align-items:center; gap:4px; min-width:180px;">';
+              html += '<input type="checkbox" class="erpsetup-sub-cb" data-sub="' + sub.key + '" data-menu="' + menu.key + '" ' + (subChecked ? 'checked' : '') + '>';
+              html += sub.label + '</label>';
+            });
+            html += '</div>';
+          }
+          html += '</div>';
+        });
+
+        html += '</div></div>';
+      });
+
+      document.getElementById('erpSetupAccessTree').innerHTML = html;
+    }
+
+    // Unchecking a Module hides/unchecks (and greys out) its own menu section.
+    function onErpSetupModuleToggle(modKey) {
+      var checked = document.getElementById('erpsetup_mod_' + modKey).checked;
+      var body = document.getElementById('erpsetup_mod_body_' + modKey);
+      if (body) body.style.display = checked ? '' : 'none';
+    }
+
+    // Unchecking a Menu also unchecks all its Submenu items (convenience);
+    // re-checking a Menu does not force-check submenus back on.
+    function onErpSetupMenuToggle(menuKey) {
+      var checked = document.getElementById('erpsetup_menu_' + menuKey).checked;
+      if (!checked) {
+        document.querySelectorAll('.erpsetup-sub-cb[data-menu="' + menuKey + '"]').forEach(function(cb) { cb.checked = false; });
+      }
+    }
+
+    function collectErpAccessConfig() {
+      var modules = {}, menu = {}, subMenu = {};
+      document.querySelectorAll('.erpsetup-mod-cb').forEach(function(cb) { modules[cb.getAttribute('data-mod')] = cb.checked; });
+      document.querySelectorAll('.erpsetup-menu-cb').forEach(function(cb) { menu[cb.getAttribute('data-menu')] = cb.checked; });
+      document.querySelectorAll('.erpsetup-sub-cb').forEach(function(cb) { subMenu[cb.getAttribute('data-sub')] = cb.checked; });
+      return { modules: modules, menu: menu, subMenu: subMenu };
+    }
+
+    function populateErpSetupEmployeeSelect(keepCode) {
+      var sel = document.getElementById('erpsetup_employee');
+      var employees = getAllEmpRecords();
+      sel.innerHTML = '<option value="">-- Select Employee --</option>' + employees.map(function(e) {
+        return '<option value="' + e.code + '">' + e.code + ' - ' + e.name + '</option>';
+      }).join('');
+      if (keepCode) sel.value = keepCode;
+    }
+
+    function populateErpSetupUserIdSelect(keepId) {
+      var sel = document.getElementById('erpsetup_userid');
+      sel.innerHTML = '<option value="">-- Select Login User ID --</option>' + users.map(function(u) {
+        return '<option value="' + u.id + '">' + u.id + ' - ' + u.name + '</option>';
+      }).join('');
+      if (keepId) sel.value = keepId;
+    }
+
+    // When an Employee is picked, auto-fill Company/BU/PC from that employee's
+    // master record (still fully editable — this is just a convenience default).
+    function onErpSetupEmployeeChange() {
+      var code = document.getElementById('erpsetup_employee').value;
+      var emp = getAllEmpRecords().find(function(e) { return e.code === code; });
+      if (!emp) return;
+      var companySel = document.getElementById('erpsetup_company');
+      companySel.value = emp.company || '';
+      onErpSetupCompanyChange();
+      if (emp.bu) {
+        document.getElementById('erpsetup_bu').value = emp.bu;
+        onErpSetupBuChange();
+      }
+      if (emp.profit_center) {
+        setTimeout(function() { document.getElementById('erpsetup_pc').value = emp.profit_center; }, 0);
+      }
+    }
+
+    function onErpSetupCompanyChange() { onOrgCompanyChange('erpsetup_company', 'erpsetup_bu', 'erpsetup_pc'); }
+    function onErpSetupBuChange() { onOrgBuChange('erpsetup_company', 'erpsetup_bu', 'erpsetup_pc'); }
+
+    function openErpSetupList() {
+      document.getElementById('erpSetupSearchInput').value = '';
+      renderErpSetupTable();
+      document.getElementById('erpSetupListOverlay').classList.add('active');
+    }
+    function closeErpSetupList() { document.getElementById('erpSetupListOverlay').classList.remove('active'); }
+
+    function renderErpSetupTable() {
+      var search = (document.getElementById('erpSetupSearchInput').value || '').toLowerCase();
+      var records = getAllErpSetupRecords().filter(function(r) {
+        if (!search) return true;
+        return (r.employee_name + ' ' + r.employee_code + ' ' + r.user_id + ' ' + (r.company || '')).toLowerCase().indexOf(search) !== -1;
+      });
+      var tbody = document.getElementById('erpSetupTableBody');
+      var emptyMsg = document.getElementById('erpSetupEmptyMsg');
+      if (!records.length) {
+        tbody.innerHTML = '';
+        emptyMsg.style.display = 'block';
+        return;
+      }
+      emptyMsg.style.display = 'none';
+      tbody.innerHTML = records.map(function(r, i) {
+        return '<tr>' +
+          '<td>' + (i + 1) + '</td>' +
+          '<td>' + r.employee_code + ' - ' + r.employee_name + '</td>' +
+          '<td>' + r.user_id + '</td>' +
+          '<td>' + (r.company || '') + '</td>' +
+          '<td>' + (r.bu || '') + '</td>' +
+          '<td>' + (r.workstation || '') + '</td>' +
+          '<td>' +
+            '<button class="pr-list-action-btn" onclick="openErpSetupForm(\'' + r.user_id + '\')">✏️ Edit</button> ' +
+            '<button class="pr-list-action-btn" style="color:#e74c3c;" onclick="deleteErpSetup(\'' + r.user_id + '\')">🗑 Delete</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function openErpSetupForm(userId) {
+      document.getElementById('erpSetupFormError').textContent = '';
+      document.getElementById('erpSetupFormSuccess').textContent = '';
+      populateErpSetupEmployeeSelect();
+      populateErpSetupUserIdSelect();
+
+      var record = null;
+      if (userId) {
+        var all = JSON.parse(localStorage.getItem(ERPSETUP_STORAGE_KEY) || '{}');
+        record = all[userId];
+      }
+
+      document.getElementById('erpsetup_original_userid').value = userId || '';
+      document.getElementById('erpSetupFormTitle').textContent = userId ? '🔐 Edit Employee ERP Access Setup' : '🔐 New Employee ERP Access Setup';
+      document.getElementById('erpSetupDeleteBtn').style.display = userId ? 'inline-block' : 'none';
+
+      if (record) {
+        document.getElementById('erpsetup_employee').value = record.employee_code || '';
+        document.getElementById('erpsetup_userid').value = record.user_id || '';
+        document.getElementById('erpsetup_workstation').value = record.workstation || '';
+        prPopulateCompanySelect();
+        document.getElementById('erpsetup_company').value = record.company || '';
+        onErpSetupCompanyChange();
+        document.getElementById('erpsetup_bu').value = record.bu || '';
+        onErpSetupBuChange();
+        document.getElementById('erpsetup_pc').value = record.pc || '';
+      } else {
+        document.getElementById('erpsetup_employee').value = '';
+        document.getElementById('erpsetup_userid').value = '';
+        document.getElementById('erpsetup_workstation').value = '';
+        prPopulateCompanySelect();
+      }
+
+      renderErpAccessTree(record);
+      document.getElementById('erpSetupFormOverlay').classList.add('active');
+    }
+
+    function closeErpSetupForm() { document.getElementById('erpSetupFormOverlay').classList.remove('active'); }
+
+    function saveErpSetupForm() {
+      var errEl = document.getElementById('erpSetupFormError');
+      var successEl = document.getElementById('erpSetupFormSuccess');
+      errEl.textContent = ''; successEl.textContent = '';
+
+      var employeeCode = document.getElementById('erpsetup_employee').value;
+      var userId = document.getElementById('erpsetup_userid').value;
+      if (!employeeCode || !userId) {
+        errEl.textContent = 'Employee এবং Login User ID দুটোই নির্বাচন করা আবশ্যক।';
+        return;
+      }
+
+      var emp = getAllEmpRecords().find(function(e) { return e.code === employeeCode; });
+      var originalUserId = document.getElementById('erpsetup_original_userid').value;
+      var access = collectErpAccessConfig();
+
+      var all = JSON.parse(localStorage.getItem(ERPSETUP_STORAGE_KEY) || '{}');
+      if (originalUserId && originalUserId !== userId) delete all[originalUserId]; // user ID changed on edit
+
+      all[userId] = {
+        user_id: userId,
+        employee_code: employeeCode,
+        employee_name: emp ? emp.name : '',
+        company: document.getElementById('erpsetup_company').value,
+        bu: document.getElementById('erpsetup_bu').value,
+        pc: document.getElementById('erpsetup_pc').value,
+        workstation: document.getElementById('erpsetup_workstation').value,
+        modules: access.modules,
+        menu: access.menu,
+        subMenu: access.subMenu,
+        updated_at: new Date().toISOString()
+      };
+      localStorage.setItem(ERPSETUP_STORAGE_KEY, JSON.stringify(all));
+
+      successEl.textContent = '✅ Access setup saved for ' + userId + '.';
+      renderErpSetupTable();
+      setTimeout(closeErpSetupForm, 700);
+    }
+
+    function deleteErpSetup(userId) {
+      if (!confirm('এই employee এর ERP access setup ডিলিট করতে চাও?')) return;
+      var all = JSON.parse(localStorage.getItem(ERPSETUP_STORAGE_KEY) || '{}');
+      delete all[userId];
+      localStorage.setItem(ERPSETUP_STORAGE_KEY, JSON.stringify(all));
+      renderErpSetupTable();
+    }
+
+    function deleteErpSetupFromForm() {
+      var userId = document.getElementById('erpsetup_original_userid').value;
+      if (!userId) { closeErpSetupForm(); return; }
+      deleteErpSetup(userId);
+      closeErpSetupForm();
+    }
+
+    // Called at login: if this user_id has a saved Employee ERP Setup record,
+    // its module/menu/subMenu choices are merged on top of (and take priority
+    // over) whatever userIdConfigs/DEFAULT_MODULE_CONFIG already decided.
+    function applyErpSetupOverride(userId) {
+      var all = JSON.parse(localStorage.getItem(ERPSETUP_STORAGE_KEY) || '{}');
+      return all[userId] || null;
     }
 
     function openEmpList() {
@@ -33508,7 +33393,7 @@
       'erp_budget_alloc_records','erp_budget_alloc_serial','erp_candidate_records','erp_candidate_serial',
       'erp_cc_records','erp_cheque_records','erp_cheque_serial','erp_coa_records',
       'erp_cost_alloc_records','erp_cost_alloc_serial','erp_cs_records','erp_cs_serial',
-      'erp_dep_run_records','erp_dep_run_serial','erp_emp_records','erp_emp_serial',
+      'erp_dep_run_records','erp_dep_run_serial','erp_emp_records','erp_emp_serial','erp_erpsetup_records',
       'erp_emp_transfer_records','erp_emp_transfer_serial','erp_fund_transfer_records','erp_fund_transfer_serial',
       'erp_gi_records','erp_gi_serial','erp_go_records','erp_go_serial',
       'erp_grn_records','erp_grn_serial','erp_interview_records','erp_interview_serial',
@@ -33712,6 +33597,6 @@
       });
     }
 
-  </script><div id="comingSoonToast" style="display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgb(30, 41, 59); color: rgb(255, 255, 255); padding: 12px 24px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; z-index: 9999; box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 20px; transition: opacity 0.3s;">🚧 Coming Soon — Feature under development</div>
+  </script>
  
 </body></html>
