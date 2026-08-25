@@ -2996,6 +2996,8 @@
             <a href="#" data-sub="hr_onboarding" onclick="event.preventDefault(); openOnboardList(); return false;"><span class="arrow">▶</span> Employee Onboarding</a>
             <a href="#" data-sub="hr_transfer" onclick="event.preventDefault(); openEtList(); return false;"><span class="arrow">▶</span> Employee Transfer</a>
             <a href="#" data-sub="hr_erp_setup" onclick="event.preventDefault(); openErpSetupList(); return false;"><span class="arrow">▶</span> Employee ERP Setup</a>
+            <a href="#" data-sub="hr_userid_setup" onclick="event.preventDefault(); openUserIdSetupList(); return false;"><span class="arrow">▶</span> User ID Setup</a>
+            <a href="#" data-sub="hr_userid_setup" onclick="event.preventDefault(); openUserIdSetupList(); return false;"><span class="arrow">▶</span> User ID Setup</a>
           </div>
         </div>
         <!-- Attendance -->
@@ -9564,6 +9566,71 @@
     </div>
   </div>
 
+  <!-- ===================== HR: User ID Setup List View ===================== -->
+  <div class="pr-list-overlay" id="userIdSetupListOverlay" onclick="if(event.target===this) closeUserIdSetupList()">
+    <div class="pr-list-outer">
+      <div class="pr-list-header">
+        <h2>🆔 User ID Setup</h2>
+        <button class="pr-list-close" onclick="closeUserIdSetupList()">✕</button>
+      </div>
+      <div class="pr-list-toolbar">
+        <input type="text" id="userIdSetupSearchInput" placeholder="Search by employee, user ID..." oninput="renderUserIdSetupTable()">
+        <button class="erp-btn erp-btn-update" onclick="openUserIdSetupForm()">➕ New User ID</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="str-table">
+          <thead>
+            <tr>
+              <th>SL#</th><th>Employee</th><th>User ID</th><th>Approval ID</th><th>Created</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="userIdSetupTableBody"></tbody>
+        </table>
+        <div id="userIdSetupEmptyMsg" style="display:none; text-align:center; padding:30px; color:#94a3b8;">No User IDs created yet. Click "New User ID" to add one.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== HR: User ID Setup Form ===================== -->
+  <div class="pr-list-overlay" id="userIdSetupFormOverlay" onclick="if(event.target===this) closeUserIdSetupForm()">
+    <div class="pr-list-outer" style="max-width:640px;">
+      <div class="pr-list-header">
+        <h2 id="userIdSetupFormTitle">🆔 New User ID</h2>
+        <button class="pr-list-close" onclick="closeUserIdSetupForm()">✕</button>
+      </div>
+      <div style="padding:20px;">
+        <input type="hidden" id="useridsetup_original_userid">
+        <div id="userIdSetupFormError" class="error-msg"></div>
+        <div id="userIdSetupFormSuccess" class="success-msg"></div>
+
+        <div class="erp-field-grid">
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="useridsetup_employee">Employee</label><span class="erp-info-icon">i</span></div>
+            <select id="useridsetup_employee" required onchange="onUserIdSetupEmployeeChange()"><option value="">-- Select Employee --</option></select>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="useridsetup_userid">User ID</label><span class="erp-info-icon">i</span></div>
+            <input type="text" id="useridsetup_userid" required placeholder="e.g. 2426">
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="useridsetup_password">Password</label><span class="erp-info-icon">i</span></div>
+            <input type="text" id="useridsetup_password" required placeholder="Login password">
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="useridsetup_approval_id">Approval ID</label><span class="erp-info-icon">i</span></div>
+            <select id="useridsetup_approval_id" required><option value="">-- Select Approver's User ID --</option></select>
+          </div>
+        </div>
+
+        <div class="erp-form-actions" style="margin-top:18px;">
+          <button type="button" class="erp-btn erp-btn-update" onclick="saveUserIdSetupForm()">💾 Save</button>
+          <button type="button" class="erp-btn erp-btn-exit" onclick="closeUserIdSetupForm()">Exit</button>
+          <button type="button" id="userIdSetupDeleteBtn" class="erp-btn" style="display:none; background:#e74c3c;" onclick="deleteUserIdSetupFromForm()">🗑 Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== HR: Employee Transfer List View ===================== -->
   <div class="pr-list-overlay" id="empTransferListOverlay" onclick="if(event.target===this) closeEmpTransferList()">
     <div class="pr-list-outer">
@@ -11049,6 +11116,7 @@
       'erp_cost_alloc_records','erp_cost_alloc_serial',
       'erp_emp_records','erp_emp_serial',
       'erp_erpsetup_records',
+      'erp_userid_records',
       'erp_onboarding_records','erp_onboarding_serial',
       'erp_emp_transfer_records','erp_emp_transfer_serial',
       'erp_attendance_records',
@@ -11438,6 +11506,7 @@
     var HR_SHEET_SYNC_KEYS = [
       'erp_emp_records',
       'erp_erpsetup_records',
+      'erp_userid_records',
       'erp_onboarding_records',
       'erp_emp_transfer_records',
       'erp_attendance_records',
@@ -11460,6 +11529,7 @@
     var HR_SHEET_TAB_MAP = {
       erp_emp_records: 'Employee',
       erp_erpsetup_records: 'EmployeeErpSetup',
+      erp_userid_records: 'UserID',
       erp_onboarding_records: 'Onboarding',
       erp_emp_transfer_records: 'EmployeeTransfer',
       erp_attendance_records: 'Attendance',
@@ -12234,7 +12304,7 @@
       const password = document.getElementById('password').value.trim();
       const errorEl = document.getElementById('loginError');
 
-      const user = users.find(u => u.id === userId && u.password === password);
+      const user = findLoginUser(userId, password);
       if (!user) {
         errorEl.textContent = '❌ Invalid user ID or password. Please try again.';
         errorEl.classList.add('show');
@@ -29338,6 +29408,197 @@
       return all[userId] || null;
     }
 
+    // =====================================================================
+    // ===== User ID Setup: create login User IDs for employees =====
+    // Storage: erp_userid_records, keyed by the new login User ID itself.
+    // These IDs work at the login screen ALONGSIDE the hardcoded `users`
+    // array (see findLoginUser()) — nothing in the hardcoded list is
+    // touched or removed.
+    // =====================================================================
+    var USERIDSETUP_STORAGE_KEY = 'erp_userid_records';
+
+    function getAllUserIdSetupRecords() {
+      var records = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
+      return Object.keys(records).map(function(uid) { return records[uid]; });
+    }
+
+    // Every valid "approver" candidate: the hardcoded users[] plus any
+    // User IDs already created through this same screen.
+    function getAllLoginIdsForApproval() {
+      var list = users.map(function(u) { return { id: u.id, name: u.name }; });
+      getAllUserIdSetupRecords().forEach(function(r) {
+        list.push({ id: r.user_id, name: r.employee_name });
+      });
+      return list;
+    }
+
+    function populateUserIdSetupEmployeeSelect(keepCode) {
+      var sel = document.getElementById('useridsetup_employee');
+      var employees = getAllEmpRecords();
+      sel.innerHTML = '<option value="">-- Select Employee --</option>' + employees.map(function(e) {
+        return '<option value="' + e.code + '">' + e.code + ' - ' + e.name + '</option>';
+      }).join('');
+      if (keepCode) sel.value = keepCode;
+    }
+
+    function populateUserIdSetupApprovalSelect(keepId) {
+      var sel = document.getElementById('useridsetup_approval_id');
+      sel.innerHTML = '<option value="">-- Select Approver\'s User ID --</option>' + getAllLoginIdsForApproval().map(function(u) {
+        return '<option value="' + u.id + '">' + u.id + ' - ' + (u.name || '') + '</option>';
+      }).join('');
+      if (keepId) sel.value = keepId;
+    }
+
+    function onUserIdSetupEmployeeChange() {
+      // Convenience only — the User ID / Password fields stay editable either way.
+    }
+
+    function openUserIdSetupList() {
+      document.getElementById('userIdSetupSearchInput').value = '';
+      renderUserIdSetupTable();
+      document.getElementById('userIdSetupListOverlay').classList.add('active');
+    }
+    function closeUserIdSetupList() { document.getElementById('userIdSetupListOverlay').classList.remove('active'); }
+
+    function renderUserIdSetupTable() {
+      var search = (document.getElementById('userIdSetupSearchInput').value || '').toLowerCase();
+      var records = getAllUserIdSetupRecords().filter(function(r) {
+        if (!search) return true;
+        return (r.employee_name + ' ' + r.employee_code + ' ' + r.user_id).toLowerCase().indexOf(search) !== -1;
+      });
+      var tbody = document.getElementById('userIdSetupTableBody');
+      var emptyMsg = document.getElementById('userIdSetupEmptyMsg');
+      if (!records.length) {
+        tbody.innerHTML = '';
+        emptyMsg.style.display = 'block';
+        return;
+      }
+      emptyMsg.style.display = 'none';
+      tbody.innerHTML = records.map(function(r, i) {
+        return '<tr>' +
+          '<td>' + (i + 1) + '</td>' +
+          '<td>' + r.employee_code + ' - ' + r.employee_name + '</td>' +
+          '<td>' + r.user_id + '</td>' +
+          '<td>' + r.approval_id + '</td>' +
+          '<td>' + (r.created_at ? r.created_at.substring(0, 10) : '') + '</td>' +
+          '<td>' +
+            '<button class="pr-list-action-btn" onclick="openUserIdSetupForm(\'' + r.user_id + '\')">✏️ Edit</button> ' +
+            '<button class="pr-list-action-btn" style="color:#e74c3c;" onclick="deleteUserIdSetup(\'' + r.user_id + '\')">🗑 Delete</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function openUserIdSetupForm(userId) {
+      document.getElementById('userIdSetupFormError').textContent = '';
+      document.getElementById('userIdSetupFormSuccess').textContent = '';
+      populateUserIdSetupEmployeeSelect();
+      populateUserIdSetupApprovalSelect();
+
+      var record = null;
+      if (userId) {
+        var all = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
+        record = all[userId];
+      }
+
+      document.getElementById('useridsetup_original_userid').value = userId || '';
+      document.getElementById('userIdSetupFormTitle').textContent = userId ? '🆔 Edit User ID' : '🆔 New User ID';
+      document.getElementById('userIdSetupDeleteBtn').style.display = userId ? 'inline-block' : 'none';
+
+      if (record) {
+        document.getElementById('useridsetup_employee').value = record.employee_code || '';
+        document.getElementById('useridsetup_userid').value = record.user_id || '';
+        document.getElementById('useridsetup_password').value = record.password || '';
+        populateUserIdSetupApprovalSelect(record.approval_id);
+      } else {
+        document.getElementById('useridsetup_employee').value = '';
+        document.getElementById('useridsetup_userid').value = '';
+        document.getElementById('useridsetup_password').value = '';
+      }
+
+      document.getElementById('userIdSetupFormOverlay').classList.add('active');
+    }
+
+    function closeUserIdSetupForm() { document.getElementById('userIdSetupFormOverlay').classList.remove('active'); }
+
+    function saveUserIdSetupForm() {
+      var errEl = document.getElementById('userIdSetupFormError');
+      var successEl = document.getElementById('userIdSetupFormSuccess');
+      errEl.textContent = ''; successEl.textContent = '';
+
+      var employeeCode = document.getElementById('useridsetup_employee').value;
+      var newUserId = document.getElementById('useridsetup_userid').value.trim();
+      var password = document.getElementById('useridsetup_password').value.trim();
+      var approvalId = document.getElementById('useridsetup_approval_id').value;
+      var originalUserId = document.getElementById('useridsetup_original_userid').value;
+
+      if (!employeeCode || !newUserId || !password || !approvalId) {
+        errEl.textContent = 'Employee, User ID, Password এবং Approval ID — সবগুলো পূরণ করা আবশ্যক।';
+        return;
+      }
+
+      // Uniqueness check: against the hardcoded users[] AND other dynamic User ID
+      // Setup records (excluding this same record if we're editing it).
+      var clashesWithStatic = users.some(function(u) { return u.id === newUserId; });
+      var all = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
+      var clashesWithDynamic = Object.keys(all).some(function(uid) { return uid === newUserId && uid !== originalUserId; });
+      if (clashesWithStatic || clashesWithDynamic) {
+        errEl.textContent = '❌ এই User ID (' + newUserId + ') আগে থেকেই ব্যবহৃত হচ্ছে — অন্য একটা দাও।';
+        return;
+      }
+
+      var emp = getAllEmpRecords().find(function(e) { return e.code === employeeCode; });
+
+      if (originalUserId && originalUserId !== newUserId) delete all[originalUserId]; // user ID changed on edit
+
+      all[newUserId] = {
+        user_id: newUserId,
+        password: password,
+        employee_code: employeeCode,
+        employee_name: emp ? emp.name : '',
+        approval_id: approvalId,
+        created_at: (all[originalUserId] && all[originalUserId].created_at) || new Date().toISOString()
+      };
+      localStorage.setItem(USERIDSETUP_STORAGE_KEY, JSON.stringify(all));
+
+      successEl.textContent = '✅ User ID ' + newUserId + ' সেভ হয়েছে।';
+      renderUserIdSetupTable();
+      setTimeout(closeUserIdSetupForm, 700);
+    }
+
+    function deleteUserIdSetup(userId) {
+      if (!confirm('এই User ID (' + userId + ') ডিলিট করতে চাও? এই ID দিয়ে আর লগইন করা যাবে না।')) return;
+      var all = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
+      delete all[userId];
+      localStorage.setItem(USERIDSETUP_STORAGE_KEY, JSON.stringify(all));
+      renderUserIdSetupTable();
+    }
+
+    function deleteUserIdSetupFromForm() {
+      var userId = document.getElementById('useridsetup_original_userid').value;
+      if (!userId) { closeUserIdSetupForm(); return; }
+      deleteUserIdSetup(userId);
+      closeUserIdSetupForm();
+    }
+
+    // Login lookup: checks the hardcoded users[] first, then falls back to
+    // any User ID created via "HR > Employee > User ID Setup". Always returns
+    // the same {id, password, name, avatar} shape so the rest of the app
+    // (which reads currentUser.name / .avatar) works the same either way.
+    function findLoginUser(userId, password) {
+      var staticMatch = users.find(function(u) { return u.id === userId && u.password === password; });
+      if (staticMatch) return staticMatch;
+
+      var all = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
+      var rec = all[userId];
+      if (rec && rec.password === password) {
+        var initials = (rec.employee_name || rec.user_id || '??')
+          .split(' ').filter(Boolean).map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+        return { id: rec.user_id, password: rec.password, name: rec.employee_name || rec.user_id, avatar: initials || 'U' };
+      }
+      return null;
+    }
+
     function openEmpList() {
       document.getElementById('empSearchInput').value = '';
       document.getElementById('empStatusFilter').value = '';
@@ -33393,7 +33654,7 @@
       'erp_budget_alloc_records','erp_budget_alloc_serial','erp_candidate_records','erp_candidate_serial',
       'erp_cc_records','erp_cheque_records','erp_cheque_serial','erp_coa_records',
       'erp_cost_alloc_records','erp_cost_alloc_serial','erp_cs_records','erp_cs_serial',
-      'erp_dep_run_records','erp_dep_run_serial','erp_emp_records','erp_emp_serial','erp_erpsetup_records',
+      'erp_dep_run_records','erp_dep_run_serial','erp_emp_records','erp_emp_serial','erp_erpsetup_records','erp_userid_records',
       'erp_emp_transfer_records','erp_emp_transfer_serial','erp_fund_transfer_records','erp_fund_transfer_serial',
       'erp_gi_records','erp_gi_serial','erp_go_records','erp_go_serial',
       'erp_grn_records','erp_grn_serial','erp_interview_records','erp_interview_serial',
