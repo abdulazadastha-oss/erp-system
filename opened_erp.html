@@ -29290,8 +29290,12 @@
 
     function populateErpSetupUserIdSelect(keepId) {
       var sel = document.getElementById('erpsetup_userid');
-      sel.innerHTML = '<option value="">-- Select Login User ID --</option>' + users.map(function(u) {
-        return '<option value="' + u.id + '">' + u.id + ' - ' + u.name + '</option>';
+      // Combined list: hardcoded users[] + any User ID created via
+      // "HR > Employee > User ID Setup" (previously this only showed the
+      // hardcoded list, so newly-created IDs never appeared here).
+      var allIds = (typeof getAllLoginIdsForApproval === 'function') ? getAllLoginIdsForApproval() : users.map(function(u) { return { id: u.id, name: u.name }; });
+      sel.innerHTML = '<option value="">-- Select Login User ID --</option>' + allIds.map(function(u) {
+        return '<option value="' + u.id + '">' + u.id + ' - ' + (u.name || '') + '</option>';
       }).join('');
       if (keepId) sel.value = keepId;
     }
