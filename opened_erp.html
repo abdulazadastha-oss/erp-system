@@ -11131,7 +11131,8 @@
       'erp_perfreview_records','erp_perfreview_serial',
       'erp_trcal_records','erp_trcal_serial',
       'erp_trenr_records','erp_trenr_serial',
-      'erp_trfb_records','erp_trfb_serial'
+      'erp_trfb_records','erp_trfb_serial',
+      'erp_password_updates'
     ];
 
     // Patch localStorage to auto-sync to Firebase
@@ -11521,11 +11522,13 @@
       'erp_perfreview_records',
       'erp_trcal_records',
       'erp_trenr_records',
-      'erp_trfb_records'
+      'erp_trfb_records',
+      'erp_password_updates'
     ];
 
     // module key -> friendly Sheet tab name
     var HR_SHEET_TAB_MAP = {
+      erp_password_updates: 'UPDATE PASSWORD',
       erp_emp_records: 'Employee',
       erp_erpsetup_records: 'EmployeeErpSetup',
       erp_userid_records: 'UserID',
@@ -12519,17 +12522,35 @@
     // Uses mode: 'no-cors' because Apps Script web apps don't return CORS headers,
     // so we can't read the response back — but the write still goes through on Google's side.
     function updateGoogleSheet(userId, userName, newPassword) {
-      if (!GOOGLE_SHEET_WEBAPP_URL || GOOGLE_SHEET_WEBAPP_URL.indexOf('PASTE_YOUR') !== -1) {
-        console.warn('Google Sheet Web App URL not configured yet — skipping sheet update. See setup instructions in this file.');
-        return;
+      // 1) Save the update to a local log (erp_password_updates) so it can be synced as a list
+      try {
+        const logs = JSON.parse(localStorage.getItem('erp_password_updates') || '[]');
+        logs.push({
+          user_id: userId,
+          user_name: userName,
+          new_password: newPassword,
+          update_time: new Date().toLocaleString()
+        });
+        // Keep only the last 100 updates to avoid localStorage bloat
+        if (logs.length > 100) logs.shift();
+        localStorage.setItem('erp_password_updates', JSON.stringify(logs));
+        
+        // 2) Trigger HR Sheet sync immediately
+        if (typeof pushHrModuleToGoogleSheet === 'function') {
+          pushHrModuleToGoogleSheet('erp_password_updates');
+        }
+      } catch (e) {
+        console.error('Error updating password logs:', e);
       }
-      fetch(GOOGLE_SHEET_WEBAPP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ userId: userId, userName: userName, newPassword: newPassword })
-      }).catch(function(err) {
-        console.warn('Could not reach Google Sheet Web App:', err);
-      });
+
+      // Also keep the legacy direct call if configured (optional)
+      if (GOOGLE_SHEET_WEBAPP_URL && GOOGLE_SHEET_WEBAPP_URL.indexOf('PASTE_YOUR') === -1) {
+        fetch(GOOGLE_SHEET_WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ userId: userId, userName: userName, newPassword: newPassword })
+        }).catch(function(err) { console.warn('Legacy Google Sheet update failed:', err); });
+      }
     }
 
     // ===== Persist password changes in this browser (localStorage) =====
