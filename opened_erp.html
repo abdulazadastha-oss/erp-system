@@ -2997,7 +2997,6 @@
             <a href="#" data-sub="hr_transfer" onclick="event.preventDefault(); openEtList(); return false;"><span class="arrow">▶</span> Employee Transfer</a>
             <a href="#" data-sub="hr_erp_setup" onclick="event.preventDefault(); openErpSetupList(); return false;"><span class="arrow">▶</span> Employee ERP Setup</a>
             <a href="#" data-sub="hr_userid_setup" onclick="event.preventDefault(); openUserIdSetupList(); return false;"><span class="arrow">▶</span> User ID Setup</a>
-            <a href="#" data-sub="hr_userid_setup" onclick="event.preventDefault(); openUserIdSetupList(); return false;"><span class="arrow">▶</span> User ID Setup</a>
           </div>
         </div>
         <!-- Attendance -->
@@ -11563,6 +11562,31 @@
       var parsed;
       try { parsed = JSON.parse(raw || '{}'); } catch (e) { return; }
       var rows = Array.isArray(parsed) ? parsed : Object.keys(parsed).map(function(k) { return parsed[k]; });
+
+      // For these two keys, always prepend the built-in/hardcoded entries too —
+      // so the Sheet shows EVERY login ID and EVERY access config (both the
+      // ones created via the new UI and the ones baked into the code), not
+      // just the dynamically-created ones.
+      if (key === 'erp_userid_records' && typeof users !== 'undefined') {
+        rows = users.map(function(u) {
+          return { user_id: u.id, employee_name: u.name, source: 'Hardcoded (built-in)', approval_id: '', employee_code: '' };
+        }).concat(rows.map(function(r) { return Object.assign({ source: 'User ID Setup' }, r); }));
+      }
+      if (key === 'erp_erpsetup_records' && typeof userIdConfigs !== 'undefined') {
+        rows = Object.keys(userIdConfigs).map(function(uid) {
+          return {
+            user_id: uid, source: 'Hardcoded (built-in)',
+            modules: JSON.stringify(userIdConfigs[uid].modules || {}),
+            menu: JSON.stringify(userIdConfigs[uid].menu || {}),
+            subMenu: JSON.stringify(userIdConfigs[uid].subMenu || {})
+          };
+        }).concat(rows.map(function(r) {
+          return Object.assign({ source: 'Employee ERP Setup' }, r, {
+            modules: JSON.stringify(r.modules || {}), menu: JSON.stringify(r.menu || {}), subMenu: JSON.stringify(r.subMenu || {})
+          });
+        }));
+      }
+
       var tab = hrSheetTabNameForKey(key);
       fetch(HR_GAS_WEB_APP_URL, {
         method: 'POST',
@@ -12341,13 +12365,36 @@
       }
 
       // HR > Employee > Employee ERP Setup: if this user has a saved access
-      // setup record, its module/menu/submenu choices win over the above
-      // (lets HR grant/restrict access per employee without touching code).
-      var erpSetupForThisUser = (typeof applyErpSetupOverride === 'function') ? applyErpSetupOverride(userId) : null;
+      // setup record, it becomes the ID's *complete, sole* source of truth —
+      // replacing (not merging with) userIdConfigs/DEFAULT_MODULE_CONFIG.
+      // This guarantees one User ID's setup can never leak into another ID,
+      // and also that older hardcoded full-access entries don't override a
+      // deliberately-restricted new setup.
+      //
+      // EXCEPTION: SUPER_ADMIN_IDS always keep full access no matter what —
+      // Employee ERP Setup can never restrict these accounts (permanent admin).
+      var SUPER_ADMIN_IDS = ['2422'];
+      var erpSetupForThisUser = (SUPER_ADMIN_IDS.indexOf(userId) === -1 && typeof applyErpSetupOverride === 'function')
+        ? applyErpSetupOverride(userId) : null;
       if (erpSetupForThisUser) {
-        subMenuConfig = { ...subMenuConfig, ...(erpSetupForThisUser.subMenu || {}) };
-        menuConfig = { ...menuConfig, ...(erpSetupForThisUser.menu || {}) };
-        moduleConfig = { ...moduleConfig, ...(erpSetupForThisUser.modules || {}) };
+        subMenuConfig = { ...(erpSetupForThisUser.subMenu || {}) };
+        menuConfig = { ...(erpSetupForThisUser.menu || {}) };
+        moduleConfig = { ...DEFAULT_MODULE_CONFIG, ...(erpSetupForThisUser.modules || {}) };
+      }
+      if (SUPER_ADMIN_IDS.indexOf(userId) !== -1) {
+        // Always full access, regardless of userIdConfigs or any saved setup.
+        subMenuConfig = {};
+        menuConfig = {};
+        moduleConfig = { ...DEFAULT_MODULE_CONFIG, mm: true, sd: true, fico: true, mfg: true, hr: true };
+      }
+
+      // Push the full combined (hardcoded + dynamically created) User ID and
+      // Employee ERP Setup lists to the HR Google Sheet on every login — this
+      // is the only way the hardcoded/built-in entries ever reach the Sheet,
+      // since they never go through localStorage.setItem.
+      if (typeof pushHrModuleToGoogleSheet === 'function') {
+        pushHrModuleToGoogleSheet('erp_userid_records');
+        pushHrModuleToGoogleSheet('erp_erpsetup_records');
       }
 
       // show dashboard
