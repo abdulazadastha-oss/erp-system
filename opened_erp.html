@@ -2325,6 +2325,133 @@
     }
     .data-io-checkboxes input[type="checkbox"] { accent-color: #3b82f6; }
     #dataIoFileInput { display: none; }
+
+    /* ===== HR Leave Balance Dashboard ===== */
+    .leave-balance-outer { max-width: 1220px; }
+    .leave-balance-toolbar {
+      padding: 14px 24px;
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      flex-wrap: wrap;
+      background: #fbfaf8;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .leave-balance-filter { display: flex; flex-direction: column; gap: 5px; min-width: 170px; }
+    .leave-balance-filter label {
+      color: #64748b;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+    .leave-balance-filter select {
+      min-width: 170px;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      color: #1e293b;
+      background: #fff;
+      font-size: 0.84rem;
+    }
+    .leave-balance-refresh { margin-left: auto; }
+    .leave-balance-note { color: #64748b; font-size: 0.76rem; margin-left: auto; }
+    .leave-balance-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(140px, 1fr));
+      gap: 12px;
+      padding: 18px 24px;
+      background: #f8fafc;
+    }
+    .leave-balance-kpi {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      min-height: 88px;
+      position: relative;
+      overflow: hidden;
+    }
+    .leave-balance-kpi::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: var(--lb-accent, #2563eb);
+    }
+    .leave-balance-kpi-label {
+      display: block;
+      color: #64748b;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.45px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .leave-balance-kpi-value {
+      display: block;
+      color: #0f172a;
+      font-size: 1.45rem;
+      line-height: 1;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .leave-balance-kpi-sub { display: block; margin-top: 7px; color: #94a3b8; font-size: 0.72rem; }
+    .leave-balance-content { padding: 0 24px 24px; background: #f8fafc; }
+    .leave-balance-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr); gap: 14px; }
+    .leave-balance-panel {
+      margin-top: 14px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+    .leave-balance-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .leave-balance-panel-head h3 { margin: 0; color: #1e293b; font-size: 0.95rem; }
+    .leave-balance-panel-head span { color: #64748b; font-size: 0.74rem; }
+    .leave-balance-usage-row { margin-bottom: 15px; }
+    .leave-balance-usage-top { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; font-size: 0.8rem; }
+    .leave-balance-usage-name { color: #334155; font-weight: 700; }
+    .leave-balance-usage-value { color: #64748b; font-variant-numeric: tabular-nums; }
+    .leave-balance-track { height: 9px; border-radius: 8px; background: #e2e8f0; overflow: hidden; }
+    .leave-balance-fill { height: 100%; border-radius: 8px; min-width: 0; background: linear-gradient(90deg, #2563eb, #60a5fa); }
+    .leave-balance-usage-foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 5px; color: #94a3b8; font-size: 0.7rem; }
+    .leave-balance-status-layout { display: flex; align-items: center; gap: 24px; min-height: 186px; }
+    .leave-balance-donut {
+      width: 142px; height: 142px; flex: 0 0 142px; border-radius: 50%;
+      display: grid; place-items: center; background: conic-gradient(#f59e0b 0 33%, #16a34a 33% 66%, #dc2626 66% 100%);
+    }
+    .leave-balance-donut::after { content: ""; width: 92px; height: 92px; border-radius: 50%; background: #fff; grid-area: 1 / 1; }
+    .leave-balance-donut-center { grid-area: 1 / 1; z-index: 1; text-align: center; color: #1e293b; }
+    .leave-balance-donut-center strong { display: block; font-size: 1.35rem; }
+    .leave-balance-donut-center span { display: block; color: #64748b; font-size: 0.66rem; }
+    .leave-balance-legend { display: grid; gap: 12px; width: 100%; }
+    .leave-balance-legend-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #475569; font-size: 0.8rem; }
+    .leave-balance-legend-label { display: flex; align-items: center; gap: 7px; }
+    .leave-balance-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .leave-balance-legend-value { font-weight: 800; color: #1e293b; }
+    .leave-balance-table-wrap { overflow-x: auto; }
+    .leave-balance-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .leave-balance-table th { padding: 9px 10px; background: #f1f5f9; color: #475569; text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.35px; }
+    .leave-balance-table td { padding: 10px; border-bottom: 1px solid #eef2f7; color: #334155; white-space: nowrap; }
+    .leave-balance-status { display: inline-flex; padding: 3px 8px; border-radius: 99px; font-size: 0.68rem; font-weight: 800; }
+    .leave-balance-status.pending { background: #fef3c7; color: #92400e; }
+    .leave-balance-status.approved { background: #dcfce7; color: #166534; }
+    .leave-balance-status.rejected { background: #fee2e2; color: #991b1b; }
+    .leave-balance-empty { padding: 28px 10px; color: #94a3b8; text-align: center; font-size: 0.82rem; }
+    @media (max-width: 900px) {
+      .leave-balance-kpi-grid { grid-template-columns: repeat(3, minmax(140px, 1fr)); }
+      .leave-balance-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .leave-balance-kpi-grid { grid-template-columns: repeat(2, minmax(130px, 1fr)); padding: 14px; }
+      .leave-balance-content { padding: 0 14px 18px; }
+      .leave-balance-toolbar { padding: 12px 14px; }
+      .leave-balance-note, .leave-balance-refresh { margin-left: 0; }
+      .leave-balance-status-layout { gap: 12px; }
+      .leave-balance-donut { width: 112px; height: 112px; flex-basis: 112px; }
+      .leave-balance-donut::after { width: 72px; height: 72px; }
+    }
   </style>
 </head>
 <body>
@@ -3005,7 +3132,7 @@
           <div class="dropdown" data-parent="hr_attendance">
             <a href="#" data-sub="hr_daily_attendance" onclick="event.preventDefault(); openAttList(); return false;"><span class="arrow">▶</span> Daily Attendance</a>
             <a href="#" data-sub="hr_leave_application" onclick="event.preventDefault(); openLeaveList(); return false;"><span class="arrow">▶</span> Leave Application</a>
-            <a href="#" data-sub="hr_leave_approval" onclick="event.preventDefault(); openLeaveApprovalList(); return false;"><span class="arrow">▶</span> Leave Approval</a>
+            <a href="#" data-sub="hr_leave_balance" onclick="event.preventDefault(); openLeaveBalanceDashboard(); return false;"><span class="arrow">▶</span> Leave Balance</a>
           </div>
         </div>
         <!-- Payroll -->
@@ -7160,7 +7287,6 @@
           <p style="color:#ef4444; font-weight:600; margin-bottom:10px;">⚠️ If sync not working: Open this file via local server (not file://). Run: <code style="background:#fee2e2; padding:2px 6px; border-radius:3px;">npx serve</code> in this folder.</p>
           <button class="data-io-btn data-io-btn-export" onclick="manualSyncToCloud()" style="background:#22c55e;">⬆️ Sync All to Cloud</button>
           <button class="data-io-btn data-io-btn-import" onclick="manualLoadFromCloud()" style="margin-left:8px;">⬇️ Load from Cloud</button>
-          <button class="data-io-btn" onclick="testFirebaseConnection()" style="background:#8b5cf6; margin-left:8px;">🔍 Test Connection</button>
           <div class="data-io-status" id="syncStatus"></div>
         </div>
 
@@ -7175,36 +7301,32 @@
         <!-- Google Sheet Sync Section -->
         <div class="data-io-section" style="border-left:3px solid #0ea5e9;">
           <h3>📄 Google Sheet Sync (FICO Module)</h3>
-          <p>Every FICO module (Chart of Accounts, Journal Entry, AP, AR, Bank Reconciliation, Cheque, Fund Transfer, Asset Accounting, Cost Center, Budget Allocation, Cost Allocation) is auto-pushed (a few seconds after saving) to its own tab in your linked Google Sheet. Use these buttons to push everything right now, or test the connection.</p>
+          <p>Every FICO module (Chart of Accounts, Journal Entry, AP, AR, Bank Reconciliation, Cheque, Fund Transfer, Asset Accounting, Cost Center, Budget Allocation, Cost Allocation) is auto-pushed (a few seconds after saving) to its own tab in your linked Google Sheet. Use these buttons to push everything right now.</p>
           <button class="data-io-btn data-io-btn-export" onclick="manualSyncAllToGoogleSheet()" style="background:#0ea5e9;">⬆️ Push FICO Data to Google Sheet</button>
-          <button class="data-io-btn" onclick="testGoogleSheetConnection()" style="background:#8b5cf6; margin-left:8px;">🔍 Test Connection</button>
           <div class="data-io-status" id="sheetSyncStatus"></div>
         </div>
 
         <!-- Google Sheet Sync Section (SD Module) -->
         <div class="data-io-section" style="border-left:3px solid #f97316;">
           <h3>📄 Google Sheet Sync (SD Module)</h3>
-          <p>Customer Master is auto-pushed (a few seconds after saving) to its own "Customer" tab in your separate SD Google Sheet. Use these buttons to push everything right now, or test the connection.</p>
+          <p>Customer Master is auto-pushed (a few seconds after saving) to its own "Customer" tab in your separate SD Google Sheet. Use these buttons to push everything right now.</p>
           <button class="data-io-btn data-io-btn-export" onclick="manualSyncAllToSdGoogleSheet()" style="background:#f97316;">⬆️ Push SD Data to Google Sheet</button>
-          <button class="data-io-btn" onclick="testSdGoogleSheetConnection()" style="background:#8b5cf6; margin-left:8px;">🔍 Test Connection</button>
           <div class="data-io-status" id="sdSheetSyncStatus"></div>
         </div>
 
         <!-- Google Sheet Sync Section (MFG Module) -->
         <div class="data-io-section" style="border-left:3px solid #d35400;">
           <h3>🛠️ Google Sheet Sync (MFG Module)</h3>
-          <p>Production Order is auto-pushed (a few seconds after saving) to its own "ProductionOrder" tab in your separate MFG Google Sheet — one row per item, for multi-item orders. Use these buttons to push everything right now, or test the connection.</p>
+          <p>Production Order is auto-pushed (a few seconds after saving) to its own "ProductionOrder" tab in your separate MFG Google Sheet — one row per item, for multi-item orders. Use these buttons to push everything right now.</p>
           <button class="data-io-btn data-io-btn-export" onclick="manualSyncAllToMfgGoogleSheet()" style="background:#d35400;">⬆️ Push MFG Data to Google Sheet</button>
-          <button class="data-io-btn" onclick="testMfgGoogleSheetConnection()" style="background:#8b5cf6; margin-left:8px;">🔍 Test Connection</button>
           <div class="data-io-status" id="mfgSheetSyncStatus"></div>
         </div>
 
         <!-- Google Sheet Sync Section (HR Module) -->
         <div class="data-io-section" style="border-left:3px solid #7c3aed;">
           <h3>👥 Google Sheet Sync (HR Module)</h3>
-          <p>Employee, Attendance, Leave, Recruitment, Payroll, Performance, and Training data are auto-pushed (a few seconds after saving) to their own tabs in your separate HR Google Sheet. Use these buttons to push everything right now, or test the connection.</p>
+          <p>Employee, Attendance, Leave, Recruitment, Payroll, Performance, and Training data are auto-pushed (a few seconds after saving) to their own tabs in your separate HR Google Sheet. Use these buttons to push everything right now.</p>
           <button class="data-io-btn data-io-btn-export" onclick="manualSyncAllToHrGoogleSheet()" style="background:#7c3aed;">⬆️ Push HR Data to Google Sheet</button>
-          <button class="data-io-btn" onclick="testHrGoogleSheetConnection()" style="background:#8b5cf6; margin-left:8px;">🔍 Test Connection</button>
           <div class="data-io-status" id="hrSheetSyncStatus"></div>
         </div>
 
@@ -7260,7 +7382,7 @@
                 <span class="pr-grand-total-value" id="prGrandTotal">0.00</span>
               </div>
             </div>
-            <input type="hidden" id="pr_status" value="Pending">
+            <input type="hidden" id="pr_status" value="Draft">
             <div class="erp-form-messages">
               <div class="error-msg" id="prFormError"></div>
               <div class="success-msg" id="prFormSuccess"></div>
@@ -9860,12 +9982,69 @@
           <div class="erp-form-actions">
             <button type="button" class="erp-btn erp-btn-show-message" onclick="showGenericMessage('lvFormError','lvFormSuccess')">Show Message</button>
             <button type="submit" class="erp-btn erp-btn-update" id="lvSaveBtn">💾 Save</button>
-            <button type="button" class="erp-btn" style="background:#22c55e;" id="lvApproveBtn" onclick="approveLeaveFromForm()">✔ Approve</button>
-            <button type="button" class="erp-btn" style="background:#ef4444;" id="lvRejectBtn" onclick="rejectLeaveFromForm()">✘ Reject</button>
             <button type="button" class="erp-btn" style="background:#0ea5e9;" onclick="printLeaveFromForm()">🖨 Print</button>
             <button type="button" class="erp-btn erp-btn-exit" onclick="closeLeaveForm()">Exit</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== HR: Leave Balance Dashboard ===================== -->
+  <div class="pr-list-overlay" id="leaveBalanceOverlay" onclick="if(event.target===this) closeLeaveBalanceDashboard()">
+    <div class="pr-list-outer leave-balance-outer">
+      <div class="pr-list-header">
+        <h2>📊 Leave Balance Dashboard</h2>
+        <div class="pr-list-actions">
+          <button class="pr-add-btn" style="background:#0ea5e9;" onclick="refreshLeaveBalanceDashboard()">↻ Refresh</button>
+          <button class="pr-add-btn" style="background:#64748b;" onclick="printLeaveBalanceDashboard()">🖨 Print</button>
+          <button class="pr-close-list-btn" onclick="closeLeaveBalanceDashboard()">X</button>
+        </div>
+      </div>
+      <div class="leave-balance-toolbar">
+        <div class="leave-balance-filter">
+          <label for="leaveBalanceYear">Leave Year</label>
+          <select id="leaveBalanceYear" onchange="renderLeaveBalanceDashboard()"></select>
+        </div>
+        <div class="leave-balance-filter" style="min-width:230px;">
+          <label for="leaveBalanceEmployee">Employee</label>
+          <select id="leaveBalanceEmployee" style="min-width:230px;" onchange="renderLeaveBalanceDashboard()"></select>
+        </div>
+        <span class="leave-balance-note" id="leaveBalanceDataNote">Approved leave days are deducted from the selected policy balance.</span>
+      </div>
+      <div class="leave-balance-kpi-grid">
+        <div class="leave-balance-kpi" style="--lb-accent:#2563eb;"><span class="leave-balance-kpi-label">Total Leave Balance</span><span class="leave-balance-kpi-value" id="leaveBalanceTotal">0</span><span class="leave-balance-kpi-sub">Policy days for selected scope</span></div>
+        <div class="leave-balance-kpi" style="--lb-accent:#f59e0b;"><span class="leave-balance-kpi-label">Applied Leave</span><span class="leave-balance-kpi-value" id="leaveBalanceApplied">0</span><span class="leave-balance-kpi-sub">All submitted applications</span></div>
+        <div class="leave-balance-kpi" style="--lb-accent:#16a34a;"><span class="leave-balance-kpi-label">Approved Days</span><span class="leave-balance-kpi-value" id="leaveBalanceApproved">0</span><span class="leave-balance-kpi-sub">Days deducted from balance</span></div>
+        <div class="leave-balance-kpi" style="--lb-accent:#f97316;"><span class="leave-balance-kpi-label">Pending Days</span><span class="leave-balance-kpi-value" id="leaveBalancePending">0</span><span class="leave-balance-kpi-sub">Awaiting approval</span></div>
+        <div class="leave-balance-kpi" style="--lb-accent:#7c3aed;"><span class="leave-balance-kpi-label">Remaining Balance</span><span class="leave-balance-kpi-value" id="leaveBalanceRemaining">0</span><span class="leave-balance-kpi-sub">Total balance minus approved</span></div>
+      </div>
+      <div class="leave-balance-content">
+        <div class="leave-balance-grid">
+          <div class="leave-balance-panel">
+            <div class="leave-balance-panel-head"><h3>Balance by Leave Type</h3><span id="leaveBalanceScopeLabel">Employee</span></div>
+            <div id="leaveBalanceUsage"></div>
+          </div>
+          <div class="leave-balance-panel">
+            <div class="leave-balance-panel-head"><h3>Application Status</h3><span id="leaveBalanceStatusTotal">0 applications</span></div>
+            <div class="leave-balance-status-layout">
+              <div class="leave-balance-donut" id="leaveBalanceDonut">
+                <div class="leave-balance-donut-center"><strong id="leaveBalanceDonutCount">0</strong><span>Applications</span></div>
+              </div>
+              <div class="leave-balance-legend" id="leaveBalanceLegend"></div>
+            </div>
+          </div>
+        </div>
+        <div class="leave-balance-panel">
+          <div class="leave-balance-panel-head"><h3>Applied Leave Details</h3><span>Latest applications within selected year</span></div>
+          <div class="leave-balance-table-wrap">
+            <table class="leave-balance-table">
+              <thead><tr><th>Ref#</th><th>Employee</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th></tr></thead>
+              <tbody id="leaveBalanceAppliedBody"></tbody>
+            </table>
+            <div class="leave-balance-empty" id="leaveBalanceAppliedEmpty">No leave application found for the selected filters.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -11003,6 +11182,35 @@
     // ===== FIREBASE INITIALIZATION (optional - system works without it) =====
     var db = null;
     var currentUser = null;
+
+    // ===== CENTRAL USER DATA VISIBILITY =====
+    // User 2422 is the ERP administrator and can view all module records.
+    // Other users see records owned/submitted by that user only. Assigned
+    // approval requests remain visible to the designated approver.
+    function isErpAdminUser() {
+      return !!(currentUser && String(currentUser.id || '').trim() === '2422');
+    }
+    function isRecordVisibleToCurrentUser(record) {
+      if (isErpAdminUser()) return true;
+      if (!currentUser || !currentUser.id) return false;
+      record = record || {};
+      var currentId = String(currentUser.id).trim().toLowerCase();
+      var ownerFields = [
+        'submitted_by', 'submitted_by_id', 'created_by', 'created_by_id',
+        'owner_id', 'owner_user_id', 'user_id', 'userId', 'raised_by_id',
+        'raised_by', 'applied_by', 'applied_by_id', 'requested_by',
+        'requested_by_id', 'entry_by_id', 'entry_user_id', 'posted_by_id',
+        'prepared_by_id', 'employee_user_id'
+      ];
+      var ownerIds = ownerFields.map(function(field) {
+        return String(record[field] || '').trim().toLowerCase();
+      }).filter(Boolean);
+      var approvalId = String(record.approval_id || record.approver_id || record.approvalId || '').trim().toLowerCase();
+      return ownerIds.indexOf(currentId) !== -1 || approvalId === currentId;
+    }
+    function filterRecordsForCurrentUser(records) {
+      return (records || []).filter(isRecordVisibleToCurrentUser);
+    }
     var _firebaseReady = false;
     try {
       if (typeof firebase !== 'undefined') {
@@ -11051,6 +11259,7 @@
           });
         }
         startRealtimeSync();
+        if (typeof rebuildAndSyncLeaveBalance === 'function') setTimeout(function() { rebuildAndSyncLeaveBalance(); }, 250);
         if (callback) callback();
       }).catch(function(err) {
         console.error('loadFromFirebase error:', err);
@@ -11120,6 +11329,7 @@
       'erp_emp_transfer_records','erp_emp_transfer_serial',
       'erp_attendance_records',
       'erp_leave_records','erp_leave_serial',
+      'erp_leave_balance_records',
       'erp_jobposting_records','erp_jobposting_serial',
       'erp_candidate_records','erp_candidate_serial',
       'erp_interview_records','erp_interview_serial',
@@ -11163,6 +11373,10 @@
       if (!_ignoreFirebaseUpdate && typeof isMmSheetSyncKey !== 'undefined' && isMmSheetSyncKey(key)) {
         clearTimeout(_mmSheetSyncTimers[key]);
         _mmSheetSyncTimers[key] = setTimeout(function() { pushMmModuleToGoogleSheet(key); }, 800);
+      }
+      if (!_ignoreFirebaseUpdate && ['erp_emp_records', 'erp_leave_records', 'erp_userid_records'].indexOf(key) !== -1 && typeof rebuildAndSyncLeaveBalance === 'function') {
+        clearTimeout(window.__leaveBalanceBuildTimer);
+        window.__leaveBalanceBuildTimer = setTimeout(function() { rebuildAndSyncLeaveBalance(); }, 900);
       }
     };
 
@@ -11270,7 +11484,7 @@
       fetch(FICO_GAS_WEB_APP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'bulkSync', form: '_CONNECTION_TEST', rows: [{ timestamp: new Date().toISOString(), message: 'Connection OK' }] })
+        body: JSON.stringify({ action: 'bulkSync', form: '_CONNECTION_TEST', rows: [{ timestamp: new Date().toISOString(), message: 'Connection verified' }] })
       }).then(function(res) {
         if (res.ok) showDataMsg('sheetSyncStatus', 'success', 'Google Sheet connection OK! Check the "_CONNECTION_TEST" tab.');
         else showDataMsg('sheetSyncStatus', 'error', 'Google Sheet responded with HTTP ' + res.status + '.');
@@ -11365,7 +11579,7 @@
       fetch(SD_GAS_WEB_APP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'bulkSync', form: '_CONNECTION_TEST', rows: [{ timestamp: new Date().toISOString(), message: 'Connection OK' }] })
+        body: JSON.stringify({ action: 'bulkSync', form: '_CONNECTION_TEST', rows: [{ timestamp: new Date().toISOString(), message: 'Connection verified' }] })
       }).then(function(res) {
         if (res.ok) showDataMsg('sdSheetSyncStatus', 'success', 'Google Sheet connection OK! Check the "_CONNECTION_TEST" tab.');
         else showDataMsg('sdSheetSyncStatus', 'error', 'Google Sheet responded with HTTP ' + res.status + '.');
@@ -11483,7 +11697,7 @@
       fetch(MFG_GAS_WEB_APP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'bulkSync', form: '_CONNECTION_TEST', rows: [{ timestamp: new Date().toISOString(), message: 'Connection OK' }] })
+        body: JSON.stringify({ action: 'bulkSync', form: '_CONNECTION_TEST', rows: [{ timestamp: new Date().toISOString(), message: 'Connection verified' }] })
       }).then(function(res) {
         if (res.ok) showDataMsg('mfgSheetSyncStatus', 'success', 'Google Sheet connection OK! Check the "_CONNECTION_TEST" tab.');
         else showDataMsg('mfgSheetSyncStatus', 'error', 'Google Sheet responded with HTTP ' + res.status + '.');
@@ -11536,6 +11750,7 @@
       erp_emp_transfer_records: 'EmployeeTransfer',
       erp_attendance_records: 'Attendance',
       erp_leave_records: 'Leave',
+      erp_leave_balance_records: 'Leave Balance',
       erp_jobposting_records: 'JobPosting',
       erp_candidate_records: 'Candidate',
       erp_interview_records: 'Interview',
@@ -11608,6 +11823,7 @@
         return;
       }
       showDataMsg('hrSheetSyncStatus', 'info', 'Pushing all HR module data to Google Sheet...');
+      if (typeof rebuildAndSyncLeaveBalance === 'function') rebuildAndSyncLeaveBalance();
       HR_SHEET_SYNC_KEYS.forEach(function(key) { pushHrModuleToGoogleSheet(key); });
       setTimeout(function() {
         showDataMsg('hrSheetSyncStatus', 'success', HR_SHEET_SYNC_KEYS.length + ' module(s) pushed to Google Sheet — check your Sheet tabs.');
@@ -11623,7 +11839,7 @@
       fetch(HR_GAS_WEB_APP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'bulkSync', form: '_CONNECTION_TEST', rows: [{ timestamp: new Date().toISOString(), message: 'Connection OK' }] })
+        body: JSON.stringify({ action: 'bulkSync', form: '_CONNECTION_TEST', rows: [{ timestamp: new Date().toISOString(), message: 'Connection verified' }] })
       }).then(function(res) {
         if (res.ok) showDataMsg('hrSheetSyncStatus', 'success', 'Google Sheet connection OK! Check the "_CONNECTION_TEST" tab.');
         else showDataMsg('hrSheetSyncStatus', 'error', 'Google Sheet responded with HTTP ' + res.status + '.');
@@ -11708,35 +11924,6 @@
     const users = [
       // Original users
       { id: '2422', password: '1234', name: 'Abdul Azad', avatar: 'AA' },
-      { id: '2134', password: '1234', name: 'Abdur Razzaque', avatar: 'AR' },
-      { id: '2423', password: '1234', name: 'Rafiq Ahmed', avatar: 'RA' },
-      
-      // New 25 users (ID 2001-2025)
-      { id: '2001', password: '1234', name: 'User 2001', avatar: 'U1' },
-      { id: '2002', password: '1234', name: 'User 2002', avatar: 'U2' },
-      { id: '2003', password: '1234', name: 'User 2003', avatar: 'U3' },
-      { id: '2004', password: '1234', name: 'User 2004', avatar: 'U4' },
-      { id: '2005', password: '1234', name: 'User 2005', avatar: 'U5' },
-      { id: '2006', password: '1234', name: 'User 2006', avatar: 'U6' },
-      { id: '2007', password: '1234', name: 'User 2007', avatar: 'U7' },
-      { id: '2008', password: '1234', name: 'User 2008', avatar: 'U8' },
-      { id: '2009', password: '1234', name: 'User 2009', avatar: 'U9' },
-      { id: '2010', password: '1234', name: 'User 2010', avatar: 'UA' },
-      { id: '2011', password: '1234', name: 'User 2011', avatar: 'UB' },
-      { id: '2012', password: '1234', name: 'User 2012', avatar: 'UC' },
-      { id: '2013', password: '1234', name: 'User 2013', avatar: 'UD' },
-      { id: '2014', password: '1234', name: 'User 2014', avatar: 'UE' },
-      { id: '2015', password: '1234', name: 'User 2015', avatar: 'UF' },
-      { id: '2016', password: '1234', name: 'User 2016', avatar: 'UG' },
-      { id: '2017', password: '1234', name: 'User 2017', avatar: 'UH' },
-      { id: '2018', password: '1234', name: 'User 2018', avatar: 'UI' },
-      { id: '2019', password: '1234', name: 'User 2019', avatar: 'UJ' },
-      { id: '2020', password: '1234', name: 'User 2020', avatar: 'UK' },
-      { id: '2021', password: '1234', name: 'User 2021', avatar: 'UL' },
-      { id: '2022', password: '1234', name: 'User 2022', avatar: 'UM' },
-      { id: '2023', password: '1234', name: 'User 2023', avatar: 'UN' },
-      { id: '2024', password: '1234', name: 'User 2024', avatar: 'UO' },
-      { id: '2025', password: '1234', name: 'User 2025', avatar: 'UP' }
     ];
 
     // ===== USER-ID BASED CONFIGURATIONS =====
@@ -11759,461 +11946,7 @@
         menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: true},
         modules: { mm: true, sd: true, fico: true, mfg: true, hr: true }
       },
-      '2134': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: true, vendor_agreement: true,
-          purchase_order: true, transfer_order: true,
-          lc_open: true, bill_entry: true, bill_lading: true, cnf: true, lc_clearence: true, lc_management: true,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: true, qc_2nd: true, qc_parameter: true,
-          grn: true, trn: true, materials_issue: true, materials_return: true, stock_exchange: true, fg_rm_exchange: true, positive_adj: true, negative_adj: true, wastage_management: false,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: true, po_vs_receive: true,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: false}
-      },
-      '2423': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: true, vendor_agreement: true,
-          purchase_order: true, transfer_order: true,
-          lc_open: true, bill_entry: true, bill_lading: true, cnf: true, lc_clearence: true, lc_management: true,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: true, qc_2nd: true, qc_parameter: true,
-          grn: true, trn: true, materials_issue: true, materials_return: true, stock_exchange: true, fg_rm_exchange: true, positive_adj: true, negative_adj: true, wastage_management: true,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: true, po_vs_receive: true,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: true}
-      },
 
-      // User 2001: Full access (All true)
-      '2001': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: true, vendor_agreement: true,
-          purchase_order: true, transfer_order: true,
-          lc_open: true, bill_entry: true, bill_lading: true, cnf: true, lc_clearence: true, lc_management: true,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: true, qc_2nd: true, qc_parameter: true,
-          grn: true, trn: true, materials_issue: true, materials_return: true, stock_exchange: true, fg_rm_exchange: true, positive_adj: true, negative_adj: true, wastage_management: true,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: true, po_vs_receive: true,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: true},
-        modules: { mm: true, sd: true, fico: true, mfg: true, hr: true }
-      },
-      
-      // User 2002: Only Requisition & Sourcing (Limited)
-      '2002': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: true, scale_report: false, qc_pass_report: false, po_summary: false, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: false, lc: false, gateentry: false, scale: false, qc: false, inventory: false, report: true}
-      },
-      
-      // User 2003: Gate Entry & Scale only
-      '2003': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: true, scale_report: true, qc_pass_report: false, po_summary: false, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: false, sourcing: false, order: false, lc: false, gateentry: true, scale: true, qc: false, inventory: false, report: true}
-      },
-      
-      // User 2004: QC only
-      '2004': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: true, qc_2nd: true, qc_parameter: true,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: false, scale_report: false, qc_pass_report: true, po_summary: false, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: false, sourcing: false, order: false, lc: false, gateentry: false, scale: false, qc: true, inventory: false, report: true}
-      },
-      
-      // User 2005: Inventory only
-      '2005': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: true, trn: true, materials_issue: true, materials_return: true, stock_exchange: true, fg_rm_exchange: true, positive_adj: true, negative_adj: true, wastage_management: false,
-          gate_entry_report: false, scale_report: false, qc_pass_report: false, po_summary: false, po_vs_receive: false,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
-        },
-        menu: { home: true, requisition: false, sourcing: false, order: false, lc: false, gateentry: false, scale: false, qc: false, inventory: true, report: true}
-      },
-      
-      // User 2006: Requisition + Order
-      '2006': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: true, transfer_order: true,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: false, scale_report: false, qc_pass_report: false, po_summary: false, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: true, sourcing: false, order: true, lc: false, gateentry: false, scale: false, qc: false, inventory: false, report: false}
-      },
-      
-      // User 2007: Sourcing + LC
-      '2007': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: true, vendor_agreement: true,
-          purchase_order: false, transfer_order: false,
-          lc_open: true, bill_entry: true, bill_lading: true, cnf: true, lc_clearence: true, lc_management: true,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: false, scale_report: false, qc_pass_report: false, po_summary: false, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: false, sourcing: true, order: false, lc: true, gateentry: false, scale: false, qc: false, inventory: false, report: false}
-      },
-      
-      // User 2008: Report only
-      '2008': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: true, po_vs_receive: true,
-          inventory_stock: true, inventory_movement: true, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: false, sourcing: false, order: false, lc: false, gateentry: false, scale: false, qc: false, inventory: false, report: true}
-      },
-      
-      // User 2009: Limited - Gate In/Out only
-      '2009': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: true, gate_out: true,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: false, scale_report: false, qc_pass_report: false, po_summary: false, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: false, sourcing: false, order: false, lc: false, gateentry: true, scale: false, qc: false, inventory: false, report: false}
-      },
-      
-      // User 2010: GRN + TRN only
-      '2010': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: true, trn: true, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: false, scale_report: false, qc_pass_report: false, po_summary: false, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: false, sourcing: false, order: false, lc: false, gateentry: false, scale: false, qc: false, inventory: true, report: false}
-      },
-
-      // User 2011-2025: Unique permission patterns for each user
-      '2011': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: false, store_req: true,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: true, gate_out: false,
-          weight_1st: true, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: true, scale_report: false, qc_pass_report: false, po_summary: false, po_vs_receive: false,
-          inventory_stock: true, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: true, sourcing: false, order: false, lc: false, gateentry: true, scale: true, qc: false, inventory: true, report: true}
-      },
-      '2012': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: true, store_req: false,
-          rfq: true, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: true, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: false, gate_out: true,
-          weight_1st: false, weight_2nd: true,
-          qc_1st: true, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: true, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: false, scale_report: true, qc_pass_report: true, po_summary: false, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: true, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: false, gateentry: true, scale: true, qc: true, inventory: true, report: true}
-      },
-      '2013': {
-        subMenu: {
-          favorite: false,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: false, quotation: true, quotation_review: true, cs_approval: true, vendor_agreement: true,
-          purchase_order: false, transfer_order: false,
-          lc_open: true, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: false, scale_report: false, qc_pass_report: false, po_summary: true, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: false, sourcing: true, order: false, lc: true, gateentry: false, scale: false, qc: false, inventory: false, report: false}
-      },
-      '2014': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: true, quotation: true, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: true, transfer_order: true,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: true, scale_report: true, qc_pass_report: false, po_summary: false, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: false, gateentry: true, scale: true, qc: false, inventory: false, report: true}
-      },
-      '2015': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: true, bill_lading: true, cnf: true, lc_clearence: true, lc_management: false,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: false, scale_report: false, qc_pass_report: false, po_summary: false, po_vs_receive: true,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: false, sourcing: false, order: false, lc: true, gateentry: false, scale: false, qc: false, inventory: false, report: true}
-      },
-      '2016': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: true, qc_2nd: true, qc_parameter: false,
-          grn: true, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: false, po_vs_receive: false,
-          inventory_stock: true, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: false, sourcing: false, order: false, lc: false, gateentry: true, scale: true, qc: true, inventory: true, report: true}
-      },
-      '2017': {
-        subMenu: {
-          favorite: false,
-          purchase_req: true, transfer_req: true, store_req: false,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: false, vendor_agreement: false,
-          purchase_order: true, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: true, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: false, scale_report: false, qc_pass_report: false, po_summary: true, po_vs_receive: true,
-          inventory_stock: false, inventory_movement: true, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: false, gateentry: false, scale: false, qc: false, inventory: true, report: true}
-      },
-      '2018': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: true,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: true, vendor_agreement: true,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: true,
-          gate_in: true, gate_out: false,
-          weight_1st: false, weight_2nd: true,
-          qc_1st: false, qc_2nd: true, qc_parameter: true,
-          grn: true, trn: true, materials_issue: true, materials_return: false, stock_exchange: true, fg_rm_exchange: false, positive_adj: true, negative_adj: false, wastage_management: false,
-          gate_entry_report: true, scale_report: false, qc_pass_report: true, po_summary: false, po_vs_receive: false,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: false, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: true}
-      },
-      '2019': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: false, store_req: true,
-          rfq: false, quotation: true, quotation_review: false, cs_approval: false, vendor_agreement: true,
-          purchase_order: true, transfer_order: false,
-          lc_open: true, bill_entry: true, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: false,
-          qc_1st: true, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: true, po_vs_receive: false,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: false, report: true}
-      },
-      '2020': {
-        subMenu: {
-          favorite: false,
-          purchase_req: false, transfer_req: true, store_req: false,
-          rfq: true, quotation: false, quotation_review: true, cs_approval: true, vendor_agreement: false,
-          purchase_order: false, transfer_order: true,
-          lc_open: true, bill_entry: false, bill_lading: true, cnf: true, lc_clearence: false, lc_management: true,
-          gate_in: false, gate_out: true,
-          weight_1st: false, weight_2nd: true,
-          qc_1st: false, qc_2nd: false, qc_parameter: true,
-          grn: false, trn: true, materials_issue: true, materials_return: true, stock_exchange: false, fg_rm_exchange: true, positive_adj: false, negative_adj: true, wastage_management: true,
-          gate_entry_report: false, scale_report: true, qc_pass_report: false, po_summary: false, po_vs_receive: true,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: true}
-      },
-      '2021': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: true, vendor_agreement: true,
-          purchase_order: true, transfer_order: true,
-          lc_open: true, bill_entry: true, bill_lading: true, cnf: true, lc_clearence: true, lc_management: true,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: true, trn: true, materials_issue: true, materials_return: true, stock_exchange: true, fg_rm_exchange: true, positive_adj: true, negative_adj: true, wastage_management: false,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: true, po_vs_receive: true,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: true}
-      },
-      '2022': {
-        subMenu: {
-          favorite: true,
-          purchase_req: false, transfer_req: false, store_req: false,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: true, vendor_agreement: true,
-          purchase_order: true, transfer_order: true,
-          lc_open: true, bill_entry: true, bill_lading: true, cnf: true, lc_clearence: true, lc_management: true,
-          gate_in: false, gate_out: false,
-          weight_1st: false, weight_2nd: false,
-          qc_1st: false, qc_2nd: false, qc_parameter: false,
-          grn: false, trn: false, materials_issue: false, materials_return: false, stock_exchange: false, fg_rm_exchange: false, positive_adj: false, negative_adj: false, wastage_management: false,
-          gate_entry_report: false, scale_report: false, qc_pass_report: false, po_summary: true, po_vs_receive: true,
-          inventory_stock: false, inventory_movement: false, goods_exchange: false, adjustment_report: false
-        },
-        menu: { home: true, requisition: false, sourcing: true, order: true, lc: true, gateentry: false, scale: false, qc: false, inventory: false, report: true}
-      },
-      '2023': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: false, quotation: false, quotation_review: false, cs_approval: false, vendor_agreement: false,
-          purchase_order: false, transfer_order: false,
-          lc_open: false, bill_entry: false, bill_lading: false, cnf: false, lc_clearence: false, lc_management: false,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: true, qc_2nd: true, qc_parameter: true,
-          grn: true, trn: true, materials_issue: true, materials_return: true, stock_exchange: true, fg_rm_exchange: true, positive_adj: true, negative_adj: true, wastage_management: true,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: true, po_vs_receive: true,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
-        },
-        menu: { home: true, requisition: true, sourcing: false, order: false, lc: false, gateentry: true, scale: true, qc: true, inventory: true, report: true}
-      },
-      '2024': {
-        subMenu: {
-          favorite: false,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: true, vendor_agreement: true,
-          purchase_order: true, transfer_order: true,
-          lc_open: true, bill_entry: true, bill_lading: true, cnf: true, lc_clearence: true, lc_management: true,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: true, qc_2nd: true, qc_parameter: true,
-          grn: true, trn: true, materials_issue: true, materials_return: true, stock_exchange: true, fg_rm_exchange: true, positive_adj: true, negative_adj: true, wastage_management: false,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: false, po_vs_receive: false,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: false
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: true}
-      },
-      '2025': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: true, vendor_agreement: true,
-          purchase_order: true, transfer_order: true,
-          lc_open: true, bill_entry: true, bill_lading: true, cnf: true, lc_clearence: true, lc_management: true,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: true, qc_2nd: true, qc_parameter: true,
-          grn: true, trn: true, materials_issue: true, materials_return: true, stock_exchange: true, fg_rm_exchange: true, positive_adj: true, negative_adj: true, wastage_management: true,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: true, po_vs_receive: true,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: true}
-      }
     };
 
     // ===== SUB-MENU LINK CONFIGURATION =====
@@ -12228,6 +11961,7 @@
 
     const linkConfig = {
       favorite: '#',
+      hr_leave_balance: '#',
 
       // purchase_req, rfq, cs_approval & purchase_order now open in-page forms
       // (see GENERIC_FORM_CONFIG + PR_SUBMIT_URL/RFQ_SUBMIT_URL/CS_SUBMIT_URL/PO_SUBMIT_URL
@@ -12323,6 +12057,134 @@
     // user gets it by default. Grant a user other modules via
     // userIdConfigs[userId].modules = { mm:true, sd:true, fico:true, mfg:true, hr:true }
     const DEFAULT_MODULE_CONFIG = { mm: true, sd: false, fico: false, mfg: false, hr: false };
+    const FULL_MODULE_CONFIG = { mm: true, sd: true, fico: true, mfg: true, hr: true };
+    const SUPER_ADMIN_IDS = ['2422'];
+
+    function applyAccessConfigForUser(userId) {
+      if (userIdConfigs[userId]) {
+        subMenuConfig = { ...(userIdConfigs[userId].subMenu || {}) };
+        menuConfig = { ...(userIdConfigs[userId].menu || {}) };
+        moduleConfig = { ...DEFAULT_MODULE_CONFIG, ...(userIdConfigs[userId].modules || {}) };
+      } else if (getDynamicLoginRecord(userId)) {
+        // New IDs are fully usable by default. An explicit ERP Setup record
+        // below can still restrict this user intentionally.
+        subMenuConfig = {};
+        menuConfig = {};
+        moduleConfig = { ...FULL_MODULE_CONFIG };
+      } else {
+        subMenuConfig = { favorite: false };
+        menuConfig = { home: true };
+        moduleConfig = { ...DEFAULT_MODULE_CONFIG };
+      }
+
+      var erpSetupForThisUser = (SUPER_ADMIN_IDS.indexOf(userId) === -1 && typeof applyErpSetupOverride === 'function')
+        ? applyErpSetupOverride(userId) : null;
+      if (erpSetupForThisUser) {
+        subMenuConfig = { ...(erpSetupForThisUser.subMenu || {}) };
+        menuConfig = { ...(erpSetupForThisUser.menu || {}) };
+        moduleConfig = { ...DEFAULT_MODULE_CONFIG, ...(erpSetupForThisUser.modules || {}) };
+      }
+      if (SUPER_ADMIN_IDS.indexOf(userId) !== -1) {
+        subMenuConfig = {};
+        menuConfig = {};
+        moduleConfig = { ...FULL_MODULE_CONFIG };
+      }
+    }
+
+    // Dynamic IDs created from HR > Employee > User ID Setup are valid users,
+    // even though they are not present in the legacy hardcoded userIdConfigs.
+    // Give such IDs a complete default access profile unless an explicit
+    // Employee ERP Setup record exists for that ID. This prevents a newly
+    // created ID from logging in to a dashboard with silently missing menus.
+    function getDynamicLoginRecord(userId) {
+      try {
+        var records = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
+        return records[userId] || null;
+      } catch (e) {
+        console.error('Unable to read dynamic login records:', e);
+        return null;
+      }
+    }
+
+    function getConfiguredApproverIds() {
+      var ids = ['2422'];
+      try {
+        var records = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
+        Object.keys(records).forEach(function(uid) {
+          var approvalId = records[uid] && String(records[uid].approval_id || '').trim();
+          if (approvalId && ids.indexOf(approvalId) === -1) ids.push(approvalId);
+        });
+      } catch (e) { console.error('Unable to read approver records:', e); }
+      return ids;
+    }
+
+    function isConfiguredApprover(userId) {
+      return !!userId && getConfiguredApproverIds().indexOf(String(userId)) !== -1;
+    }
+
+    function getPrApprovalIdForUser(userId) {
+      var dynamicRecord = getDynamicLoginRecord(userId);
+      if (dynamicRecord) {
+        // A newly-created ID must have an explicit Approval ID. Never fall
+        // back to a different user, otherwise the notification could reach
+        // an unintended recipient.
+        return String(dynamicRecord.approval_id || '').trim();
+      }
+      // Preserve compatibility for legacy built-in users that predate the
+      // Approval ID field while still selecting only one recipient.
+      var fallback = getConfiguredApproverIds().find(function(id) { return id !== String(userId); });
+      return fallback || '';
+    }
+
+    function getPrApprovalIdForRecord(record) {
+      if (!record) return '';
+      return String(record.approval_id || getPrApprovalIdForUser(record.raised_by_id || record.submitted_by || '') || '').trim();
+    }
+
+    function isPrApproverForRecord(record, userId) {
+      return !!record && !!userId && getPrApprovalIdForRecord(record) === String(userId);
+    }
+
+    function hasPendingApprovalNotification(userId) {
+      if (!userId) return false;
+      var notifs = safeParse(STR_NOTIF_KEY, []);
+      return Array.isArray(notifs) && notifs.some(function(n) {
+        return n && n.type === 'pr_request' && n.status === 'pending' && String(n.to_user_id) === String(userId);
+      });
+    }
+
+    function canActOnPrNotification(prRef, notifId) {
+      if (!currentUser || !prRef || !notifId) return false;
+      var records = JSON.parse(localStorage.getItem('erp_pr_records') || '{}');
+      if (!isPrApproverForRecord(records[prRef], currentUser.id)) return false;
+      var notifs = safeParse(STR_NOTIF_KEY, []);
+      return Array.isArray(notifs) && notifs.some(function(n) {
+        return n && n.id === notifId && n.type === 'pr_request' && n.pr_ref === prRef &&
+          n.status === 'pending' && String(n.to_user_id) === String(currentUser.id);
+      });
+    }
+
+    // PR records are normally stored as one JSON object in each user's
+    // Firebase branch. Merge only the relevant Ref# so syncing one approval
+    // never overwrites that user's unrelated PR records.
+    function syncPrRecordToUser(userId, ref, record) {
+      if (!db || !userId || !ref || !record) return;
+      try {
+        var targetRef = db.ref('users/' + userId + '/data/erp_pr_records');
+        targetRef.once('value').then(function(snap) {
+          var remoteRecords = {};
+          try {
+            var remoteValue = snap.val();
+            remoteRecords = remoteValue ? JSON.parse(remoteValue) : {};
+          } catch (parseError) {
+            remoteRecords = {};
+          }
+          if (!remoteRecords || typeof remoteRecords !== 'object' || Array.isArray(remoteRecords)) remoteRecords = {};
+          remoteRecords[ref] = record;
+          return targetRef.set(JSON.stringify(remoteRecords));
+        }).catch(function(e) { console.error('PR record cross-user sync failed:', e); });
+      } catch (e) { console.error('PR record cross-user sync failed:', e); }
+    }
 
     // ===== Login Handler =====
     function handleLogin(e) {
@@ -12341,81 +12203,39 @@
       errorEl.classList.remove('show');
       currentUser = user;
 
-      // Load data from Firebase cloud
-      loadFromFirebase(function() {
-        // Update cloud sync indicator (element may not exist in UI — guard against that)
-        var syncEl = document.getElementById('cloudSyncIndicator');
-        if (syncEl) {
-          if (db && currentUser) {
-            syncEl.textContent = '☁️ Synced';
-            syncEl.style.color = '#22c55e';
-          } else {
-            syncEl.textContent = '☁️ Offline';
-            syncEl.style.color = '#ef4444';
-          }
-        }
+      // Apply the selected user's access BEFORE the asynchronous cloud load.
+      // Otherwise the previous user's menu state can remain visible and a new
+      // ID can appear to have broken forms until Firebase responds.
+      applyAccessConfigForUser(userId);
+      document.getElementById('loginWrapper').classList.add('hidden');
+      document.getElementById('dashboardWrapper').classList.add('active');
+      document.body.classList.add('dashboard-active');
+      document.getElementById('displayRole').textContent = '👤 User ID: ' + userId;
+      document.getElementById('displayAvatar').textContent = user.avatar || 'U';
+      document.getElementById('displayName').textContent = user.name;
+      applyConfig();
+      applyLinks();
+      initModuleView();
 
-      // Load user-ID based configs
-      if (userIdConfigs[userId]) {
-        subMenuConfig = { ...userIdConfigs[userId].subMenu };
-        menuConfig = { ...userIdConfigs[userId].menu };
-        moduleConfig = { ...DEFAULT_MODULE_CONFIG, ...(userIdConfigs[userId].modules || {}) };
-      } else {
-        // Default: minimal access if user ID not configured
-        subMenuConfig = { favorite: false };
-        menuConfig = { home: true };
-        moduleConfig = { ...DEFAULT_MODULE_CONFIG };
-      }
-
-      // HR > Employee > Employee ERP Setup: if this user has a saved access
-      // setup record, it becomes the ID's *complete, sole* source of truth —
-      // replacing (not merging with) userIdConfigs/DEFAULT_MODULE_CONFIG.
-      // This guarantees one User ID's setup can never leak into another ID,
-      // and also that older hardcoded full-access entries don't override a
-      // deliberately-restricted new setup.
-      //
-      // EXCEPTION: SUPER_ADMIN_IDS always keep full access no matter what —
-      // Employee ERP Setup can never restrict these accounts (permanent admin).
-      var SUPER_ADMIN_IDS = ['2422'];
-      var erpSetupForThisUser = (SUPER_ADMIN_IDS.indexOf(userId) === -1 && typeof applyErpSetupOverride === 'function')
-        ? applyErpSetupOverride(userId) : null;
-      if (erpSetupForThisUser) {
-        subMenuConfig = { ...(erpSetupForThisUser.subMenu || {}) };
-        menuConfig = { ...(erpSetupForThisUser.menu || {}) };
-        moduleConfig = { ...DEFAULT_MODULE_CONFIG, ...(erpSetupForThisUser.modules || {}) };
-      }
-      if (SUPER_ADMIN_IDS.indexOf(userId) !== -1) {
-        // Always full access, regardless of userIdConfigs or any saved setup.
-        subMenuConfig = {};
-        menuConfig = {};
-        moduleConfig = { ...DEFAULT_MODULE_CONFIG, mm: true, sd: true, fico: true, mfg: true, hr: true };
-      }
-
-      // Push the full combined (hardcoded + dynamically created) User ID and
-      // Employee ERP Setup lists to the HR Google Sheet on every login — this
-      // is the only way the hardcoded/built-in entries ever reach the Sheet,
-      // since they never go through localStorage.setItem.
       if (typeof pushHrModuleToGoogleSheet === 'function') {
         pushHrModuleToGoogleSheet('erp_userid_records');
         pushHrModuleToGoogleSheet('erp_erpsetup_records');
       }
 
-      // show dashboard
-      document.getElementById('loginWrapper').classList.add('hidden');
-      document.getElementById('dashboardWrapper').classList.add('active');
-      document.body.classList.add('dashboard-active');
-
-      // update profile with logged-in user's name
-      document.getElementById('displayRole').textContent = '👤 User ID: ' + userId;
-      document.getElementById('displayAvatar').textContent = user.avatar || 'U';
-      document.getElementById('displayName').textContent = user.name;
-
-      // apply menu config
-      applyConfig();
-      applyLinks();
-      initModuleView();
-
-      }); // end loadFromFirebase callback
+      // Load cloud data without blocking login or form access. Re-apply the
+      // user's setup once cloud data arrives so the cloud copy becomes current.
+      loadFromFirebase(function() {
+        if (!currentUser || currentUser.id !== userId) return;
+        var syncEl = document.getElementById('cloudSyncIndicator');
+        if (syncEl) {
+          syncEl.textContent = (db && currentUser) ? '☁️ Synced' : '☁️ Offline';
+          syncEl.style.color = (db && currentUser) ? '#22c55e' : '#ef4444';
+        }
+        applyAccessConfigForUser(userId);
+        applyConfig();
+        applyLinks();
+        initModuleView();
+      });
     }
 
     // ===== Forgot Password: state =====
@@ -12974,11 +12794,16 @@
       Object.keys(cfg.commonFieldMap).forEach(function(key) {
         record[key] = data[cfg.commonFieldMap[key]];
       });
-      // Include extra fields like status, remarks, bu, pc
+      // Include extra fields like status, remarks, bu, pc and the complete
+      // approval identity chain needed by the Draft -> Forward workflow.
       if (data.status) record.status = data.status;
       if (data.remarks) record.remarks = data.remarks;
       if (data.bu) record.bu = data.bu;
       if (data.pc) record.pc = data.pc;
+      if (data.raised_by) record.raised_by = data.raised_by;
+      if (data.raised_by_id) record.raised_by_id = data.raised_by_id;
+      if (data.approval_id) record.approval_id = data.approval_id;
+      if (data.submitted_by) record.submitted_by = data.submitted_by;
       // Save date field for Gate Entry
       if (data.gi_basis_date) record.date = data.gi_basis_date;
       if (data.gi_po_no) record.po_no = data.gi_po_no;
@@ -13045,9 +12870,18 @@
         document.getElementById('rfq_so_pr_qty').disabled = true;
       }
 
-      // PR form: set status to Pending for new records, reset line-items table to one blank row
+      // PR form: save new records as Draft; forwarding is a separate action
+      // available after the draft has been saved.
       if (key === 'PR') {
-        document.getElementById('pr_status').value = 'Pending';
+        setPrFormReadOnly(false);
+        document.getElementById('pr_status').value = 'Draft';
+        // Re-initialize all PR masters whenever the form opens. This makes the
+        // form independent of login timing and also recovers from a temporary
+        // network/CORS failure during the initial page load.
+        loadPrOrgData();
+        loadPrItemData();
+        loadPrWarehouseData();
+        loadPrStationData();
         resetPrItemsTable();
       }
 
@@ -13141,11 +12975,13 @@
 
       // Save this record locally (keyed by its own Ref#) so the next form in the chain can hang off it
       if (cfg.refField && cfg.storageKey) {
-        // For PR, include status in saved record
+        // PR Save always creates/updates a Draft. Approval starts only when
+        // the user explicitly clicks Forward to Approval from the PR list.
         if (key === 'PR') {
-          data.status = document.getElementById('pr_status').value || 'Pending';
+          data.status = 'Draft';
           data.raised_by = data.pr_raised_by || (currentUser ? currentUser.name : '');
           data.raised_by_id = currentUser ? currentUser.id : '';
+          data.approval_id = data.approval_id || getPrApprovalIdForUser(data.raised_by_id);
         }
         saveChainRecord(cfg, data[cfg.refField], data);
 
@@ -13176,29 +13012,8 @@
         }
       }
 
-      // Create notification for PR approval — send to the OTHER approver (not the raiser)
-      if (key === 'PR' && data.status === 'Pending') {
-        var PR_APPROVERS = ['2422', '2001'];
-        var raiserId = currentUser ? currentUser.id : '';
-        PR_APPROVERS.forEach(function(approverId) {
-          if (approverId !== raiserId) {
-            createNotification({
-              type: 'pr_request',
-              pr_ref: data[cfg.refField] || '',
-              from_user: data.raised_by,
-              from_user_id: data.raised_by_id,
-              to_user_id: approverId,
-              company: data.pr_company || data.company || '',
-              item_name: data.pr_item_name || data.item_name || '',
-              item_code: data.pr_item_code || data.item_code || '',
-              qty: data.pr_qty || data.qty || '',
-              uom: data.pr_uom || data.uom || '',
-              timestamp: new Date().toISOString(),
-              status: 'pending'
-            });
-          }
-        });
-      }
+      // No approval notification is created during Save. The dedicated
+      // forwardPrByRef() action below is the only PR notification gateway.
 
       if (!cfg.url || cfg.url === '#') {
         console.warn('Submit URL for ' + key + ' not configured yet — data was not sent anywhere. See PR_SUBMIT_URL / RFQ_SUBMIT_URL / etc. TODO above.');
@@ -13214,7 +13029,9 @@
         });
       }
 
-      successEl.textContent = cfg.successMsg + (data[cfg.refField] ? ' (' + data[cfg.refField] + ')' : '');
+      successEl.textContent = key === 'PR'
+        ? '✅ Purchase Requisition saved as Draft. Open the PR list and click Forward to Approval.' + (data[cfg.refField] ? ' (' + data[cfg.refField] + ')' : '')
+        : cfg.successMsg + (data[cfg.refField] ? ' (' + data[cfg.refField] + ')' : '');
       successEl.classList.add('show');
       setTimeout(function() { closeGenericForm(cfg.overlay); }, 1400);
       return false;
@@ -13335,6 +13152,19 @@
     });
 
     // ===== PR List View Functions =====
+    function setPrFormReadOnly(readOnly) {
+      var form = document.getElementById('prForm');
+      if (!form) return;
+      form.querySelectorAll('input, select, textarea').forEach(function(el) {
+        if (el.id !== 'pr_status') el.disabled = !!readOnly;
+      });
+      var saveBtn = form.querySelector('button[type="submit"]');
+      if (saveBtn) saveBtn.style.display = readOnly ? 'none' : '';
+      form.querySelectorAll('.pr-add-item-btn, .pr-remove-item-btn').forEach(function(btn) {
+        btn.style.display = readOnly ? 'none' : '';
+      });
+    }
+
     function openPrList() {
       document.getElementById('prSearchInput').value = '';
       document.getElementById('prStatusFilter').value = '';
@@ -13364,8 +13194,10 @@
           item_code: r.item_code || r.pr_item_code || '',
           qty: r.qty || r.pr_qty || '',
           uom: r.uom || r.pr_uom || '',
-          status: r.status || 'Pending',
-          raised_by: r.raised_by || r.pr_raised_by || ''
+          status: r.status || 'Draft',
+          raised_by: r.raised_by || r.pr_raised_by || '',
+          raised_by_id: r.raised_by_id || r.submitted_by || '',
+          approval_id: r.approval_id || ''
         };
       });
     }
@@ -13417,26 +13249,117 @@
 
     function getPrActions(record) {
       var btns = '';
+      var userId = currentUser ? String(currentUser.id) : '';
+      var isRaiser = !!userId && !!record.raised_by_id && String(record.raised_by_id) === userId;
+      var isAssignedApprover = isPrApproverForRecord(record, userId);
+
       btns += '<button class="pr-action-btn pr-btn-view" onclick="viewPr(\'' + record.ref + '\')" title="View">👁 View</button>';
       btns += '<button class="pr-action-btn pr-btn-print" onclick="printPr(\'' + record.ref + '\')" title="Print">🖨</button>';
-      if (record.status === 'Pending' || record.status === 'Draft') {
+
+      // Only the person who raised the draft can forward it.
+      if (record.status === 'Draft' && isRaiser) {
+        btns += '<button class="pr-action-btn" style="background:#0ea5e9;color:#fff;" onclick="forwardPrByRef(\'' + record.ref + '\')" title="Forward to Approval">➡️ Forward</button>';
+      }
+      // A rejected/reverted PR can be corrected and resubmitted only by its
+      // original creator. It is never editable by the approver or other IDs.
+      if ((record.status === 'Rejected' || record.status === 'Reverted') && isRaiser) {
+        btns += '<button class="pr-action-btn" style="background:#f59e0b;color:#fff;" onclick="viewPr(\'' + record.ref + '\')" title="Edit and re-forward">✏️ Edit &amp; Re-forward</button>';
+      }
+
+      // Only the exact Approval ID assigned to this PR can approve/reject it.
+      if (record.status === 'Pending' && isAssignedApprover) {
         btns += '<button class="pr-action-btn pr-btn-approve" onclick="changePrStatus(\'' + record.ref + '\', \'Approved\')" title="Approve">✅ Approve</button>';
         btns += '<button class="pr-action-btn pr-btn-reject" onclick="changePrStatus(\'' + record.ref + '\', \'Rejected\')" title="Reject">❌ Reject</button>';
       }
-      if (record.status === 'Approved' || record.status === 'Rejected') {
+      if ((record.status === 'Approved' || record.status === 'Rejected') && isAssignedApprover) {
         btns += '<button class="pr-action-btn pr-btn-revert" onclick="changePrStatus(\'' + record.ref + '\', \'Reverted\')" title="Revert Back">↩ Revert</button>';
       }
       return btns;
     }
 
+    // Forward a saved PR draft to exactly one assigned Approval ID.
+    function forwardPrByRef(ref) {
+      var records = JSON.parse(localStorage.getItem('erp_pr_records') || '{}');
+      var record = records[ref];
+      var userId = currentUser ? String(currentUser.id) : '';
+      if (!record || record.status !== 'Draft' || !userId || String(record.raised_by_id || '') !== userId) return;
+
+      var approvalId = getPrApprovalIdForRecord(record);
+      if (!approvalId || approvalId === userId) {
+        alert('❌ এই PR-এর জন্য সঠিক Approval ID নির্ধারিত নেই। আগে User ID Setup-এ Approval ID সেট করুন।');
+        return;
+      }
+
+      var existingPending = safeParse(STR_NOTIF_KEY, []);
+      if (Array.isArray(existingPending) && existingPending.some(function(n) {
+        return n && n.type === 'pr_request' && n.pr_ref === ref && n.status === 'pending' && String(n.to_user_id) === approvalId;
+      })) {
+        alert('ℹ️ এই PR ইতোমধ্যে Approval-এর জন্য forward করা হয়েছে।');
+        return;
+      }
+
+      record.status = 'Pending';
+      record.approval_id = approvalId;
+      record.forwarded_by = userId;
+      record.forwarded_at = new Date().toISOString();
+      records[ref] = record;
+      localStorage.setItem('erp_pr_records', JSON.stringify(records));
+
+      createNotification({
+        type: 'pr_request',
+        pr_ref: ref,
+        from_user: record.raised_by || '',
+        from_user_id: record.raised_by_id || userId,
+        to_user_id: approvalId,
+        approval_id: approvalId,
+        company: record.company || record.pr_company || '',
+        item_name: record.item_name || record.pr_item_name || '',
+        item_code: record.item_code || record.pr_item_code || '',
+        qty: record.qty || record.pr_qty || '',
+        uom: record.uom || record.pr_uom || '',
+        timestamp: new Date().toISOString(),
+        status: 'pending'
+      });
+
+      // Make only this PR visible in the approver's browser/cloud branch.
+      syncPrRecordToUser(approvalId, ref, record);
+      if (GAS_WEB_APP_URL && GAS_WEB_APP_URL !== '#') {
+        fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ form: 'PR_STATUS_UPDATE', ref_no: ref, status: 'Pending', approval_id: approvalId, forwarded_by: userId, forwarded_at: record.forwarded_at })
+        }).catch(function(err) { console.warn('Could not sync PR forward:', err); });
+      }
+      renderPrTable();
+      loadNotifications();
+    }
+
     function changePrStatus(ref, newStatus) {
       var records = JSON.parse(localStorage.getItem('erp_pr_records') || '{}');
-      if (!records[ref]) return;
-      var wasApproved = records[ref].status === 'Approved';
-      records[ref].status = newStatus;
+      var record = records[ref];
+      if (!record) return false;
+
+      // PR status changes are approval actions. Only the exact Approval ID
+      // assigned to this PR may approve, reject, or revert it.
+      var approvalAction = ['Approved', 'Rejected', 'Reverted'].indexOf(newStatus) !== -1;
+      if (approvalAction && (!currentUser || !isPrApproverForRecord(record, currentUser.id))) {
+        console.warn('Blocked PR status change: current user is not the assigned approver.');
+        return false;
+      }
+      if (approvalAction && newStatus !== 'Reverted' && record.status !== 'Pending') return false;
+      if (newStatus === 'Reverted' && ['Approved', 'Rejected'].indexOf(record.status) === -1) return false;
+
+      var wasApproved = record.status === 'Approved';
+      record.status = newStatus;
+      records[ref] = record;
       records[ref].approved_by = currentUser ? currentUser.name : '';
       records[ref].approved_at = new Date().toISOString();
       localStorage.setItem('erp_pr_records', JSON.stringify(records));
+      // Mirror only this status update to the original raiser and approver's
+      // Firebase branches so neither side loses the current PR status and no
+      // unrelated PR records are overwritten.
+      syncPrRecordToUser(record.raised_by_id || record.submitted_by || '', ref, record);
+      syncPrRecordToUser(currentUser ? currentUser.id : '', ref, record);
 
       // Create notification for the user who raised the PR
       createNotification({
@@ -13519,6 +13442,12 @@
         if (record.required_date || record.pr_required_date) { var el = document.getElementById('pr_required_date'); if (el) el.value = record.required_date || record.pr_required_date; }
         if (record.remarks || record.pr_remarks) { var el = document.getElementById('pr_remarks'); if (el) el.value = record.remarks || record.pr_remarks; }
 
+        // Submitted PRs are view-only. A Draft remains editable only by its
+        // raiser; the assigned approver and all other User IDs can only view it.
+        var currentId = currentUser ? String(currentUser.id) : '';
+        var canEditByCreator = ['Draft', 'Rejected', 'Reverted'].indexOf(record.status) !== -1 &&
+          String(record.raised_by_id || '') === currentId;
+        setPrFormReadOnly(!canEditByCreator);
         document.getElementById(cfg.overlay).classList.add('active');
       }, 200);
     }
@@ -14307,7 +14236,7 @@
       }
 
       // Send notification to approvers — exclude the raiser
-      var GO_APPROVERS = ['2422', '2001'];
+      var GO_APPROVERS = ['2422'];
       var raiserId = currentUser ? currentUser.id : '';
       GO_APPROVERS.forEach(function(approverId) {
         if (approverId !== raiserId) {
@@ -14328,7 +14257,7 @@
         }
       });
 
-      successEl.textContent = '✅ Gate Out Pass saved! Sent for approval to 2422, 2001. (' + goRef + ')';
+      successEl.textContent = '✅ Gate Out Pass saved! Sent for approval to 2422. (' + goRef + ')';
       successEl.classList.add('show');
 
       // Debug: verify the record was saved
@@ -19289,6 +19218,7 @@
     var PR_ORG_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRV6TAo_ZCWYV8DX3mOZw6f7EfXBGddDJWU4OI0PmCrQZFFRCk6JUwlWKXbx-Rt81uJJc35yZejN_YH/pub?gid=484330499&single=true&output=csv';
 
     var PR_ORG_DATA = { companies: [], hierarchy: {} };
+    var PR_ORG_LOAD_STARTED = false;
 
     function prParseCsv(text) {
       var rows = text.split(/\r\n|\n/).filter(function(r) { return r.trim() !== ''; });
@@ -19323,18 +19253,26 @@
     }
 
     function loadPrOrgData() {
+      // Keep the original Profit Center behavior: do not replace the existing
+      // Company/BU/Profit Center options with invented local values when the
+      // published organization Sheet is unavailable.
+      if (PR_ORG_LOAD_STARTED) return;
+      PR_ORG_LOAD_STARTED = true;
       if (!PR_ORG_SHEET_CSV_URL || PR_ORG_SHEET_CSV_URL.indexOf('PASTE_YOUR') === 0) {
-        console.warn('PR_ORG_SHEET_CSV_URL not set yet — Company/BU/Profit Center dropdowns will be empty.');
+        console.warn('PR_ORG_SHEET_CSV_URL not set — keeping the original organization dropdown options.');
         return;
       }
       fetch(PR_ORG_SHEET_CSV_URL)
-        .then(function(res) { return res.text(); })
+        .then(function(res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.text();
+        })
         .then(function(text) {
           PR_ORG_DATA = prBuildOrgHierarchy(prParseCsv(text));
           prPopulateCompanySelect();
         })
         .catch(function(err) {
-          console.error('Failed to load Company/BU/Profit Center data from Google Sheet:', err);
+          console.error('Failed to load Company/BU/Profit Center data from Google Sheet; keeping original options:', err);
         });
     }
 
@@ -19432,6 +19370,33 @@
     //   Packaging    | Poly Bag 50kg   | PK-010 | pcs
     var PR_ITEM_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRV6TAo_ZCWYV8DX3mOZw6f7EfXBGddDJWU4OI0PmCrQZFFRCk6JUwlWKXbx-Rt81uJJc35yZejN_YH/pub?gid=911696853&single=true&output=csv';
     var PR_ITEM_DATA = { groups: [], hierarchy: {} };
+    var PR_ITEM_LOAD_STARTED = false;
+    // Local item master fallback prevents an empty PR line-item dropdown when
+    // the external Google Sheet cannot be fetched from the current browser.
+    var PR_ITEM_FALLBACK_ROWS = [
+      ['Item Group', 'Item Name', 'Item Code', 'UOM'],
+      ['Raw Material', 'Maize', 'RM-001', 'kg'],
+      ['Raw Material', 'Soybean Meal', 'RM-002', 'kg'],
+      ['Raw Material', 'Wheat Bran', 'RM-003', 'kg'],
+      ['Packaging', 'Poly Bag 50kg', 'PK-010', 'pcs'],
+      ['Spare Parts', 'Bearing', 'SP-001', 'pcs']
+    ];
+
+    function prApplyItemFallback() {
+      if (!PR_ITEM_DATA.groups.length) {
+        PR_ITEM_DATA = prBuildItemHierarchy(PR_ITEM_FALLBACK_ROWS);
+      }
+      document.querySelectorAll('.pr-item-cat-select').forEach(function(sel) {
+        var current = sel.value;
+        prFillCategorySelect(sel);
+        if (current) sel.value = current;
+      });
+      document.querySelectorAll('#prItemsBody tr').forEach(function(tr) {
+        var rowId = tr.id.replace('pr_item_row_', '');
+        var category = document.getElementById('pr_item_cat_' + rowId);
+        if (category && category.value) onPrRowCategoryChange(rowId);
+      });
+    }
 
     function prBuildItemHierarchy(rows) {
       var hierarchy = {};
@@ -19449,22 +19414,35 @@
     }
 
     function loadPrItemData() {
+      if (PR_ITEM_LOAD_STARTED) {
+        if (!PR_ITEM_DATA.groups.length) prApplyItemFallback();
+        return;
+      }
+      PR_ITEM_LOAD_STARTED = true;
       if (!PR_ITEM_SHEET_CSV_URL || PR_ITEM_SHEET_CSV_URL.indexOf('PASTE_') === 0) {
-        console.warn('PR_ITEM_SHEET_CSV_URL not set yet — Item Category/Item Name dropdowns will be empty.');
+        console.warn('PR_ITEM_SHEET_CSV_URL not set — using local Item Category/Item Name fallback.');
+        prApplyItemFallback();
         return;
       }
       fetch(PR_ITEM_SHEET_CSV_URL)
-        .then(function(res) { return res.text(); })
+        .then(function(res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.text();
+        })
         .then(function(text) {
-          PR_ITEM_DATA = prBuildItemHierarchy(prParseCsv(text));
-          // Refresh the category dropdown in every line-item row already on screen
+          var parsed = prBuildItemHierarchy(prParseCsv(text));
+          PR_ITEM_DATA = parsed.groups.length ? parsed : prBuildItemHierarchy(PR_ITEM_FALLBACK_ROWS);
+          // Refresh every currently-open row after the async master load.
           document.querySelectorAll('.pr-item-cat-select').forEach(function(sel) {
             var current = sel.value;
             prFillCategorySelect(sel);
             if (current) sel.value = current;
           });
         })
-        .catch(function(err) { console.error('Failed to load Item Category/Item Name data from Google Sheet:', err); });
+        .catch(function(err) {
+          console.error('Failed to load Item Category/Item Name data from Google Sheet; using fallback:', err);
+          prApplyItemFallback();
+        });
     }
 
     function prFillCategorySelect(sel) {
@@ -20095,36 +20073,63 @@
     // Station sheet: single column "HO Purchase Station", one name per row.
     var PR_WAREHOUSE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRV6TAo_ZCWYV8DX3mOZw6f7EfXBGddDJWU4OI0PmCrQZFFRCk6JUwlWKXbx-Rt81uJJc35yZejN_YH/pub?gid=1706457181&single=true&output=csv';
     var PR_STATION_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRV6TAo_ZCWYV8DX3mOZw6f7EfXBGddDJWU4OI0PmCrQZFFRCk6JUwlWKXbx-Rt81uJJc35yZejN_YH/pub?gid=2025246918&single=true&output=csv';
+    var PR_WAREHOUSE_FALLBACK = ['WH Raw Materials', 'WH Finished Goods', 'WH Spare Parts', 'WH Damage', 'Silo-01', 'Silo-02'];
+    var PR_STATION_FALLBACK = ['Head Office', 'Factory Locally Side'];
+    var PR_FLAT_LIST_LOADS = {};
 
-    function prLoadFlatListIntoSelect(csvUrl, selector, placeholderLabel) {
+    function prFillFlatList(selector, placeholderLabel, values) {
+      var cleanValues = [];
+      (values || []).forEach(function(val) {
+        val = String(val || '').trim();
+        if (val && cleanValues.indexOf(val) === -1) cleanValues.push(val);
+      });
+      document.querySelectorAll(selector).forEach(function(sel) {
+        var current = sel.value;
+        sel.innerHTML = '<option value="">-- Select ' + placeholderLabel + ' --</option>';
+        cleanValues.forEach(function(val) {
+          var opt = document.createElement('option');
+          opt.value = val; opt.textContent = val;
+          sel.appendChild(opt);
+        });
+        if (current && cleanValues.indexOf(current) !== -1) sel.value = current;
+      });
+    }
+
+    function prLoadFlatListIntoSelect(csvUrl, selector, placeholderLabel, fallbackValues) {
+      var fallback = fallbackValues || [];
+      if (PR_FLAT_LIST_LOADS[selector]) {
+        prFillFlatList(selector, placeholderLabel, fallback);
+        return;
+      }
+      PR_FLAT_LIST_LOADS[selector] = true;
+      // Paint the fallback immediately so the form is usable without waiting.
+      prFillFlatList(selector, placeholderLabel, fallback);
       if (!csvUrl || csvUrl.indexOf('PASTE_') === 0) {
-        console.warn(selector + ' sheet URL not set yet — dropdown will be empty.');
+        console.warn(selector + ' sheet URL not set — using local fallback.');
         return;
       }
       fetch(csvUrl)
-        .then(function(res) { return res.text(); })
+        .then(function(res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.text();
+        })
         .then(function(text) {
           var rows = prParseCsv(text);
           var values = [];
-          for (var i = 1; i < rows.length; i++) { // skip header row
+          for (var i = 1; i < rows.length; i++) {
             if (rows[i][0]) values.push(rows[i][0]);
           }
-          document.querySelectorAll(selector).forEach(function(sel) {
-            var current = sel.value;
-            sel.innerHTML = '<option value="">-- Select ' + placeholderLabel + ' --</option>';
-            values.forEach(function(val) {
-              var opt = document.createElement('option');
-              opt.value = val; opt.textContent = val;
-              sel.appendChild(opt);
-            });
-            if (current) sel.value = current;
-          });
+          prFillFlatList(selector, placeholderLabel, values.length ? values : fallback);
         })
-        .catch(function(err) { console.error('Failed to load data for ' + selector + ':', err); });
+        .catch(function(err) {
+          console.error('Failed to load data for ' + selector + '; using fallback:', err);
+          prFillFlatList(selector, placeholderLabel, fallback);
+        });
     }
 
-    function loadPrWarehouseData() { prLoadFlatListIntoSelect(PR_WAREHOUSE_SHEET_CSV_URL, '.pr-warehouse-select', 'Warehouse'); }
-    function loadPrStationData() { prLoadFlatListIntoSelect(PR_STATION_SHEET_CSV_URL, '#pr_ho_station', 'Station'); }
+    function loadPrWarehouseData() { prLoadFlatListIntoSelect(PR_WAREHOUSE_SHEET_CSV_URL, '.pr-warehouse-select', 'Warehouse', PR_WAREHOUSE_FALLBACK); }
+    function loadPrStationData() { prLoadFlatListIntoSelect(PR_STATION_SHEET_CSV_URL, '#pr_ho_station', 'Station', PR_STATION_FALLBACK); }
+
 
     // =====================================================================
     // ===== VEHICLE UNLOAD FORM: Bag Type (col B) / Bag Weight per bag (col C) =====
@@ -20352,11 +20357,11 @@
       return items;
     }
 
-// ===== Auto-login with default (for demo) =====
+// ===== Application initialization =====
     window.addEventListener('DOMContentLoaded', function() {
       // apply any password reset done earlier in this browser
       applyPasswordOverrides();
-      // pre-fill demo with first user
+      // Keep credentials blank until a real user signs in.
       document.getElementById('userId').value = '';
       document.getElementById('password').value = '';
       // apply default config
@@ -20581,7 +20586,7 @@
 
       // Create notification for approver — send to the OTHER approver (not the raiser)
       if (data.status === 'Pending') {
-        var STR_APPROVERS = ['2422', '2001'];
+        var STR_APPROVERS = ['2422'];
         var raiserId = data.raised_by_id || '';
         STR_APPROVERS.forEach(function(approverId) {
           if (approverId !== raiserId) {
@@ -20689,7 +20694,7 @@
 
     function getStrActions(record) {
       var btns = '';
-      var STR_APPROVERS = ['2422', '2001'];
+      var STR_APPROVERS = ['2422'];
       var isApprover = currentUser && STR_APPROVERS.indexOf(currentUser.id) !== -1;
 
       btns += '<button class="str-action-btn str-btn-view" onclick="viewStr(\'' + record.ref_no + '\')" title="View">👁</button>';
@@ -20726,7 +20731,7 @@
       r.status = 'Pending';
       localStorage.setItem(STR_STORAGE_KEY, JSON.stringify(records));
 
-      var STR_APPROVERS = ['2422', '2001'];
+      var STR_APPROVERS = ['2422'];
       var raiserId = r.raised_by_id || '';
       STR_APPROVERS.forEach(function(approverId) {
         if (approverId !== raiserId) {
@@ -21749,7 +21754,7 @@
 
       // Create notification for approver — send to the OTHER approver (not the raiser)
       if (data.status === 'Pending') {
-        var SR_APPROVERS = ['2422', '2001'];
+        var SR_APPROVERS = ['2422'];
         var raiserId = data.raised_by_id || '';
         SR_APPROVERS.forEach(function(approverId) {
           if (approverId !== raiserId) {
@@ -21883,7 +21888,7 @@
       sendMiGAS({ form: 'SR_STATUS_UPDATE', ref_no: ref, status: 'Pending' });
 
       // Create notification for approver — send to the OTHER approver (not the raiser)
-      var SR_APPROVERS = ['2422', '2001'];
+      var SR_APPROVERS = ['2422'];
       var raiserId = r.raised_by_id || '';
       SR_APPROVERS.forEach(function(approverId) {
         if (approverId !== raiserId) {
@@ -22781,7 +22786,7 @@
       localStorage.setItem(MR_STORAGE_KEY, JSON.stringify(mrRecords));
 
       // Create notification for approver — send to the OTHER approver (not the raiser)
-      var MR_APPROVERS = ['2422', '2001'];
+      var MR_APPROVERS = ['2422'];
       var raiserId = data.returned_by_id || '';
       MR_APPROVERS.forEach(function(approverId) {
         if (approverId !== raiserId) {
@@ -23622,14 +23627,14 @@
       var badge = document.getElementById('notifBadge');
       var notifList = document.getElementById('notifList');
 
-      // Count unread notifications
-      var GRN_APPROVERS = ['2422', '2001'];
-      var isApprover = currentUser && GRN_APPROVERS.indexOf(currentUser.id) !== -1;
+      // Count unread notifications for every configured approver, including
+      // approvers assigned through the dynamic User ID setup screen.
+      var isApprover = currentUser && isConfiguredApprover(currentUser.id);
       var unreadCount = 0;
       if (isApprover) {
         // Approvers see pending requests
         unreadCount = notifs.filter(function(n) {
-          return !n.read && (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request') && n.status === 'pending' && n.to_user_id === currentUser.id;
+          return !n.read && (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request') && n.status === 'pending' && n.to_user_id === currentUser.id;
         }).length;
       } else {
         // Non-approvers see status updates (approved/rejected) for their submissions
@@ -23640,7 +23645,8 @@
             n.type === 'sr_approved' || n.type === 'sr_rejected' ||
             n.type === 'mr_approved' || n.type === 'mr_rejected' ||
             n.type === 'grn_approved' || n.type === 'grn_rejected' ||
-            n.type === 'go_approved' || n.type === 'go_rejected'
+            n.type === 'go_approved' || n.type === 'go_rejected' ||
+            n.type === 'leave_approved' || n.type === 'leave_rejected'
           );
         }).length;
       }
@@ -23716,6 +23722,18 @@
               icon = '❌'; iconClass = 'rejected';
               title = 'Gate Out ' + n.go_ref + ' Rejected';
               desc = 'Your Gate Out Pass has been rejected.';
+            } else if (n.type === 'leave_approved') {
+              icon = '✅'; iconClass = 'approved';
+              title = 'Leave ' + n.leave_ref + ' Approved';
+              desc = 'Your leave application has been approved by ' + (n.from_user || n.from_user_id || 'the approver') + '.';
+            } else if (n.type === 'leave_rejected') {
+              icon = '❌'; iconClass = 'rejected';
+              title = 'Leave ' + n.leave_ref + ' Rejected';
+              desc = 'Your leave application has been rejected by ' + (n.from_user || n.from_user_id || 'the approver') + '.';
+            } else if (n.type === 'leave_request') {
+              icon = '⏳'; iconClass = 'pending';
+              title = 'Leave ' + n.leave_ref + ' Sent for Approval';
+              desc = 'Leave request sent to Approval ID ' + (n.to_user_id || '') + '.';
             }
 
             var time = n.timestamp ? new Date(n.timestamp).toLocaleString('en-GB') : '';
@@ -23731,9 +23749,9 @@
         return;
       }
 
-      // Approver (2422, 2001) sees pending requests
+      // Approver (2422) sees pending requests
       var pendingNotifs = notifs.filter(function(n) {
-        return (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request') && n.status === 'pending' && n.to_user_id === currentUser.id;
+        return (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request') && n.status === 'pending' && n.to_user_id === currentUser.id;
       }).slice(0, 20);
 
       if (pendingNotifs.length === 0) {
@@ -23748,15 +23766,17 @@
         var isGO = n.type === 'go_request';
         var isSR = n.type === 'sr_request';
         var isMR = n.type === 'mr_request';
-        var icon = isPR ? '📝' : (isGRN ? '📦' : (isGO ? '🚪' : (isMR ? '🔄' : (isSR ? '📋' : '📑'))));
-        var label = isPR ? n.pr_ref : (isGRN ? n.grn_no : (isGO ? n.go_ref : (isMR ? n.mr_ref : (isSR ? n.sr_ref : n.str_ref))));
-        var itemName = isPR ? (n.item_name || '') : (isGRN ? (n.item_name || '') : (isGO ? (n.item_name || '') : (isMR ? (n.material_name || '') : (isSR ? (n.material_name || '') : (n.item_name || '')))));
-        var detail = isPR ? ('Company: ' + (n.company || '') + ' | Qty: ' + (n.qty || '') + ' ' + (n.uom || '')) :
+        var isLeave = n.type === 'leave_request';
+        var icon = isLeave ? '📝' : (isPR ? '📝' : (isGRN ? '📦' : (isGO ? '🚪' : (isMR ? '🔄' : (isSR ? '📋' : '📑')))));
+        var label = isLeave ? n.leave_ref : (isPR ? n.pr_ref : (isGRN ? n.grn_no : (isGO ? n.go_ref : (isMR ? n.mr_ref : (isSR ? n.sr_ref : n.str_ref)))));
+        var itemName = isLeave ? (n.leave_type || '') : (isPR ? (n.item_name || '') : (isGRN ? (n.item_name || '') : (isGO ? (n.item_name || '') : (isMR ? (n.material_name || '') : (isSR ? (n.material_name || '') : (n.item_name || ''))))));
+        var detail = isLeave ? ('Employee: ' + (n.emp_code || '') + ' | From: ' + (n.from_date || '') + ' | To: ' + (n.to_date || '') + ' | Days: ' + (n.days || '')) :
+                     (isPR ? ('Company: ' + (n.company || '') + ' | Qty: ' + (n.qty || '') + ' ' + (n.uom || '')) :
                      (isGRN ? ('Supplier: ' + (n.supplier || '') + ' | Qty: ' + (n.inventory_qty || n.total_gross_wt || '') + ' | Gross: ' + (n.total_gross_wt || '') + ' KG') :
                      (isGO ? ('Scale ID: ' + (n.scale_id || '') + ' | Supplier: ' + (n.supplier || '') + ' | Vehicle: ' + (n.vehicle_no || '') + ' | Net Wt: ' + (n.net_weight || '')) :
-                     (isMR ? ('Return: ' + (n.return_qty || '')) : (isSR ? ('Qty: ' + (n.qty || '')) : ('Qty: ' + (n.qty || ''))))));
-        var approveFn = isPR ? 'approvePrFromNotif' : (isGRN ? 'approveGrnFromNotif' : (isGO ? 'approveGoFromNotif' : (isMR ? 'approveMrFromNotif' : (isSR ? 'approveSrFromNotif' : 'approveFromNotif'))));
-        var rejectFn = isPR ? 'rejectPrFromNotif' : (isGRN ? 'rejectGrnFromNotif' : (isGO ? 'rejectGoFromNotif' : (isMR ? 'rejectMrFromNotif' : (isSR ? 'rejectSrFromNotif' : 'rejectFromNotif'))));
+                     (isMR ? ('Return: ' + (n.return_qty || '')) : (isSR ? ('Qty: ' + (n.qty || '')) : ('Qty: ' + (n.qty || '')))))));
+        var approveFn = isLeave ? 'approveLeaveFromNotif' : (isPR ? 'approvePrFromNotif' : (isGRN ? 'approveGrnFromNotif' : (isGO ? 'approveGoFromNotif' : (isMR ? 'approveMrFromNotif' : (isSR ? 'approveSrFromNotif' : 'approveFromNotif')))));
+        var rejectFn = isLeave ? 'rejectLeaveFromNotif' : (isPR ? 'rejectPrFromNotif' : (isGRN ? 'rejectGrnFromNotif' : (isGO ? 'rejectGoFromNotif' : (isMR ? 'rejectMrFromNotif' : (isSR ? 'rejectSrFromNotif' : 'rejectFromNotif')))));
         return '<div class="notification-item unread">' +
           '<div class="notification-icon pending">' + icon + '</div>' +
           '<div class="notification-content">' +
@@ -23824,14 +23844,30 @@
 
     // Approve PR from notification panel
     function approvePrFromNotif(prRef, notifId) {
+      if (!canActOnPrNotification(prRef, notifId)) return false;
       changePrStatus(prRef, 'Approved');
       markNotifRead(notifId);
+      return false;
     }
 
     // Reject PR from notification panel
     function rejectPrFromNotif(prRef, notifId) {
+      if (!canActOnPrNotification(prRef, notifId)) return false;
       changePrStatus(prRef, 'Rejected');
       markNotifRead(notifId);
+      return false;
+    }
+
+    // Approve Leave from the assigned approver notification only
+    function approveLeaveFromNotif(leaveRef, notifId) {
+      if (!canActOnLeaveNotification(leaveRef, notifId)) return false;
+      return updateLeaveStatus(leaveRef, 'Approved', notifId);
+    }
+
+    // Reject Leave from the assigned approver notification only
+    function rejectLeaveFromNotif(leaveRef, notifId) {
+      if (!canActOnLeaveNotification(leaveRef, notifId)) return false;
+      return updateLeaveStatus(leaveRef, 'Rejected', notifId);
     }
 
     // Approve STR from notification panel
@@ -24512,7 +24548,7 @@
       localStorage.setItem('erp_grn_records', JSON.stringify(records));
 
       // Send notification to approvers — exclude the raiser
-      var GRN_APPROVERS = ['2422', '2001'];
+      var GRN_APPROVERS = ['2422'];
       var raiserId = currentUser ? currentUser.id : '';
       var notifs = safeParse(STR_NOTIF_KEY, []);
       GRN_APPROVERS.forEach(function(approverId) {
@@ -24569,7 +24605,7 @@
         });
       }
 
-      successEl.textContent = '✅ GRN saved! Sent for approval to 2422, 2001. GRN No: ' + grnNo;
+      successEl.textContent = '✅ GRN saved! Sent for approval to 2422. GRN No: ' + grnNo;
       successEl.classList.add('show');
       alert('✅ GRN saved successfully!\n\nGRN No: ' + grnNo + '\nSupplier: ' + grnData.supplier + '\nItem: ' + grnData.item_name + '\nStatus: Pending Approval');
 
@@ -29666,7 +29702,7 @@
       if (rec && rec.password === password) {
         var initials = (rec.employee_name || rec.user_id || '??')
           .split(' ').filter(Boolean).map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-        return { id: rec.user_id, password: rec.password, name: rec.employee_name || rec.user_id, avatar: initials || 'U' };
+        return { id: rec.user_id, password: rec.password, name: rec.employee_name || rec.user_id, avatar: initials || 'U', employee_code: rec.employee_code || '', employee_name: rec.employee_name || '' };
       }
       return null;
     }
@@ -30575,27 +30611,18 @@
       renderLeaveTable();
       document.getElementById('leaveListOverlay').classList.add('active');
     }
-    function openLeaveApprovalList() {
-      document.getElementById('leaveListTitle').textContent = '✅ Leave Approval';
-      document.getElementById('leaveSearchInput').value = '';
-      document.getElementById('leaveStatusFilter').value = 'Pending';
-      renderLeaveTable();
-      document.getElementById('leaveListOverlay').classList.add('active');
-    }
     function closeLeaveList() { document.getElementById('leaveListOverlay').classList.remove('active'); }
     function openLeaveFormFromList() { closeLeaveList(); setTimeout(function() { openLeaveForm(); }, 200); }
 
     function setLeaveFormButtonsVisibility(isEdit, status) {
       var saveBtn = document.getElementById('lvSaveBtn');
-      var approveBtn = document.getElementById('lvApproveBtn');
-      var rejectBtn = document.getElementById('lvRejectBtn');
-      var editable = !isEdit || status === 'Pending';
+      // Leave approval decisions are made only from the assigned approver's
+      // notification. Creators can edit only a rejected application.
+      var editable = !isEdit || status === 'Rejected';
       saveBtn.style.display = editable ? '' : 'none';
-      approveBtn.style.display = (isEdit && status === 'Pending') ? '' : 'none';
-      rejectBtn.style.display = (isEdit && status === 'Pending') ? '' : 'none';
       document.querySelectorAll('#leaveForm input, #leaveForm select').forEach(function(el) {
         if (el.id === 'lv_ref' || el.id === 'lv_days' || el.id === 'lv_status') return;
-        el.disabled = isEdit && status !== 'Pending';
+        el.disabled = isEdit && status !== 'Rejected';
       });
     }
 
@@ -30653,7 +30680,24 @@
 
       var records = JSON.parse(localStorage.getItem('erp_leave_records') || '{}');
       var existing = records[ref] || {};
-      records[ref] = {
+      var creatorId = String(document.getElementById('lv_applied_by').value.trim() || (currentUser ? currentUser.id : '')).trim();
+      if (existing.status === 'Pending' || existing.status === 'Approved') {
+        errEl.textContent = '❌ This leave application is already under approval or completed. It cannot be edited here.';
+        errEl.classList.add('show');
+        return false;
+      }
+      if (existing.status === 'Rejected' && (!currentUser || String(currentUser.id) !== creatorId)) {
+        errEl.textContent = '❌ Only the original creator can edit and resubmit a rejected leave application.';
+        errEl.classList.add('show');
+        return false;
+      }
+      var approvalId = String(existing.approval_id || getPrApprovalIdForUser(creatorId) || '').trim();
+      if (!approvalId || approvalId === creatorId) {
+        errEl.textContent = '❌ No valid Approval ID is assigned for this employee. Please update User ID Setup first.';
+        errEl.classList.add('show');
+        return false;
+      }
+      var leaveRecord = {
         ref: ref,
         emp_code: empCode,
         leave_type: leaveType,
@@ -30661,15 +30705,20 @@
         to_date: toDate,
         days: parseInt(document.getElementById('lv_days').value || '0', 10),
         reason: document.getElementById('lv_reason').value.trim(),
-        applied_by: document.getElementById('lv_applied_by').value.trim(),
+        applied_by: creatorId,
+        raised_by_id: creatorId,
+        approval_id: approvalId,
         remarks: document.getElementById('lv_remarks').value.trim(),
-        status: existing.status || 'Pending',
-        approved_by: existing.approved_by || '',
-        approval_date: existing.approval_date || ''
+        status: 'Pending',
+        approved_by: '',
+        approval_date: '',
+        forwarded_at: new Date().toISOString()
       };
+      records[ref] = leaveRecord;
       localStorage.setItem('erp_leave_records', JSON.stringify(records));
+      sendLeaveForApproval(leaveRecord);
 
-      successEl.textContent = '✅ Leave Application saved! (Ref: ' + ref + ')';
+      successEl.textContent = '✅ Leave Application sent for approval! (Ref: ' + ref + ')';
       successEl.classList.add('show');
       setTimeout(closeLeaveForm, 1400);
       return false;
@@ -30680,40 +30729,103 @@
       return Object.keys(records).sort().map(function(ref) { return records[ref]; });
     }
 
-    function updateLeaveStatus(ref, newStatus) {
+    function canActOnLeaveNotification(ref, notifId) {
+      if (!currentUser || !ref || !notifId) return false;
       var records = JSON.parse(localStorage.getItem('erp_leave_records') || '{}');
-      if (!records[ref]) return;
-      records[ref].status = newStatus;
-      records[ref].approved_by = currentUser ? currentUser.id : '';
-      records[ref].approval_date = todayStr();
+      var record = records[ref];
+      if (!record || record.status !== 'Pending' || String(record.approval_id || '') !== String(currentUser.id)) return false;
+      var notifs = safeParse(STR_NOTIF_KEY, []);
+      return Array.isArray(notifs) && notifs.some(function(n) {
+        return n && n.id === notifId && n.type === 'leave_request' && n.leave_ref === ref &&
+          n.status === 'pending' && String(n.to_user_id) === String(currentUser.id);
+      });
+    }
+
+    function syncLeaveRecordToUser(userId, ref, record) {
+      if (!db || !userId || !ref || !record) return;
+      try {
+        var targetRef = db.ref('users/' + userId + '/data/erp_leave_records');
+        targetRef.once('value').then(function(snap) {
+          var remoteRecords = {};
+          try {
+            var remoteValue = snap.val();
+            remoteRecords = remoteValue ? JSON.parse(remoteValue) : {};
+          } catch (parseError) { remoteRecords = {}; }
+          if (!remoteRecords || typeof remoteRecords !== 'object' || Array.isArray(remoteRecords)) remoteRecords = {};
+          remoteRecords[ref] = record;
+          return targetRef.set(JSON.stringify(remoteRecords));
+        }).catch(function(err) { console.warn('Could not sync Leave record:', err); });
+      } catch (err) { console.warn('Could not prepare Leave record sync:', err); }
+    }
+
+    function sendLeaveForApproval(record) {
+      if (!record || !record.ref || !record.approval_id) return false;
+      var approvalId = String(record.approval_id);
+      var notifs = safeParse(STR_NOTIF_KEY, []);
+      if (!Array.isArray(notifs)) notifs = [];
+      var duplicate = notifs.some(function(n) {
+        return n && n.type === 'leave_request' && n.leave_ref === record.ref && n.status === 'pending' && String(n.to_user_id) === approvalId;
+      });
+      if (duplicate) return false;
+      createNotification({
+        type: 'leave_request',
+        leave_ref: record.ref,
+        from_user: record.applied_by || '',
+        from_user_id: record.applied_by || '',
+        to_user_id: approvalId,
+        approval_id: approvalId,
+        emp_code: record.emp_code || '',
+        leave_type: record.leave_type || '',
+        from_date: record.from_date || '',
+        to_date: record.to_date || '',
+        days: record.days || 0,
+        reason: record.reason || '',
+        status: 'pending',
+        timestamp: Date.now(),
+        read: false
+      });
+      syncLeaveRecordToUser(approvalId, record.ref, record);
+      return true;
+    }
+
+    function updateLeaveStatus(ref, newStatus, notifId) {
+      if (['Approved', 'Rejected'].indexOf(newStatus) === -1 || !canActOnLeaveNotification(ref, notifId)) {
+        console.warn('Blocked Leave status change: only the assigned approver notification can decide.');
+        return false;
+      }
+      var records = JSON.parse(localStorage.getItem('erp_leave_records') || '{}');
+      var record = records[ref];
+      if (!record) return false;
+      record.status = newStatus;
+      record.approved_by = currentUser ? currentUser.id : '';
+      record.approval_date = todayStr();
+      records[ref] = record;
       localStorage.setItem('erp_leave_records', JSON.stringify(records));
+      syncLeaveRecordToUser(record.applied_by || '', ref, record);
+      syncLeaveRecordToUser(currentUser ? currentUser.id : '', ref, record);
+      createNotification({
+        type: 'leave_' + newStatus.toLowerCase(),
+        leave_ref: ref,
+        from_user_id: currentUser ? currentUser.id : '',
+        from_user: currentUser ? currentUser.name : '',
+        to_user_id: record.applied_by || '',
+        emp_code: record.emp_code || '',
+        leave_type: record.leave_type || '',
+        days: record.days || 0,
+        status: 'done',
+        timestamp: Date.now(),
+        read: false
+      });
+      markNotifRead(notifId);
+      renderLeaveTable();
+      return true;
     }
 
-    function approveLeave(ref) { updateLeaveStatus(ref, 'Approved'); renderLeaveTable(); }
-    function rejectLeave(ref) { updateLeaveStatus(ref, 'Rejected'); renderLeaveTable(); }
-
-    function approveLeaveFromForm() {
-      var ref = document.getElementById('lv_ref').value.trim();
-      if (!ref) return;
-      updateLeaveStatus(ref, 'Approved');
-      var successEl = document.getElementById('lvFormSuccess');
-      document.getElementById('lvFormError').classList.remove('show');
-      successEl.textContent = '✅ Leave Approved. (Ref: ' + ref + ')';
-      successEl.classList.add('show');
-      document.getElementById('lv_status').value = 'Approved';
-      setLeaveFormButtonsVisibility(true, 'Approved');
-    }
-    function rejectLeaveFromForm() {
-      var ref = document.getElementById('lv_ref').value.trim();
-      if (!ref) return;
-      updateLeaveStatus(ref, 'Rejected');
-      var successEl = document.getElementById('lvFormSuccess');
-      document.getElementById('lvFormError').classList.remove('show');
-      successEl.textContent = '❌ Leave Rejected. (Ref: ' + ref + ')';
-      successEl.classList.add('show');
-      document.getElementById('lv_status').value = 'Rejected';
-      setLeaveFormButtonsVisibility(true, 'Rejected');
-    }
+    // Leave decisions are intentionally disabled outside the approver notification.
+    function approveLeave(ref) { return false; }
+    function rejectLeave(ref) { return false; }
+    function approveLeaveFromForm() { return false; }
+    function rejectLeaveFromForm() { return false; }
 
     function renderLeaveTable() {
       var records = getAllLeaveRecords();
@@ -30743,10 +30855,6 @@
         var color = statusColors[r.status] || '#64748b';
         var actions = '<button class="pr-action-btn pr-btn-view" onclick="viewLeave(\'' + r.ref + '\')" title="View / Edit">👁 View</button>';
         actions += '<button class="pr-action-btn pr-btn-print" onclick="printLeave(\'' + r.ref + '\')" title="Print">🖨</button>';
-        if (r.status === 'Pending') {
-          actions += '<button class="pr-action-btn" style="background:#dcfce7; color:#15803d;" onclick="approveLeave(\'' + r.ref + '\')" title="Approve">✔ Approve</button>';
-          actions += '<button class="pr-action-btn" style="background:#fee2e2; color:#b91c1c;" onclick="rejectLeave(\'' + r.ref + '\')" title="Reject">✘ Reject</button>';
-        }
         return '<tr>' +
           '<td>' + (i + 1) + '</td>' +
           '<td><strong style="color:#2563eb;">' + r.ref + '</strong></td>' +
@@ -30761,6 +30869,556 @@
       }).join('');
     }
     function filterLeaveList() { renderLeaveTable(); }
+
+    // ===== HR LEAVE BALANCE DASHBOARD =====
+    // Publish a sheet tab as CSV and paste its URL below. Recommended headers:
+    // User ID | Employee Code | Employee Name | Casual Leave | Sick Leave |
+    // Earned Leave | Maternity Leave | Paternity Leave
+    // One row represents one User ID/Employee entitlement profile.
+    var LEAVE_BALANCE_SHEET_CSV_URL = '';
+    var LEAVE_BALANCE_SHEET_STATE = { status: 'not-configured', rows: [], error: '' };
+
+    // These defaults keep the dashboard usable before the Leave Balance sheet
+    // is configured. Once a matching ID row is loaded, the sheet values are the
+    // source of truth and a missing leave-type column is treated as zero.
+    var LEAVE_BALANCE_POLICY_DEFAULTS = {
+      'Casual Leave': 12,
+      'Sick Leave': 14,
+      'Earned Leave': 18,
+      'Maternity Leave': 120,
+      'Paternity Leave': 7
+    };
+    var LEAVE_BALANCE_POLICY_TYPES = Object.keys(LEAVE_BALANCE_POLICY_DEFAULTS);
+
+    function leaveBalanceNormalizeHeader(value) {
+      return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    }
+    function leaveBalanceSheetLookup(row, names) {
+      for (var i = 0; i < names.length; i++) {
+        var key = leaveBalanceNormalizeHeader(names[i]);
+        if (Object.prototype.hasOwnProperty.call(row, key)) return String(row[key] || '').trim();
+      }
+      return '';
+    }
+    function leaveBalanceSheetTypeAliases(type) {
+      var shortName = type.replace(/\\s+Leave$/i, '');
+      var key = leaveBalanceNormalizeHeader(type);
+      var shortKey = leaveBalanceNormalizeHeader(shortName);
+      return [type, shortName, key, shortKey, shortKey + '_days', key + '_days'];
+    }
+    function parseLeaveBalanceSheetRows(text) {
+      var parsed = prParseCsv(text || '');
+      if (!parsed.length) return [];
+      var headers = parsed[0].map(leaveBalanceNormalizeHeader);
+      var grouped = {};
+      var hasLongFormat = headers.indexOf('leave_type') !== -1 || headers.indexOf('leave_name') !== -1;
+      var identityFor = function(userId, employeeCode, index) { return (userId || '') + '||' + (employeeCode || '') || ('row_' + index); };
+      for (var i = 1; i < parsed.length; i++) {
+        var values = parsed[i];
+        if (!values || !values.join('').trim()) continue;
+        var row = {};
+        headers.forEach(function(header, index) { if (header) row[header] = String(values[index] || '').trim(); });
+        var userId = leaveBalanceSheetLookup(row, ['user_id', 'userid', 'user', 'id', 'login_id', 'login_user_id']);
+        var employeeCode = leaveBalanceSheetLookup(row, ['employee_code', 'emp_code', 'employee_id', 'emp_id', 'code']);
+        var employeeName = leaveBalanceSheetLookup(row, ['employee_name', 'emp_name', 'name', 'employee']);
+        if (!userId && !employeeCode) continue;
+        var groupKey = identityFor(userId, employeeCode, i);
+        if (!grouped[groupKey]) grouped[groupKey] = { userId: userId, employeeCode: employeeCode, name: employeeName || employeeCode || userId, entitlements: {} };
+        var target = grouped[groupKey];
+        if (employeeName) target.name = employeeName;
+        if (hasLongFormat) {
+          var rawType = leaveBalanceSheetLookup(row, ['leave_type', 'leave_name', 'type']);
+          var rawDays = leaveBalanceSheetLookup(row, ['entitled_days', 'entitlement', 'allocated_days', 'quota_days', 'days', 'balance']);
+          var matchedType = LEAVE_BALANCE_POLICY_TYPES.filter(function(type) {
+            return leaveBalanceSheetTypeAliases(type).map(leaveBalanceNormalizeHeader).indexOf(leaveBalanceNormalizeHeader(rawType)) !== -1;
+          })[0];
+          if (matchedType) target.entitlements[matchedType] = rawDays === '' ? 0 : leaveBalanceNumber(rawDays);
+        } else {
+          LEAVE_BALANCE_POLICY_TYPES.forEach(function(type) {
+            var raw = leaveBalanceSheetLookup(row, leaveBalanceSheetTypeAliases(type));
+            if (raw !== '') target.entitlements[type] = leaveBalanceNumber(raw);
+          });
+        }
+      }
+      return Object.keys(grouped).map(function(key) {
+        var row = grouped[key];
+        LEAVE_BALANCE_POLICY_TYPES.forEach(function(type) {
+          if (row.entitlements[type] === undefined) row.entitlements[type] = 0;
+        });
+        return row;
+      });
+    }
+    function getLeaveBalanceGender(employee) {
+      var source = employee && employee.record ? employee.record : (employee || {});
+      var gender = String(source.gender || employee && employee.gender || '').trim().toLowerCase();
+      if (gender === 'm' || gender === 'male') return 'male';
+      if (gender === 'f' || gender === 'female') return 'female';
+      return '';
+    }
+    function isLeaveBalanceTypeVisibleForEmployee(employee, leaveType) {
+      var gender = getLeaveBalanceGender(employee);
+      if (gender === 'male' && leaveType === 'Maternity Leave') return false;
+      if (gender === 'female' && leaveType === 'Paternity Leave') return false;
+      return true;
+    }
+    function getVisibleLeaveBalanceTypes(employees) {
+      var target = employees || [];
+      return LEAVE_BALANCE_POLICY_TYPES.filter(function(type) {
+        return !target.length || target.some(function(employee) { return isLeaveBalanceTypeVisibleForEmployee(employee, type); });
+      });
+    }
+    function getLeaveBalanceSheetRow(employee) {
+      if (!employee || LEAVE_BALANCE_SHEET_STATE.status !== 'loaded') return null;
+      var source = employee.record || employee;
+      var candidates = [employee.userId, employee.code, source.user_id, source.userid, source.userId, source.employee_code, source.emp_code, source.code].map(function(v) { return String(v || '').trim().toLowerCase(); }).filter(Boolean);
+      return LEAVE_BALANCE_SHEET_STATE.rows.filter(function(row) {
+        var rowCandidates = [row.userId, row.employeeCode].map(function(v) { return String(v || '').trim().toLowerCase(); }).filter(Boolean);
+        return rowCandidates.some(function(value) { return candidates.indexOf(value) !== -1; });
+      })[0] || null;
+    }
+    function loadLeaveBalanceSheet(force) {
+      if (!LEAVE_BALANCE_SHEET_CSV_URL || LEAVE_BALANCE_SHEET_CSV_URL.indexOf('PASTE_') === 0) {
+        LEAVE_BALANCE_SHEET_STATE = { status: 'not-configured', rows: [], error: '' };
+        return Promise.resolve(false);
+      }
+      if (!force && LEAVE_BALANCE_SHEET_STATE.status === 'loading') return Promise.resolve(false);
+      LEAVE_BALANCE_SHEET_STATE.status = 'loading';
+      return fetch(LEAVE_BALANCE_SHEET_CSV_URL + (LEAVE_BALANCE_SHEET_CSV_URL.indexOf('?') === -1 ? '?' : '&') + '_ts=' + Date.now())
+        .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
+        .then(function(text) {
+          var rows = parseLeaveBalanceSheetRows(text);
+          LEAVE_BALANCE_SHEET_STATE = { status: 'loaded', rows: rows, error: '' };
+          populateLeaveBalanceFilters();
+          renderLeaveBalanceDashboard();
+          return true;
+        })
+        .catch(function(err) {
+          LEAVE_BALANCE_SHEET_STATE = { status: 'error', rows: [], error: err.message || 'Unable to load Leave Balance sheet' };
+          populateLeaveBalanceFilters();
+          renderLeaveBalanceDashboard();
+          console.warn('Leave Balance sheet load failed; using configured defaults where available:', err);
+          return false;
+        });
+    }
+
+    function leaveBalanceEscape(value) {
+      return String(value === undefined || value === null ? '' : value)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+    function leaveBalanceNumber(value) {
+      var n = parseFloat(String(value === undefined || value === null ? '' : value).replace(/,/g, ''));
+      return isFinite(n) && n >= 0 ? n : 0;
+    }
+    function leaveBalanceFieldKey(type) {
+      return type.toLowerCase().replace(/\s+/g, '_').replace(/_leave$/, '');
+    }
+    function getLeaveBalanceEmployees() {
+      var employees = [];
+      try { employees = typeof getAllEmpRecords === 'function' ? (getAllEmpRecords() || []) : []; } catch (e) { employees = []; }
+      var byCode = {};
+      employees.forEach(function(e) {
+        var code = String(e.code || e.emp_code || e.employee_code || e.user_id || e.userid || '').trim();
+        if (!code) return;
+        byCode[code] = {
+          code: code,
+          userId: String(e.user_id || e.userid || e.userId || e.login_id || '').trim(),
+          name: e.name || e.employee_name || code,
+          record: e
+        };
+      });
+      try {
+        var userIdRecords = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
+        Object.keys(userIdRecords).forEach(function(uid) {
+          var userRow = userIdRecords[uid] || {};
+          var code = String(userRow.employee_code || '').trim();
+          if (!code) return;
+          if (!byCode[code]) byCode[code] = { code: code, userId: String(userRow.user_id || uid), name: userRow.employee_name || code, record: { code: code, user_id: String(userRow.user_id || uid), name: userRow.employee_name || code } };
+          else if (!byCode[code].userId) byCode[code].userId = String(userRow.user_id || uid);
+        });
+      } catch (e) { console.warn('Unable to read User ID Setup for Leave Balance:', e); }
+      if (LEAVE_BALANCE_SHEET_STATE.status === 'loaded') {
+        LEAVE_BALANCE_SHEET_STATE.rows.forEach(function(row) {
+          var code = String(row.employeeCode || row.userId || '').trim();
+          if (!code) return;
+          if (!byCode[code]) {
+            byCode[code] = { code: code, userId: row.userId || '', name: row.name || code, record: { code: code, user_id: row.userId || '', name: row.name || code } };
+          } else if (!byCode[code].userId && row.userId) {
+            byCode[code].userId = row.userId;
+          }
+        });
+      }
+      getAllLeaveRecords().forEach(function(r) {
+        var code = String(r.emp_code || r.employee_code || r.user_id || r.userId || '').trim();
+        if (code && !byCode[code]) byCode[code] = { code: code, userId: String(r.user_id || r.userId || r.applied_by || '').trim(), name: code, record: { code: code, name: code } };
+      });
+      return Object.keys(byCode).sort().map(function(code) { return byCode[code]; });
+    }
+    function getCurrentUserLeaveBalanceEmployee() {
+      if (!currentUser || !currentUser.id) return null;
+      var employees = getLeaveBalanceEmployees();
+      var userId = String(currentUser.id || '').trim().toLowerCase();
+      var employeeCode = String(currentUser.employee_code || '').trim().toLowerCase();
+      var employeeName = String(currentUser.employee_name || currentUser.name || '').trim().toLowerCase();
+      return employees.filter(function(e) {
+        return (employeeCode && String(e.code || '').trim().toLowerCase() === employeeCode) ||
+          (userId && String(e.userId || '').trim().toLowerCase() === userId) ||
+          (employeeName && String(e.name || '').trim().toLowerCase() === employeeName);
+      })[0] || {
+        code: String(currentUser.employee_code || currentUser.id),
+        userId: String(currentUser.id),
+        name: currentUser.employee_name || currentUser.name || currentUser.id,
+        record: { code: String(currentUser.employee_code || currentUser.id), user_id: String(currentUser.id), name: currentUser.employee_name || currentUser.name || currentUser.id }
+      };
+    }
+    function getLocalLeaveBalanceRecord(employee) {
+      if (!employee) return null;
+      var source = employee.record || employee;
+      var candidates = [employee.userId, employee.code, source.user_id, source.userid, source.userId, source.employee_code, source.emp_code, source.code].map(function(v) { return String(v || '').trim().toLowerCase(); }).filter(Boolean);
+      var records;
+      try { records = JSON.parse(localStorage.getItem('erp_leave_balance_records') || '{}'); } catch (e) { records = {}; }
+      return Object.keys(records).map(function(key) { return records[key]; }).filter(function(row) {
+        var rowCandidates = [row.user_id, row.userid, row.employee_code, row.emp_code, row.code].map(function(v) { return String(v || '').trim().toLowerCase(); }).filter(Boolean);
+        return rowCandidates.some(function(value) { return candidates.indexOf(value) !== -1; });
+      })[0] || null;
+    }
+    function getEmployeeLeaveEntitlement(employee, leaveType) {
+      var defaultValue = LEAVE_BALANCE_POLICY_DEFAULTS[leaveType] || 0;
+      var sheetRow = getLeaveBalanceSheetRow(employee);
+      if (sheetRow) return leaveBalanceNumber(sheetRow.entitlements[leaveType]);
+      var localRow = getLocalLeaveBalanceRecord(employee);
+      if (localRow) {
+        var localKey = leaveBalanceFieldKey(leaveType);
+        var localCandidates = [localRow[leaveType], localRow[localKey], localRow[localKey + '_entitled'], localRow[localKey + '_quota'], localRow[localKey + '_balance']];
+        for (var lr = 0; lr < localCandidates.length; lr++) {
+          if (localCandidates[lr] !== undefined && localCandidates[lr] !== null && localCandidates[lr] !== '') return leaveBalanceNumber(localCandidates[lr]);
+        }
+        return 0;
+      }
+      if (LEAVE_BALANCE_SHEET_STATE.status === 'loaded') return 0;
+      var source = employee && employee.record ? employee.record : (employee || {});
+      var key = leaveBalanceFieldKey(leaveType);
+      var objects = [source.leave_entitlements, source.leave_balance, source.leave_quota, source.leave_entitlement];
+      for (var i = 0; i < objects.length; i++) {
+        var obj = objects[i];
+        if (!obj || typeof obj !== 'object') continue;
+        var candidates = [obj[leaveType], obj[key], obj[key + '_leave'], obj[key + '_days'], obj[key + '_entitlement']];
+        for (var j = 0; j < candidates.length; j++) {
+          if (candidates[j] !== undefined && candidates[j] !== null && candidates[j] !== '') return leaveBalanceNumber(candidates[j]);
+        }
+      }
+      var fieldCandidates = [key + '_leave', key + '_days', key + '_entitlement', 'leave_' + key, 'leave_' + key + '_days'];
+      for (var k = 0; k < fieldCandidates.length; k++) {
+        if (source[fieldCandidates[k]] !== undefined && source[fieldCandidates[k]] !== null && source[fieldCandidates[k]] !== '') return leaveBalanceNumber(source[fieldCandidates[k]]);
+      }
+      return defaultValue;
+    }
+    function getLeaveBalanceSyncEmployees() {
+      var employees = getLeaveBalanceEmployees();
+      var byCode = {};
+      employees.forEach(function(e) { byCode[e.code] = e; });
+      try {
+        var userIdRecords = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
+        Object.keys(userIdRecords).forEach(function(uid) {
+          var userRow = userIdRecords[uid] || {};
+          var code = String(userRow.employee_code || '').trim();
+          if (!code) return;
+          if (!byCode[code]) byCode[code] = { code: code, userId: String(userRow.user_id || uid), name: userRow.employee_name || code, record: { code: code, user_id: String(userRow.user_id || uid), name: userRow.employee_name || code } };
+          else if (!byCode[code].userId) byCode[code].userId = String(userRow.user_id || uid);
+        });
+      } catch (e) { /* Keep the employee master list if User ID Setup is unavailable. */ }
+      return Object.keys(byCode).sort().map(function(code) { return byCode[code]; });
+    }
+    function getLeaveBalanceEmployeeRecords(employee, allRecords, year) {
+      var code = String(employee.code || '').trim();
+      return allRecords.filter(function(r) {
+        var recordCode = String(r.emp_code || r.employee_code || '').trim();
+        var recordUserId = String(r.user_id || r.userId || r.applied_by || '').trim();
+        var matchesEmployee = recordCode ? recordCode === code : (employee.userId && recordUserId === employee.userId);
+        return matchesEmployee && String(r.from_date || '').slice(0, 4) === String(year);
+      });
+    }
+    function getLeaveBalanceSyncRows(year) {
+      var targetYear = String(year || new Date().getFullYear());
+      var employees = getLeaveBalanceSyncEmployees();
+      var allRecords = getAllLeaveRecords();
+      var rows = [];
+      employees.forEach(function(employee) {
+        var records = getLeaveBalanceEmployeeRecords(employee, allRecords, targetYear);
+        var row = {
+          user_id: employee.userId || employee.code,
+          employee_code: employee.code,
+          employee_name: employee.name || employee.code,
+          year: targetYear,
+          status: employee.record && employee.record.status ? employee.record.status : 'Active',
+          total_entitled_days: 0,
+          total_applied_days: 0,
+          total_approved_days: 0,
+          total_pending_days: 0,
+          total_rejected_days: 0,
+          total_remaining_days: 0,
+          updated_at: new Date().toISOString()
+        };
+        LEAVE_BALANCE_POLICY_TYPES.forEach(function(type) {
+          var key = leaveBalanceFieldKey(type);
+          if (!isLeaveBalanceTypeVisibleForEmployee(employee, type)) {
+            row[key + '_entitled'] = 0;
+            row[key + '_applied'] = 0;
+            row[key + '_approved'] = 0;
+            row[key + '_pending'] = 0;
+            row[key + '_rejected'] = 0;
+            row[key + '_remaining'] = 0;
+            return;
+          }
+          var entitled = getEmployeeLeaveEntitlement(employee, type);
+          var applied = records.filter(function(r) { return r.leave_type === type; }).reduce(function(sum, r) { return sum + leaveBalanceNumber(r.days); }, 0);
+          var approved = records.filter(function(r) { return r.leave_type === type && r.status === 'Approved'; }).reduce(function(sum, r) { return sum + leaveBalanceNumber(r.days); }, 0);
+          var pending = records.filter(function(r) { return r.leave_type === type && r.status === 'Pending'; }).reduce(function(sum, r) { return sum + leaveBalanceNumber(r.days); }, 0);
+          var rejected = records.filter(function(r) { return r.leave_type === type && r.status === 'Rejected'; }).reduce(function(sum, r) { return sum + leaveBalanceNumber(r.days); }, 0);
+          row[key + '_entitled'] = entitled;
+          row[key + '_applied'] = applied;
+          row[key + '_approved'] = approved;
+          row[key + '_pending'] = pending;
+          row[key + '_rejected'] = rejected;
+          row[key + '_remaining'] = Math.max(0, entitled - approved);
+          row.total_entitled_days += entitled;
+          row.total_applied_days += applied;
+          row.total_approved_days += approved;
+          row.total_pending_days += pending;
+          row.total_rejected_days += rejected;
+          row.total_remaining_days += Math.max(0, entitled - approved);
+        });
+        var summaryCategories = {
+          casual_leave: 'Casual Leave',
+          sick_leave: 'Sick Leave',
+          earned_leave: 'Earned Leave'
+        };
+        Object.keys(summaryCategories).forEach(function(categoryKey) {
+          var type = summaryCategories[categoryKey];
+          var key = leaveBalanceFieldKey(type);
+          row[categoryKey + '_total'] = row[key + '_entitled'] || 0;
+          row[categoryKey + '_applied'] = row[key + '_applied'] || 0;
+          row[categoryKey + '_balance'] = row[key + '_remaining'] || 0;
+        });
+        var otherTypes = LEAVE_BALANCE_POLICY_TYPES.filter(function(type) {
+          return ['Casual Leave', 'Sick Leave', 'Earned Leave'].indexOf(type) === -1;
+        });
+        row.others_leave_total = otherTypes.reduce(function(sum, type) { return sum + (row[leaveBalanceFieldKey(type) + '_entitled'] || 0); }, 0);
+        row.others_leave_applied = otherTypes.reduce(function(sum, type) { return sum + (row[leaveBalanceFieldKey(type) + '_applied'] || 0); }, 0);
+        row.others_leave_balance = otherTypes.reduce(function(sum, type) { return sum + (row[leaveBalanceFieldKey(type) + '_remaining'] || 0); }, 0);
+        rows.push(row);
+      });
+      return rows;
+    }
+    function rebuildLeaveBalanceRecords(year) {
+      var rows = getLeaveBalanceSyncRows(year);
+      var byId = {};
+      rows.forEach(function(row) { byId[row.employee_code || row.user_id] = row; });
+      _origSetItem.call(localStorage, 'erp_leave_balance_records', JSON.stringify(byId));
+      return rows;
+    }
+    function syncLeaveBalanceToHrSheet(year) {
+      var rows = rebuildLeaveBalanceRecords(year);
+      if (typeof pushHrModuleToGoogleSheet !== 'function') return rows;
+      if (!HR_GAS_WEB_APP_URL || HR_GAS_WEB_APP_URL === '#' || HR_GAS_WEB_APP_URL.indexOf('PASTE_') === 0) return rows;
+      fetch(HR_GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'bulkSync', form: 'Leave Balance', rows: rows })
+      }).then(function(res) {
+        if (!res.ok) console.warn('HR Google Sheet bulk sync HTTP ' + res.status + ' for Leave Balance');
+      }).catch(function(err) { console.warn('HR Google Sheet bulk sync failed for Leave Balance:', err); });
+      return rows;
+    }
+    function rebuildAndSyncLeaveBalance() { return syncLeaveBalanceToHrSheet(String(new Date().getFullYear())); }
+
+    function getLeaveBalanceSelectedYear() {
+      var el = document.getElementById('leaveBalanceYear');
+      return el && el.value ? String(el.value) : String(new Date().getFullYear());
+    }
+    function populateLeaveBalanceFilters() {
+      var yearEl = document.getElementById('leaveBalanceYear');
+      var empEl = document.getElementById('leaveBalanceEmployee');
+      if (!yearEl || !empEl) return;
+      var currentYear = new Date().getFullYear();
+      var years = {};
+      [currentYear - 2, currentYear - 1, currentYear, currentYear + 1].forEach(function(y) { years[String(y)] = true; });
+      getAllLeaveRecords().forEach(function(r) {
+        var y = String(r.from_date || '').slice(0, 4);
+        if (/^\\d{4}$/.test(y)) years[y] = true;
+      });
+      var selectedYear = yearEl.value || String(currentYear);
+      yearEl.innerHTML = Object.keys(years).sort(function(a, b) { return Number(b) - Number(a); }).map(function(y) {
+        return '<option value="' + y + '">' + y + '</option>';
+      }).join('');
+      yearEl.value = years[selectedYear] ? selectedYear : String(currentYear);
+
+      var employees = getLeaveBalanceEmployees();
+      var loggedInEmployee = getCurrentUserLeaveBalanceEmployee();
+      if (loggedInEmployee) {
+        employees = [loggedInEmployee];
+        empEl.disabled = true;
+      } else {
+        empEl.disabled = false;
+      }
+      var selectedEmployee = loggedInEmployee ? loggedInEmployee.code : (empEl.value && empEl.value !== 'ALL' ? empEl.value : '');
+      var defaultEmployee = loggedInEmployee || employees.filter(function(e) {
+        var status = String(e.record && e.record.status || '').trim().toLowerCase();
+        return !status || status === 'active';
+      })[0] || employees[0];
+      empEl.innerHTML = employees.map(function(e) {
+        return '<option value="' + leaveBalanceEscape(e.code) + '">' + leaveBalanceEscape(e.code + ' - ' + e.name) + '</option>';
+      }).join('');
+      var hasSelectedEmployee = employees.some(function(e) { return e.code === selectedEmployee; });
+      empEl.value = hasSelectedEmployee ? selectedEmployee : (defaultEmployee ? defaultEmployee.code : '');
+    }
+    function getLeaveBalanceMetrics() {
+      var selectedYear = getLeaveBalanceSelectedYear();
+      var empEl = document.getElementById('leaveBalanceEmployee');
+      var employees = getLeaveBalanceEmployees();
+      var loggedInEmployee = getCurrentUserLeaveBalanceEmployee();
+      if (loggedInEmployee) employees = [loggedInEmployee];
+      var selectedEmployee = loggedInEmployee ? loggedInEmployee.code : (empEl && empEl.value && empEl.value !== 'ALL' ? empEl.value : '');
+      if (!selectedEmployee && employees.length) {
+        var defaultEmployee = employees.filter(function(e) {
+          var status = String(e.record && e.record.status || '').trim().toLowerCase();
+          return !status || status === 'active';
+        })[0] || employees[0];
+        selectedEmployee = defaultEmployee.code;
+        if (empEl) empEl.value = selectedEmployee;
+      }
+      var targetEmployees = employees.filter(function(e) { return e.code === selectedEmployee; });
+      if (selectedEmployee && targetEmployees.length === 0) {
+        targetEmployees = [{ code: selectedEmployee, name: selectedEmployee, record: { code: selectedEmployee, name: selectedEmployee } }];
+      }
+      var allRecords = getAllLeaveRecords();
+      var records = allRecords.filter(function(r) {
+        var yearMatches = String(r.from_date || '').slice(0, 4) === selectedYear;
+        var recordCode = String(r.emp_code || r.employee_code || '').trim();
+        var recordUserId = String(r.user_id || r.userId || r.applied_by || '').trim();
+        var employeeMatches = !!selectedEmployee && (recordCode === selectedEmployee || recordUserId === selectedEmployee);
+        var recordEmployee = employees.filter(function(e) { return (recordCode && e.code === recordCode) || (recordUserId && e.userId === recordUserId); })[0];
+        var genderAllows = !recordEmployee || isLeaveBalanceTypeVisibleForEmployee(recordEmployee, r.leave_type);
+        return yearMatches && employeeMatches && genderAllows;
+      });
+      var statusCounts = { Pending: 0, Approved: 0, Rejected: 0 };
+      var totalAppliedDays = 0, approvedDays = 0, pendingDays = 0, approvedBalanceDays = 0;
+      records.forEach(function(r) {
+        var status = r.status || 'Pending';
+        var days = leaveBalanceNumber(r.days);
+        totalAppliedDays += days;
+        if (statusCounts[status] !== undefined) statusCounts[status] += 1;
+        if (status === 'Approved') {
+          approvedDays += days;
+          if (LEAVE_BALANCE_POLICY_TYPES.indexOf(r.leave_type) !== -1) approvedBalanceDays += days;
+        }
+        if (status === 'Pending') pendingDays += days;
+      });
+      var visibleTypes = getVisibleLeaveBalanceTypes(targetEmployees);
+      var usage = LEAVE_BALANCE_POLICY_TYPES.filter(function(type) { return visibleTypes.indexOf(type) !== -1; }).map(function(type) {
+        var entitlement = targetEmployees.reduce(function(sum, employee) {
+          return sum + getEmployeeLeaveEntitlement(employee, type);
+        }, 0);
+        var approved = records.filter(function(r) { return r.leave_type === type && r.status === 'Approved'; }).reduce(function(sum, r) { return sum + leaveBalanceNumber(r.days); }, 0);
+        var pending = records.filter(function(r) { return r.leave_type === type && r.status === 'Pending'; }).reduce(function(sum, r) { return sum + leaveBalanceNumber(r.days); }, 0);
+        return { type: type, entitlement: entitlement, approved: approved, pending: pending, remaining: Math.max(0, entitlement - approved), usedPct: entitlement ? Math.min(100, (approved / entitlement) * 100) : 0 };
+      });
+      var totalBalance = usage.reduce(function(sum, row) { return sum + row.entitlement; }, 0);
+      return {
+        year: selectedYear,
+        selectedEmployee: selectedEmployee,
+        employees: employees,
+        records: records,
+        usage: usage,
+        totalBalance: totalBalance,
+        totalAppliedDays: totalAppliedDays,
+        approvedDays: approvedDays,
+        approvedBalanceDays: approvedBalanceDays,
+        pendingDays: pendingDays,
+        remainingBalance: Math.max(0, totalBalance - approvedBalanceDays),
+        statusCounts: statusCounts,
+        totalApplications: records.length
+      };
+    }
+    function renderLeaveBalanceDashboard() {
+      var m = getLeaveBalanceMetrics();
+      var setText = function(id, value) { var el = document.getElementById(id); if (el) el.textContent = value; };
+      setText('leaveBalanceTotal', m.totalBalance.toLocaleString());
+      setText('leaveBalanceApplied', m.totalAppliedDays.toLocaleString());
+      setText('leaveBalanceApproved', m.approvedDays.toLocaleString());
+      setText('leaveBalancePending', m.pendingDays.toLocaleString());
+      setText('leaveBalanceRemaining', m.remainingBalance.toLocaleString());
+      var scopeLabel = m.selectedEmployee || 'No employee selected';
+      var selectedEmp = m.employees.filter(function(e) { return e.code === m.selectedEmployee; })[0];
+      if (selectedEmp) scopeLabel = selectedEmp.code + ' - ' + selectedEmp.name;
+      setText('leaveBalanceScopeLabel', scopeLabel);
+      setText('leaveBalanceStatusTotal', m.totalApplications + ' application' + (m.totalApplications === 1 ? '' : 's'));
+      var dataNote = 'Leave Balance sheet not configured. Default policy is in use: Casual 12, Sick 14, Earned 18, Maternity 120 and Paternity 7 days.';
+      if (LEAVE_BALANCE_SHEET_STATE.status === 'loaded') dataNote = 'Leave Balance sheet loaded: ' + LEAVE_BALANCE_SHEET_STATE.rows.length + ' ID profile(s). Sheet values are the source of truth; approved days are deducted.';
+      if (LEAVE_BALANCE_SHEET_STATE.status === 'error') dataNote = 'Leave Balance sheet could not be loaded. Default policy is in use until the published CSV URL is corrected.';
+      setText('leaveBalanceDataNote', dataNote);
+
+      var usageEl = document.getElementById('leaveBalanceUsage');
+      if (usageEl) usageEl.innerHTML = m.usage.map(function(row) {
+        return '<div class="leave-balance-usage-row">' +
+          '<div class="leave-balance-usage-top"><span class="leave-balance-usage-name">' + leaveBalanceEscape(row.type) + '</span><span class="leave-balance-usage-value">' + row.remaining.toLocaleString() + ' remaining</span></div>' +
+          '<div class="leave-balance-track"><div class="leave-balance-fill" style="width:' + row.usedPct.toFixed(1) + '%;"></div></div>' +
+          '<div class="leave-balance-usage-foot"><span>' + row.approved.toLocaleString() + ' approved · ' + row.pending.toLocaleString() + ' pending</span><span>Quota ' + row.entitlement.toLocaleString() + '</span></div>' +
+        '</div>';
+      }).join('');
+
+      var total = m.totalApplications || 0;
+      var pendingDeg = total ? (m.statusCounts.Pending / total) * 360 : 0;
+      var approvedDeg = total ? (m.statusCounts.Approved / total) * 360 : 0;
+      var rejectedDeg = total ? (m.statusCounts.Rejected / total) * 360 : 0;
+      var donut = document.getElementById('leaveBalanceDonut');
+      if (donut) {
+        donut.style.background = total ? 'conic-gradient(#f59e0b 0deg ' + pendingDeg + 'deg, #16a34a ' + pendingDeg + 'deg ' + (pendingDeg + approvedDeg) + 'deg, #dc2626 ' + (pendingDeg + approvedDeg) + 'deg 360deg)' : 'conic-gradient(#e2e8f0 0deg 360deg)';
+      }
+      setText('leaveBalanceDonutCount', total);
+      var legend = document.getElementById('leaveBalanceLegend');
+      if (legend) legend.innerHTML = [
+        { label: 'Pending', value: m.statusCounts.Pending, color: '#f59e0b' },
+        { label: 'Approved', value: m.statusCounts.Approved, color: '#16a34a' },
+        { label: 'Rejected', value: m.statusCounts.Rejected, color: '#dc2626' }
+      ].map(function(item) {
+        return '<div class="leave-balance-legend-row"><span class="leave-balance-legend-label"><span class="leave-balance-dot" style="background:' + item.color + ';"></span>' + item.label + '</span><span class="leave-balance-legend-value">' + item.value + '</span></div>';
+      }).join('');
+
+      var body = document.getElementById('leaveBalanceAppliedBody');
+      var empty = document.getElementById('leaveBalanceAppliedEmpty');
+      var sorted = m.records.slice().sort(function(a, b) { return String(b.from_date || '').localeCompare(String(a.from_date || '')); }).slice(0, 12);
+      if (body) body.innerHTML = sorted.map(function(r) {
+        var employee = m.employees.filter(function(e) { return e.code === r.emp_code; })[0];
+        var employeeLabel = employee ? employee.code + ' - ' + employee.name : (r.emp_code || '');
+        var status = r.status || 'Pending';
+        var statusClass = status.toLowerCase();
+        return '<tr><td><strong>' + leaveBalanceEscape(r.ref || '') + '</strong></td><td>' + leaveBalanceEscape(employeeLabel) + '</td><td>' + leaveBalanceEscape(r.leave_type || '') + '</td><td>' + leaveBalanceEscape(r.from_date || '') + '</td><td>' + leaveBalanceEscape(r.to_date || '') + '</td><td>' + leaveBalanceNumber(r.days).toLocaleString() + '</td><td><span class="leave-balance-status ' + statusClass + '">' + leaveBalanceEscape(status) + '</span></td></tr>';
+      }).join('');
+      if (empty) empty.style.display = sorted.length ? 'none' : 'block';
+    }
+    function openLeaveBalanceDashboard() {
+      populateLeaveBalanceFilters();
+      renderLeaveBalanceDashboard();
+      document.getElementById('leaveBalanceOverlay').classList.add('active');
+      loadLeaveBalanceSheet(false);
+    }
+    function refreshLeaveBalanceDashboard() {
+      populateLeaveBalanceFilters();
+      renderLeaveBalanceDashboard();
+      loadLeaveBalanceSheet(true);
+    }
+    function closeLeaveBalanceDashboard() { document.getElementById('leaveBalanceOverlay').classList.remove('active'); }
+    function printLeaveBalanceDashboard() {
+      var dashboard = document.querySelector('#leaveBalanceOverlay .leave-balance-outer');
+      if (!dashboard) return;
+      var printWindow = window.open('', '_blank');
+      if (!printWindow) return;
+      printWindow.document.write('<html><head><title>Leave Balance Dashboard</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#1e293b;} .pr-list-header button,.leave-balance-toolbar select{display:none!important;} .leave-balance-grid{display:grid;grid-template-columns:1.45fr .85fr;gap:14px;} .leave-balance-kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;} .leave-balance-kpi,.leave-balance-panel{border:1px solid #dbe3ed;padding:12px;margin-top:10px;} .leave-balance-track{height:9px;background:#e2e8f0;} .leave-balance-fill{height:100%;background:#2563eb;} .leave-balance-table{width:100%;border-collapse:collapse;} th,td{padding:7px;border:1px solid #dbe3ed;text-align:left;} .leave-balance-empty{display:none;}</style></head><body>' + dashboard.outerHTML + '</body></html>');
+      printWindow.document.close();
+      setTimeout(function() { printWindow.print(); }, 300);
+    }
+
     function viewLeave(ref) { closeLeaveList(); setTimeout(function() { openLeaveForm(ref); }, 200); }
 
     function printLeaveFromForm() {
@@ -33910,17 +34568,17 @@
     }
 
     function testFirebaseConnection() {
-      showDataMsg('syncStatus', 'info', 'Testing Firebase connection...');
+      showDataMsg('syncStatus', 'info', 'Checking Firebase connection...');
       if (!db) {
         showDataMsg('syncStatus', 'error', 'Firebase NOT initialized. Check console for errors.');
         return;
       }
       if (!currentUser) {
-        showDataMsg('syncStatus', 'error', 'Please login first to test connection.');
+        showDataMsg('syncStatus', 'error', 'Please login first to check the connection.');
         return;
       }
       var testRef = db.ref('users/' + currentUser.id + '/test');
-      testRef.set({ timestamp: Date.now(), message: 'Connection OK' }).then(function() {
+      testRef.set({ timestamp: Date.now(), message: 'Connection verified' }).then(function() {
         return testRef.once('value');
       }).then(function(snap) {
         testRef.remove();
@@ -33930,6 +34588,42 @@
       });
     }
 
+    // Wrap module getters after all declarations so every list/report view uses
+    // the same per-user visibility policy without duplicating filter logic.
+    (function applyCentralUserVisibilityToGetters() {
+      var getterNames = [
+        'getAllPrRecords', 'getAllGiRecords', 'getAllGoRecords',
+        'getAllW1Records', 'getAllW2Records', 'getAllQc1Records',
+        'getAllQc2Records', 'getAllGiRecordsForReport',
+        'getAllWeightRecordsForReport', 'getAllQc1RecordsForReport',
+        'getAllVuRecordsForReport', 'getAllPoRecordsForReport',
+        'getAllMfgPoRecordsForReport', 'getAllMfgEfficiencyRecordsForReport',
+        'getAllMfgUtilRecordsForReport', 'getAllMfgWastageRecordsForReport',
+        'getAllStrRecords', 'getAllToRecords', 'getAllSrRecords',
+        'getAllMiRecords', 'getAllMrRecords', 'getAllStnRecords',
+        'getAllGrnRecords', 'getAllVuRecords', 'getAllCoaRecords',
+        'getAllJeRecords', 'getAllApInvRecords', 'getAllApPayRecords',
+        'getAllArInvRecords', 'getAllArRecRecords', 'getAllChequeRecords',
+        'getAllFtRecords', 'getAllAssetRecords', 'getAllAtRecords',
+        'getAllCcRecords', 'getAllBudgetAllocRecords',
+        'getAllCostAllocRecords', 'getAllErpSetupRecords',
+        'getAllUserIdSetupRecords', 'getAllEmpRecords', 'getAllOnbRecords',
+        'getAllEtrRecords', 'getAllLeaveRecords', 'getAllSSRecords',
+        'getAllPrunRecords', 'getAllPslipRecords', 'getAllKpiRecords',
+        'getAllAprRecords', 'getAllPrvRecords', 'getAllTrcalRecords',
+        'getAllTrenrRecords', 'getAllTrfbRecords', 'getAllJobRecords',
+        'getAllCandRecords', 'getAllInterviewRecords'
+      ];
+      getterNames.forEach(function(name) {
+        var original = window[name];
+        if (typeof original !== 'function' || original.__userVisibilityWrapped) return;
+        var wrapped = function() {
+          return filterRecordsForCurrentUser(original.apply(this, arguments));
+        };
+        wrapped.__userVisibilityWrapped = true;
+        window[name] = wrapped;
+      });
+    })();
   </script>
  
 </body></html>
