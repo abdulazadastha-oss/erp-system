@@ -30584,13 +30584,42 @@
       return 'LV-' + String(nextSerial).padStart(6, '0');
     }
 
+    function getLoggedInLeaveEmployee() {
+      if (!currentUser || !currentUser.id) return null;
+      var userId = String(currentUser.id).trim().toLowerCase();
+      var code = String(currentUser.employee_code || '').trim();
+      var name = String(currentUser.employee_name || currentUser.name || '').trim().toLowerCase();
+      var employeeRecords = {};
+      try { employeeRecords = JSON.parse(localStorage.getItem('erp_emp_records') || '{}'); } catch (e) { employeeRecords = {}; }
+      var employees = Object.keys(employeeRecords).map(function(key) { return employeeRecords[key] || {}; });
+      var matched = employees.filter(function(e) {
+        var eCode = String(e.code || e.emp_code || e.employee_code || '').trim();
+        var eUser = String(e.user_id || e.userid || e.userId || e.login_id || '').trim().toLowerCase();
+        var eName = String(e.name || e.employee_name || '').trim().toLowerCase();
+        return (code && eCode === code) || (eUser && eUser === userId) || (name && eName === name);
+      })[0];
+      if (matched) return { code: String(matched.code || matched.emp_code || matched.employee_code), name: matched.name || matched.employee_name || code || currentUser.name, record: matched };
+      try {
+        var setup = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
+        var setupRow = setup[currentUser.id];
+        if (setupRow && setupRow.employee_code) {
+          var setupCode = String(setupRow.employee_code).trim();
+          var setupEmployee = employees.filter(function(e) { return String(e.code || e.emp_code || e.employee_code || '').trim() === setupCode; })[0];
+          return { code: setupCode, name: (setupEmployee && (setupEmployee.name || setupEmployee.employee_name)) || setupRow.employee_name || currentUser.name || currentUser.id, record: setupEmployee || { code: setupCode, name: setupRow.employee_name || currentUser.name, user_id: currentUser.id } };
+        }
+      } catch (e) {}
+      return code ? { code: code, name: currentUser.employee_name || currentUser.name || code, record: { code: code, name: currentUser.employee_name || currentUser.name || code, user_id: currentUser.id } } : null;
+    }
     function populateLeaveEmpDropdown(keepCode) {
       var sel = document.getElementById('lv_emp_code');
-      var employees = getAllEmpRecords().filter(function(e) { return e.status === 'Active' || e.code === keepCode; });
+      var loggedInEmployee = getLoggedInLeaveEmployee();
+      var selectedCode = loggedInEmployee ? loggedInEmployee.code : keepCode;
+      var employees = loggedInEmployee ? [loggedInEmployee] : getAllEmpRecords().filter(function(e) { return e.status === 'Active' || e.code === keepCode; });
       sel.innerHTML = '<option value="">-- Select Employee --</option>' + employees.map(function(e) {
-        return '<option value="' + e.code + '">' + e.code + ' - ' + e.name + '</option>';
+        return '<option value="' + leaveBalanceEscape(e.code) + '">' + leaveBalanceEscape(e.code + ' - ' + e.name) + '</option>';
       }).join('');
-      if (keepCode) sel.value = keepCode;
+      if (selectedCode) sel.value = selectedCode;
+      sel.disabled = !!loggedInEmployee;
     }
 
     function calcLeaveDays() {
@@ -30622,6 +30651,10 @@
       saveBtn.style.display = editable ? '' : 'none';
       document.querySelectorAll('#leaveForm input, #leaveForm select').forEach(function(el) {
         if (el.id === 'lv_ref' || el.id === 'lv_days' || el.id === 'lv_status') return;
+        if (el.id === 'lv_emp_code' && getLoggedInLeaveEmployee()) {
+          el.disabled = true;
+          return;
+        }
         el.disabled = isEdit && status !== 'Rejected';
       });
     }
@@ -30663,6 +30696,11 @@
 
       var ref = document.getElementById('lv_ref').value.trim();
       var empCode = document.getElementById('lv_emp_code').value;
+      var loggedInEmployee = getLoggedInLeaveEmployee();
+      if (loggedInEmployee && String(empCode) !== String(loggedInEmployee.code)) {
+        empCode = loggedInEmployee.code;
+        document.getElementById('lv_emp_code').value = empCode;
+      }
       var leaveType = document.getElementById('lv_type').value;
       var fromDate = document.getElementById('lv_from').value;
       var toDate = document.getElementById('lv_to').value;
