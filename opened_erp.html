@@ -12890,6 +12890,15 @@
         resetGiItemsTable();
       }
 
+      // Fix: form.reset() does NOT fire 'change' events, so if this form's
+      // Company dropdown ends up with a value already selected (e.g. only one
+      // company exists in the org data), its Business Unit / Profit Center
+      // cascade never populates — this affects every user equally, not just
+      // newly-created User IDs. Firing 'change' here forces the cascade to run.
+      form.querySelectorAll('.org-company-select').forEach(function(sel) {
+        if (sel.value) sel.dispatchEvent(new Event('change'));
+      });
+
       document.getElementById(cfg.overlay).classList.add('active');
     }
 
@@ -13353,6 +13362,7 @@
       record.status = newStatus;
       records[ref] = record;
       records[ref].approved_by = currentUser ? currentUser.name : '';
+      records[ref].approved_by_id = currentUser ? currentUser.id : '';
       records[ref].approved_at = new Date().toISOString();
       localStorage.setItem('erp_pr_records', JSON.stringify(records));
       // Mirror only this status update to the original raiser and approver's
@@ -20498,6 +20508,10 @@
       document.getElementById('str_status').value = 'Draft';
       resetStrItemsTable();
 
+      form.querySelectorAll('.org-company-select').forEach(function(sel) {
+        if (sel.value) sel.dispatchEvent(new Event('change'));
+      });
+
       document.getElementById('strFormOverlay').classList.add('active');
     }
 
@@ -20777,6 +20791,7 @@
       var wasApproved = records[ref].status === 'Approved';
       records[ref].status = newStatus;
       records[ref].approved_by = currentUser ? currentUser.name : '';
+      records[ref].approved_by_id = currentUser ? currentUser.id : '';
       records[ref].approved_at = new Date().toISOString();
       localStorage.setItem(STR_STORAGE_KEY, JSON.stringify(records));
 
@@ -21406,6 +21421,7 @@
       var wasApproved = records[ref].status === 'Approved';
       records[ref].status = newStatus;
       records[ref].approved_by = currentUser ? currentUser.name : '';
+      records[ref].approved_by_id = currentUser ? currentUser.id : '';
       records[ref].approved_at = new Date().toISOString();
       localStorage.setItem(TO_STORAGE_KEY, JSON.stringify(records));
 
@@ -21654,6 +21670,10 @@
       document.getElementById('sr_status').value = 'Draft';
 
       resetSrItemsTable();
+
+      form.querySelectorAll('.org-company-select').forEach(function(sel) {
+        if (sel.value) sel.dispatchEvent(new Event('change'));
+      });
 
       document.getElementById('srFormOverlay').classList.add('active');
     }
@@ -21917,6 +21937,7 @@
       if (!records[ref]) return;
       records[ref].status = newStatus;
       records[ref].approved_by = currentUser ? currentUser.name : '';
+      records[ref].approved_by_id = currentUser ? currentUser.id : '';
       records[ref].approved_at = new Date().toISOString();
       localStorage.setItem(SR_STORAGE_KEY, JSON.stringify(records));
       sendMiGAS({ form: 'SR_STATUS_UPDATE', ref_no: ref, status: newStatus, approved_by: records[ref].approved_by });
@@ -22823,6 +22844,7 @@
       var wasApproved = records[ref].status === 'Approved';
       records[ref].status = newStatus;
       records[ref].approved_by = currentUser ? currentUser.name : '';
+      records[ref].approved_by_id = currentUser ? currentUser.id : '';
       records[ref].approved_at = new Date().toISOString();
       localStorage.setItem(MR_STORAGE_KEY, JSON.stringify(records));
 
