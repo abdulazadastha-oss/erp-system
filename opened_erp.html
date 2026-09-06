@@ -23649,9 +23649,17 @@
       var badge = document.getElementById('notifBadge');
       var notifList = document.getElementById('notifList');
 
-      // Count unread notifications for every configured approver, including
-      // approvers assigned through the dynamic User ID setup screen.
-      var isApprover = currentUser && isConfiguredApprover(currentUser.id);
+      // Whether to show the "approver" panel (with Approve/Reject buttons) is
+      // decided by real pending requests addressed to this user right now —
+      // NOT by a curated/hardcoded approver list. This is what actually broke
+      // for dynamically-created User IDs: someone can become a valid approver
+      // for a specific PR/SR/GRN/Leave record (e.g. as a Reporting Manager)
+      // without ever being added to isConfiguredApprover()'s static list, so
+      // checking real pending notifications is the only reliable signal.
+      var isApprover = currentUser && notifs.some(function(n) {
+        return !n.read && n.status === 'pending' && n.to_user_id === currentUser.id &&
+          (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request');
+      });
       var unreadCount = 0;
       if (isApprover) {
         // Approvers see pending requests
