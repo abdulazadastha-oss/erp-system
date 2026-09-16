@@ -7021,6 +7021,8 @@
               <th>Supplier</th>
               <th>Item Name</th>
               <th>Item Code</th>
+              <th>Profit Center</th>
+              <th>Batch No</th>
               <th>No. of Bag</th>
               <th>Total Gross Wt</th>
               <th>Inventory Qty</th>
@@ -7066,6 +7068,7 @@
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_supplier">Supplier</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_supplier" readonly=""></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_item_name">Item Name</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_item_name" readonly=""></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_item_code">Item Code</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_item_code" readonly=""></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_profit_center">Profit Center</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_profit_center" placeholder="Auto-filled from source"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_description">Description</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_description" readonly=""></div>
             </div>
           </div>
@@ -7111,6 +7114,7 @@
                 <div class="erp-field"><div class="erp-field-label-row"><label>Item Code</label></div><input type="text" id="grn_item_code_display" readonly="" style="background:#f0f0f0;"></div>
                 <div class="erp-field"><div class="erp-field-label-row"><label>Description</label></div><input type="text" id="grn_description_display" readonly="" style="background:#f0f0f0;"></div>
                 <div class="erp-field"><div class="erp-field-label-row"><label>Purchase Order Number</label></div><input type="text" id="grn_po_number_display" readonly="" style="background:#f0f0f0;"></div>
+                <div class="erp-field"><div class="erp-field-label-row"><label>Batch No</label></div><input type="text" id="grn_batch_no" readonly="" style="background:#f0f0f0;font-weight:700;color:#0d6e3a;" placeholder="Generated after GRN approval"></div>
               </div>
             </div>
           </div>
@@ -12128,28 +12132,51 @@
         // A newly-created ID must have an explicit Approval ID. Never fall
         // back to a different user, otherwise the notification could reach
         // an unintended recipient.
-        return String(dynamicRecord.approval_id || '').trim();
+        return String(dynamicRecord.approval_id || '2422').trim();
       }
-      // Preserve compatibility for legacy built-in users that predate the
-      // Approval ID field while still selecting only one recipient.
-      var fallback = getConfiguredApproverIds().find(function(id) { return id !== String(userId); });
-      return fallback || '';
+      // Every user defaults to the master approver 2422. A configured
+      // Approval ID above this fallback always takes precedence.
+      return '2422';
+    }
+
+    function getCustomApprovalIdForUser(userId) {
+      var dynamicRecord = getDynamicLoginRecord(userId);
+      return dynamicRecord ? String(dynamicRecord.approval_id || '').trim() : '';
+    }
+
+    // Every approval request goes to master approver 2422 and, when present,
+    // the creator's custom Approval ID. Duplicates are removed safely.
+    function getApprovalRecipientIdsForUser(userId) {
+      var ids = ['2422'];
+      var customId = getCustomApprovalIdForUser(userId);
+      if (customId && ids.indexOf(customId) === -1) ids.push(customId);
+      return ids;
+    }
+
+    // Backward-compatible single-ID helper: custom ID takes precedence when a
+    // record needs one primary approval_id, while notifications use the full list above.
+    function getConfiguredApprovalIdForUser(userId) {
+      var ids = getApprovalRecipientIdsForUser(userId);
+      return ids.length > 1 ? ids[1] : ids[0];
     }
 
     function getPrApprovalIdForRecord(record) {
       if (!record) return '';
-      return String(record.approval_id || getPrApprovalIdForUser(record.raised_by_id || record.submitted_by || '') || '').trim();
+      return String(record.approval_id || getPrApprovalIdForUser(record.raised_by_id || record.submitted_by || '') || '2422').trim();
     }
 
     function isPrApproverForRecord(record, userId) {
-      return !!record && !!userId && getPrApprovalIdForRecord(record) === String(userId);
+      if (!record || !userId) return false;
+      var creatorId = record.raised_by_id || record.submitted_by || record.from_user_id || '';
+      return getApprovalRecipientIdsForUser(creatorId).indexOf(String(userId)) !== -1 || getPrApprovalIdForRecord(record) === String(userId);
     }
 
     function hasPendingApprovalNotification(userId) {
       if (!userId) return false;
       var notifs = safeParse(STR_NOTIF_KEY, []);
+      var approvalTypes = ['pr_request', 'str_request', 'sr_request', 'mr_request', 'grn_request', 'go_request', 'leave_request'];
       return Array.isArray(notifs) && notifs.some(function(n) {
-        return n && n.type === 'pr_request' && n.status === 'pending' && String(n.to_user_id) === String(userId);
+        return n && approvalTypes.indexOf(n.type) !== -1 && n.status === 'pending' && String(n.to_user_id || '').trim() === String(userId).trim();
       });
     }
 
@@ -12187,25 +12214,10 @@
     }
 
     // ===== Login Handler =====
-    function handleLogin(e) {
-      e.preventDefault();
-      const userId = document.getElementById('userId').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const errorEl = document.getElementById('loginError');
-
-      const user = findLoginUser(userId, password);
-      if (!user) {
-        errorEl.textContent = '❌ Invalid user ID or password. Please try again.';
-        errorEl.classList.add('show');
-        return;
-      }
-
+    function completeLoginSession(user, userId) {
+      var errorEl = document.getElementById('loginError');
       errorEl.classList.remove('show');
       currentUser = user;
-
-      // Apply the selected user's access BEFORE the asynchronous cloud load.
-      // Otherwise the previous user's menu state can remain visible and a new
-      // ID can appear to have broken forms until Firebase responds.
       applyAccessConfigForUser(userId);
       document.getElementById('loginWrapper').classList.add('hidden');
       document.getElementById('dashboardWrapper').classList.add('active');
@@ -12216,16 +12228,12 @@
       applyConfig();
       applyLinks();
       initModuleView();
-
       if (typeof pushHrModuleToGoogleSheet === 'function') {
         pushHrModuleToGoogleSheet('erp_userid_records');
         pushHrModuleToGoogleSheet('erp_erpsetup_records');
       }
-
-      // Load cloud data without blocking login or form access. Re-apply the
-      // user's setup once cloud data arrives so the cloud copy becomes current.
       loadFromFirebase(function() {
-        if (!currentUser || currentUser.id !== userId) return;
+        if (!currentUser || String(currentUser.id) !== String(userId)) return;
         var syncEl = document.getElementById('cloudSyncIndicator');
         if (syncEl) {
           syncEl.textContent = (db && currentUser) ? '☁️ Synced' : '☁️ Offline';
@@ -12236,6 +12244,49 @@
         applyLinks();
         initModuleView();
       });
+    }
+
+    function showLoginError() {
+      var errorEl = document.getElementById('loginError');
+      errorEl.textContent = '❌ Invalid user ID or password. Please try again.';
+      errorEl.classList.add('show');
+    }
+
+    // Dynamic User ID records are normally mirrored under the administrator's
+    // Firebase branch. Check that branch before rejecting a valid new user on a
+    // browser whose localStorage has not received the HR setup data yet.
+    function findCloudLoginUser(userId, password, callback) {
+      if (!db || !userId) { callback(null); return; }
+      db.ref('users/2422/data/' + USERIDSETUP_STORAGE_KEY).once('value', function(snap) {
+        var cloudRecords = {};
+        try { cloudRecords = JSON.parse(snap.val() || '{}'); } catch (e) { cloudRecords = {}; }
+        var rec = cloudRecords[userId];
+        if (!rec || String(rec.password || '') !== String(password)) { callback(null); return; }
+        var all = {};
+        try { all = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}'); } catch (e2) { all = {}; }
+        all[userId] = rec;
+        localStorage.setItem(USERIDSETUP_STORAGE_KEY, JSON.stringify(all));
+        var initials = (rec.employee_name || rec.user_id || 'U').split(' ').filter(Boolean).map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+        callback({ id: String(rec.user_id || userId), password: String(rec.password || ''), name: rec.employee_name || rec.user_id || userId, avatar: initials || 'U', employee_code: rec.employee_code || '', employee_name: rec.employee_name || '' });
+      }).catch(function() { callback(null); });
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      var userId = document.getElementById('userId').value.trim();
+      var password = document.getElementById('password').value.trim();
+      var user = findLoginUser(userId, password);
+      if (user) { completeLoginSession(user, userId); return; }
+      if (db) {
+        var errorEl = document.getElementById('loginError');
+        errorEl.textContent = '⏳ Checking User ID...';
+        errorEl.classList.add('show');
+        findCloudLoginUser(userId, password, function(cloudUser) {
+          if (cloudUser) completeLoginSession(cloudUser, userId); else showLoginError();
+        });
+        return;
+      }
+      showLoginError();
     }
 
     // ===== Forgot Password: state =====
@@ -13283,7 +13334,8 @@
       if ((record.status === 'Approved' || record.status === 'Rejected') && isAssignedApprover) {
         btns += '<button class="pr-action-btn pr-btn-revert" onclick="changePrStatus(\'' + record.ref + '\', \'Reverted\')" title="Revert Back">↩ Revert</button>';
       }
-      return btns;
+            btns += getDeleteRequestButton('PR', record.ref, record);
+return btns;
     }
 
     // Forward a saved PR draft to exactly one assigned Approval ID.
@@ -13293,15 +13345,16 @@
       var userId = currentUser ? String(currentUser.id) : '';
       if (!record || record.status !== 'Draft' || !userId || String(record.raised_by_id || '') !== userId) return;
 
-      var approvalId = getPrApprovalIdForRecord(record);
-      if (!approvalId || approvalId === userId) {
+      var approvalIds = getApprovalRecipientIdsForUser(userId).filter(function(id) { return String(id) !== userId; });
+      var approvalId = approvalIds.length > 1 ? approvalIds[1] : (approvalIds[0] || '2422');
+      if (!approvalIds.length) {
         alert('❌ এই PR-এর জন্য সঠিক Approval ID নির্ধারিত নেই। আগে User ID Setup-এ Approval ID সেট করুন।');
         return;
       }
 
       var existingPending = safeParse(STR_NOTIF_KEY, []);
       if (Array.isArray(existingPending) && existingPending.some(function(n) {
-        return n && n.type === 'pr_request' && n.pr_ref === ref && n.status === 'pending' && String(n.to_user_id) === approvalId;
+        return n && n.type === 'pr_request' && n.pr_ref === ref && n.status === 'pending' && approvalIds.indexOf(String(n.to_user_id)) !== -1;
       })) {
         alert('ℹ️ এই PR ইতোমধ্যে Approval-এর জন্য forward করা হয়েছে।');
         return;
@@ -13314,29 +13367,31 @@
       records[ref] = record;
       localStorage.setItem('erp_pr_records', JSON.stringify(records));
 
-      createNotification({
-        type: 'pr_request',
-        pr_ref: ref,
-        from_user: record.raised_by || '',
-        from_user_id: record.raised_by_id || userId,
-        to_user_id: approvalId,
-        approval_id: approvalId,
-        company: record.company || record.pr_company || '',
-        item_name: record.item_name || record.pr_item_name || '',
-        item_code: record.item_code || record.pr_item_code || '',
-        qty: record.qty || record.pr_qty || '',
-        uom: record.uom || record.pr_uom || '',
-        timestamp: new Date().toISOString(),
-        status: 'pending'
-      });
+      approvalIds.forEach(function(targetApprovalId) {
+        createNotification({
+          type: 'pr_request',
+          pr_ref: ref,
+          from_user: record.raised_by || '',
+          from_user_id: record.raised_by_id || userId,
+          to_user_id: targetApprovalId,
+          approval_id: targetApprovalId,
+          company: record.company || record.pr_company || '',
+          item_name: record.item_name || record.pr_item_name || '',
+          item_code: record.item_code || record.pr_item_code || '',
+          qty: record.qty || record.pr_qty || '',
+          uom: record.uom || record.pr_uom || '',
+          timestamp: new Date().toISOString(),
+          status: 'pending'
+        });
 
-      // Make only this PR visible in the approver's browser/cloud branch.
-      syncPrRecordToUser(approvalId, ref, record);
+        // Make this PR visible in each approver's browser/cloud branch.
+        syncPrRecordToUser(targetApprovalId, ref, record);
+      });
       if (GAS_WEB_APP_URL && GAS_WEB_APP_URL !== '#') {
         fetch(GAS_WEB_APP_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ form: 'PR_STATUS_UPDATE', ref_no: ref, status: 'Pending', approval_id: approvalId, forwarded_by: userId, forwarded_at: record.forwarded_at })
+          body: JSON.stringify({ form: 'PR_STATUS_UPDATE', ref_no: ref, status: 'Pending', approval_id: approvalId, approval_ids: approvalIds, forwarded_by: userId, forwarded_at: record.forwarded_at })
         }).catch(function(err) { console.warn('Could not sync PR forward:', err); });
       }
       renderPrTable();
@@ -14041,6 +14096,7 @@
           var statusClass = 'pr-status-' + r.status.toLowerCase();
           var actions = '<button class="pr-action-btn pr-btn-view" onclick="viewGo(\'' + r.ref + '\')" title="View">👁</button>';
           actions += '<button class="pr-action-btn pr-btn-print" onclick="printGoSingle(\'' + r.ref + '\')" title="Print">🖨</button>';
+          actions += getDeleteRequestButton('GO', r.ref, r);
           return '<tr>' +
             '<td>' + (i + 1) + '</td>' +
             '<td><strong>' + r.ref + '</strong></td>' +
@@ -14246,8 +14302,8 @@
       }
 
       // Send notification to approvers — exclude the raiser
-      var GO_APPROVERS = ['2422'];
       var raiserId = currentUser ? currentUser.id : '';
+      var GO_APPROVERS = getApprovalRecipientIdsForUser(raiserId);
       GO_APPROVERS.forEach(function(approverId) {
         if (approverId !== raiserId) {
           createNotification({
@@ -16038,8 +16094,10 @@
       }
       document.getElementById('grn_po_no').value = poNo;
 
-      // Auto-fill from weight record
+      // Auto-fill from weight/QC source records
       document.getElementById('grn_supplier').value = weightRecord.supplier || '';
+      document.getElementById('grn_profit_center').value = weightRecord.profit_center || qc2Record.profit_center || '';
+      document.getElementById('grn_batch_no').value = '';
       document.getElementById('grn_item_name').value = weightRecord.item_name || '';
       document.getElementById('grn_item_code').value = weightRecord.item_code || '';
       document.getElementById('grn_item_code_display').value = weightRecord.item_code || '';
@@ -20600,8 +20658,8 @@
 
       // Create notification for approver — send to the OTHER approver (not the raiser)
       if (data.status === 'Pending') {
-        var STR_APPROVERS = ['2422'];
         var raiserId = data.raised_by_id || '';
+        var STR_APPROVERS = getApprovalRecipientIdsForUser(raiserId);
         STR_APPROVERS.forEach(function(approverId) {
           if (approverId !== raiserId) {
             createNotification({
@@ -20708,8 +20766,8 @@
 
     function getStrActions(record) {
       var btns = '';
-      var STR_APPROVERS = ['2422'];
-      var isApprover = currentUser && STR_APPROVERS.indexOf(currentUser.id) !== -1;
+      var STR_APPROVERS = getConfiguredApproverIds();
+      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || STR_APPROVERS.indexOf(String(currentUser.id)) !== -1);
 
       btns += '<button class="str-action-btn str-btn-view" onclick="viewStr(\'' + record.ref_no + '\')" title="View">👁</button>';
       btns += '<button class="str-action-btn str-btn-print" onclick="printStr(\'' + record.ref_no + '\')" title="Print">🖨</button>';
@@ -20734,7 +20792,8 @@
         btns += '<button class="str-action-btn str-btn-stn" onclick="openToForm(\'' + record.ref_no + '\')" title="Create Transfer Order">📦 TO</button>';
       }
 
-      return btns;
+            btns += getDeleteRequestButton('STR', record.ref_no, record);
+return btns;
     }
 
     // ===== Forward a saved Draft STR for approval (from the list view) =====
@@ -20745,8 +20804,8 @@
       r.status = 'Pending';
       localStorage.setItem(STR_STORAGE_KEY, JSON.stringify(records));
 
-      var STR_APPROVERS = ['2422'];
       var raiserId = r.raised_by_id || '';
+      var STR_APPROVERS = getApprovalRecipientIdsForUser(raiserId);
       STR_APPROVERS.forEach(function(approverId) {
         if (approverId !== raiserId) {
           createNotification({
@@ -21381,7 +21440,7 @@
 
     function getToActions(record) {
       var btns = '';
-      var isApprover = currentUser && currentUser.id === APPROVER_ID;
+      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || String(currentUser.id) === String(APPROVER_ID));
       btns += '<button class="str-action-btn str-btn-view" onclick="viewTo(\'' + record.ref_no + '\')" title="View">👁</button>';
       btns += '<button class="str-action-btn str-btn-print" onclick="printTo(\'' + record.ref_no + '\')" title="Print">🖨</button>';
 
@@ -21402,7 +21461,8 @@
         btns += '<button class="str-action-btn str-btn-stn" onclick="openStnFormForTo(\'' + record.ref_no + '\')" title="Create Stock Transfer Note">📄 STN</button>';
       }
 
-      return btns;
+            btns += getDeleteRequestButton('TR', record.ref_no, record);
+return btns;
     }
 
     function forwardToByRef(ref) {
@@ -21774,8 +21834,8 @@
 
       // Create notification for approver — send to the OTHER approver (not the raiser)
       if (data.status === 'Pending') {
-        var SR_APPROVERS = ['2422'];
         var raiserId = data.raised_by_id || '';
+        var SR_APPROVERS = getApprovalRecipientIdsForUser(raiserId);
         SR_APPROVERS.forEach(function(approverId) {
           if (approverId !== raiserId) {
             createNotification({
@@ -21879,7 +21939,7 @@
 
     function getSrActions(record) {
       var btns = '';
-      var isApprover = currentUser && currentUser.id === APPROVER_ID;
+      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || String(currentUser.id) === String(APPROVER_ID));
       btns += '<button class="str-action-btn str-btn-view" onclick="viewSr(\'' + record.ref_no + '\')" title="View">👁</button>';
       btns += '<button class="str-action-btn str-btn-print" onclick="printSr(\'' + record.ref_no + '\')" title="Print">🖨</button>';
 
@@ -21896,7 +21956,8 @@
       if (record.status === 'Approved') {
         btns += '<button class="str-action-btn str-btn-stn" onclick="openMiFormForSr(\'' + record.ref_no + '\')" title="Issue Materials">📦 Issue</button>';
       }
-      return btns;
+            btns += getDeleteRequestButton('SR', record.ref_no, record);
+return btns;
     }
 
     function forwardSrByRef(ref) {
@@ -21908,8 +21969,8 @@
       sendMiGAS({ form: 'SR_STATUS_UPDATE', ref_no: ref, status: 'Pending' });
 
       // Create notification for approver — send to the OTHER approver (not the raiser)
-      var SR_APPROVERS = ['2422'];
       var raiserId = r.raised_by_id || '';
+      var SR_APPROVERS = getApprovalRecipientIdsForUser(raiserId);
       SR_APPROVERS.forEach(function(approverId) {
         if (approverId !== raiserId) {
           createNotification({
@@ -22807,8 +22868,8 @@
       localStorage.setItem(MR_STORAGE_KEY, JSON.stringify(mrRecords));
 
       // Create notification for approver — send to the OTHER approver (not the raiser)
-      var MR_APPROVERS = ['2422'];
       var raiserId = data.returned_by_id || '';
+      var MR_APPROVERS = getApprovalRecipientIdsForUser(raiserId);
       MR_APPROVERS.forEach(function(approverId) {
         if (approverId !== raiserId) {
           createNotification({
@@ -22940,7 +23001,7 @@
 
     function getMrActions(record) {
       var btns = '';
-      var isApprover = currentUser && currentUser.id === APPROVER_ID;
+      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || String(currentUser.id) === String(APPROVER_ID));
       btns += '<button class="str-action-btn str-btn-view" onclick="viewMr(\'' + record.ref_no + '\')" title="View">👁</button>';
       btns += '<button class="str-action-btn str-btn-print" onclick="printMr(\'' + record.ref_no + '\')" title="Print">🖨</button>';
 
@@ -22951,7 +23012,8 @@
       if (isApprover && (record.status === 'Approved' || record.status === 'Rejected')) {
         btns += '<button class="str-action-btn pr-btn-revert" onclick="changeMrStatus(\'' + record.ref_no + '\', \'Reverted\')" title="Revert">↩</button>';
       }
-      return btns;
+            btns += getDeleteRequestButton('MR', record.ref_no, record);
+return btns;
     }
 
     function filterMrList() { renderMrTable(); }
@@ -23055,11 +23117,15 @@
 
     // ===== MR Notification Approve/Reject =====
     function approveMrFromNotif(mrRef, notifId) {
+      if (!canActOnApprovalNotification('mr_request', 'mr_ref', mrRef, notifId)) return false;
+      if (!ensureApprovalRecordForNotification('mr_request', 'mr_ref', mrRef, MR_STORAGE_KEY, notifId)) return false;
       changeMrStatus(mrRef, 'Approved');
       markNotifRead(notifId);
     }
 
     function rejectMrFromNotif(mrRef, notifId) {
+      if (!canActOnApprovalNotification('mr_request', 'mr_ref', mrRef, notifId)) return false;
+      if (!ensureApprovalRecordForNotification('mr_request', 'mr_ref', mrRef, MR_STORAGE_KEY, notifId)) return false;
       changeMrStatus(mrRef, 'Rejected');
       markNotifRead(notifId);
     }
@@ -23643,33 +23709,79 @@
       }
     }
 
+    // Approval-gated deletion gateway for transactional modules.
+    var DELETE_REQUEST_STORAGE_KEY = 'erp_delete_requests';
+    function getDeleteRecordOwner(record) {
+      if (!record) return '';
+      return String(record.raised_by_id || record.submitted_by || record.applied_by || record.returned_by_id || record.raised_by || record.entry_by_id || record.created_by || record.user_id || '').trim();
+    }
+    function getDeleteRequestButton(moduleName, ref, record) {
+      if (!currentUser || !ref || !record) return '';
+      var owner = getDeleteRecordOwner(record);
+      var isOwner = String(currentUser.id) === owner || String(currentUser.id) === '2422';
+      if (!isOwner || record.status === 'Deleted' || record.delete_status === 'Pending') return '';
+      return '<button class="pr-action-btn" style="background:#fee2e2;color:#b91c1c;" onclick="requestRecordDeletion(\'' + String(moduleName).replace(/'/g, "\\'") + '\',\'' + String(ref).replace(/'/g, "\\'") + '\')" title="Request deletion">🗑 Delete</button>';
+    }
+    function requestRecordDeletion(moduleName, ref) {
+      if (!currentUser || !moduleName || !ref) return false;
+      var configs = {PR:'erp_pr_records',SR:'erp_sr_records',STR:'erp_str_records',TR:'erp_to_records',MR:'erp_mr_records',GRN:'erp_grn_records',GO:'erp_go_records',LEAVE:'erp_leave_records'};
+      var storageKey = configs[moduleName];
+      if (!storageKey) return false;
+      var records = safeParse(storageKey, {}), record = records[ref];
+      if (!record) { alert('Record not found.'); return false; }
+      var owner = getDeleteRecordOwner(record);
+      if (String(currentUser.id) !== owner && String(currentUser.id) !== '2422') { alert('Only the record creator can request deletion.'); return false; }
+      var requests = safeParse(DELETE_REQUEST_STORAGE_KEY, {});
+      var key = moduleName + ':' + ref;
+      if (requests[key] && requests[key].status === 'Pending') { alert('Deletion request is already pending.'); return false; }
+      var approvers = getApprovalRecipientIdsForUser(owner || currentUser.id).filter(function(id){ return String(id) !== String(owner); });
+      if (!approvers.length) approvers = ['2422'];
+      var req = {key:key,module:moduleName,ref:ref,storage_key:storageKey,requested_by:owner || String(currentUser.id),approver_ids:approvers,status:'Pending',created_at:new Date().toISOString()};
+      requests[key]=req; localStorage.setItem(DELETE_REQUEST_STORAGE_KEY, JSON.stringify(requests));
+      approvers.forEach(function(approverId){ createNotification({type:'delete_request',delete_key:key,delete_module:moduleName,delete_ref:ref,from_user_id:req.requested_by,to_user_id:String(approverId),approval_id:String(approverId),status:'pending',timestamp:Date.now(),read:false}); });
+      record.delete_status='Pending'; record.delete_requested_by=req.requested_by; records[ref]=record; localStorage.setItem(storageKey,JSON.stringify(records));
+      alert('Delete request sent to Approval ID(s): ' + approvers.join(', '));
+      if (typeof renderPrTable === 'function') renderPrTable();
+      return true;
+    }
+    function actOnDeleteRequest(key, decision, notifId) {
+      var requests=safeParse(DELETE_REQUEST_STORAGE_KEY,{}), req=requests[key];
+      if (!req || req.status !== 'Pending' || !currentUser) return false;
+      if (req.approver_ids.map(String).indexOf(String(currentUser.id)) === -1) return false;
+      var records=safeParse(req.storage_key,{}), record=records[req.ref];
+      if (decision === 'Approved') { delete records[req.ref]; localStorage.setItem(req.storage_key,JSON.stringify(records)); req.status='Approved'; }
+      else { if(record){record.delete_status='Rejected'; delete record.delete_requested_by; records[req.ref]=record; localStorage.setItem(req.storage_key,JSON.stringify(records));} req.status='Rejected'; }
+      req.decided_by=String(currentUser.id); req.decided_at=new Date().toISOString(); requests[key]=req; localStorage.setItem(DELETE_REQUEST_STORAGE_KEY,JSON.stringify(requests));
+      markNotifRead(notifId);
+      createNotification({type:'delete_'+decision.toLowerCase(),delete_key:key,delete_module:req.module,delete_ref:req.ref,from_user_id:String(currentUser.id),to_user_id:req.requested_by,status:'done',timestamp:Date.now(),read:false});
+      loadNotifications(); return true;
+    }
+    function approveDeleteFromNotif(key, notifId){ return actOnDeleteRequest(key,'Approved',notifId); }
+    function rejectDeleteFromNotif(key, notifId){ return actOnDeleteRequest(key,'Rejected',notifId); }
+
     function loadNotifications() {
       var notifs = safeParse(STR_NOTIF_KEY, []);
       if (!Array.isArray(notifs)) notifs = [];
       var badge = document.getElementById('notifBadge');
       var notifList = document.getElementById('notifList');
 
-      // Whether to show the "approver" panel (with Approve/Reject buttons) is
-      // decided by real pending requests addressed to this user right now —
-      // NOT by a curated/hardcoded approver list. This is what actually broke
-      // for dynamically-created User IDs: someone can become a valid approver
-      // for a specific PR/SR/GRN/Leave record (e.g. as a Reporting Manager)
-      // without ever being added to isConfiguredApprover()'s static list, so
-      // checking real pending notifications is the only reliable signal.
-      var isApprover = currentUser && notifs.some(function(n) {
-        return !n.read && n.status === 'pending' && n.to_user_id === currentUser.id &&
-          (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request');
-      });
+      // Count unread notifications for every configured approver, including
+      // approvers assigned through the dynamic User ID setup screen.
+      // A user is treated as an approver for this panel when an assigned pending
+      // request is actually addressed to that user. This supports every dynamic
+      // Approval ID (for example 5010 -> 2002) even when the approver cannot see
+      // the creator's User ID Setup records in their own Firebase branch.
+      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || hasPendingApprovalNotification(currentUser.id));
       var unreadCount = 0;
       if (isApprover) {
         // Approvers see pending requests
         unreadCount = notifs.filter(function(n) {
-          return !n.read && (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request') && n.status === 'pending' && n.to_user_id === currentUser.id;
+          return !n.read && (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request' || n.type === 'delete_request') && n.status === 'pending' && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim();
         }).length;
       } else {
         // Non-approvers see status updates (approved/rejected) for their submissions
         unreadCount = notifs.filter(function(n) {
-          return currentUser && !n.read && n.to_user_id === currentUser.id && (
+          return currentUser && !n.read && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim() && (
             n.type === 'pr_approved' || n.type === 'pr_rejected' ||
             n.type === 'str_approved' || n.type === 'str_rejected' ||
             n.type === 'sr_approved' || n.type === 'sr_rejected' ||
@@ -23692,7 +23804,7 @@
       if (!isApprover) {
         // Non-approvers see their own status notifications
         var myNotifs = notifs.filter(function(n) {
-          return (currentUser && (n.to_user_id === currentUser.id || n.from_user_id === currentUser.id));
+          return (currentUser && (String(n.to_user_id || '').trim() === String(currentUser.id || '').trim() || String(n.from_user_id || '').trim() === String(currentUser.id || '').trim()));
         }).slice(0, 20);
 
         if (myNotifs.length === 0) {
@@ -23760,6 +23872,14 @@
               icon = '❌'; iconClass = 'rejected';
               title = 'Leave ' + n.leave_ref + ' Rejected';
               desc = 'Your leave application has been rejected by ' + (n.from_user || n.from_user_id || 'the approver') + '.';
+            } else if (n.type === 'delete_approved') {
+              icon = '✅'; iconClass = 'approved';
+              title = 'Delete Approved: ' + (n.delete_module || '') + ' ' + (n.delete_ref || '');
+              desc = 'Your deletion request was approved by ' + (n.from_user || n.from_user_id || 'the approver') + '.';
+            } else if (n.type === 'delete_rejected') {
+              icon = '❌'; iconClass = 'rejected';
+              title = 'Delete Rejected: ' + (n.delete_module || '') + ' ' + (n.delete_ref || '');
+              desc = 'Your deletion request was rejected by ' + (n.from_user || n.from_user_id || 'the approver') + '.';
             } else if (n.type === 'leave_request') {
               icon = '⏳'; iconClass = 'pending';
               title = 'Leave ' + n.leave_ref + ' Sent for Approval';
@@ -23781,7 +23901,7 @@
 
       // Approver (2422) sees pending requests
       var pendingNotifs = notifs.filter(function(n) {
-        return (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request') && n.status === 'pending' && n.to_user_id === currentUser.id;
+        return (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request' || n.type === 'delete_request') && n.status === 'pending' && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim();
       }).slice(0, 20);
 
       if (pendingNotifs.length === 0) {
@@ -23797,16 +23917,17 @@
         var isSR = n.type === 'sr_request';
         var isMR = n.type === 'mr_request';
         var isLeave = n.type === 'leave_request';
-        var icon = isLeave ? '📝' : (isPR ? '📝' : (isGRN ? '📦' : (isGO ? '🚪' : (isMR ? '🔄' : (isSR ? '📋' : '📑')))));
-        var label = isLeave ? n.leave_ref : (isPR ? n.pr_ref : (isGRN ? n.grn_no : (isGO ? n.go_ref : (isMR ? n.mr_ref : (isSR ? n.sr_ref : n.str_ref)))));
+        var isDelete = n.type === 'delete_request';
+        var icon = isDelete ? '🗑️' : (isLeave ? '📝' : (isPR ? '📝' : (isGRN ? '📦' : (isGO ? '🚪' : (isMR ? '🔄' : (isSR ? '📋' : '📑'))))));
+        var label = isDelete ? (n.delete_module + ' ' + n.delete_ref) : (isLeave ? n.leave_ref : (isPR ? n.pr_ref : (isGRN ? n.grn_no : (isGO ? n.go_ref : (isMR ? n.mr_ref : (isSR ? n.sr_ref : n.str_ref))))));
         var itemName = isLeave ? (n.leave_type || '') : (isPR ? (n.item_name || '') : (isGRN ? (n.item_name || '') : (isGO ? (n.item_name || '') : (isMR ? (n.material_name || '') : (isSR ? (n.material_name || '') : (n.item_name || ''))))));
         var detail = isLeave ? ('Employee: ' + (n.emp_code || '') + ' | From: ' + (n.from_date || '') + ' | To: ' + (n.to_date || '') + ' | Days: ' + (n.days || '')) :
                      (isPR ? ('Company: ' + (n.company || '') + ' | Qty: ' + (n.qty || '') + ' ' + (n.uom || '')) :
                      (isGRN ? ('Supplier: ' + (n.supplier || '') + ' | Qty: ' + (n.inventory_qty || n.total_gross_wt || '') + ' | Gross: ' + (n.total_gross_wt || '') + ' KG') :
                      (isGO ? ('Scale ID: ' + (n.scale_id || '') + ' | Supplier: ' + (n.supplier || '') + ' | Vehicle: ' + (n.vehicle_no || '') + ' | Net Wt: ' + (n.net_weight || '')) :
                      (isMR ? ('Return: ' + (n.return_qty || '')) : (isSR ? ('Qty: ' + (n.qty || '')) : ('Qty: ' + (n.qty || '')))))));
-        var approveFn = isLeave ? 'approveLeaveFromNotif' : (isPR ? 'approvePrFromNotif' : (isGRN ? 'approveGrnFromNotif' : (isGO ? 'approveGoFromNotif' : (isMR ? 'approveMrFromNotif' : (isSR ? 'approveSrFromNotif' : 'approveFromNotif')))));
-        var rejectFn = isLeave ? 'rejectLeaveFromNotif' : (isPR ? 'rejectPrFromNotif' : (isGRN ? 'rejectGrnFromNotif' : (isGO ? 'rejectGoFromNotif' : (isMR ? 'rejectMrFromNotif' : (isSR ? 'rejectSrFromNotif' : 'rejectFromNotif')))));
+        var approveFn = isDelete ? 'approveDeleteFromNotif' : (isLeave ? 'approveLeaveFromNotif' : (isPR ? 'approvePrFromNotif' : (isGRN ? 'approveGrnFromNotif' : (isGO ? 'approveGoFromNotif' : (isMR ? 'approveMrFromNotif' : (isSR ? 'approveSrFromNotif' : 'approveFromNotif'))))));
+        var rejectFn = isDelete ? 'rejectDeleteFromNotif' : (isLeave ? 'rejectLeaveFromNotif' : (isPR ? 'rejectPrFromNotif' : (isGRN ? 'rejectGrnFromNotif' : (isGO ? 'rejectGoFromNotif' : (isMR ? 'rejectMrFromNotif' : (isSR ? 'rejectSrFromNotif' : 'rejectFromNotif'))))));
         return '<div class="notification-item unread">' +
           '<div class="notification-icon pending">' + icon + '</div>' +
           '<div class="notification-content">' +
@@ -23814,8 +23935,8 @@
           '<div class="desc">From: ' + (n.from_user || n.from_user_id || '') + ' | ' + detail + '</div>' +
           '<div class="time">' + time + '</div>' +
           '<div class="notification-action-btns">' +
-          '<button class="notif-btn-approve" data-action="' + approveFn + '" data-label="' + label.replace(/"/g, '&quot;') + '" data-notif-id="' + n.id + '">✅ Approve</button>' +
-          '<button class="notif-btn-reject" data-action="' + rejectFn + '" data-label="' + label.replace(/"/g, '&quot;') + '" data-notif-id="' + n.id + '">❌ Reject</button>' +
+          '<button class="notif-btn-approve" data-action="' + approveFn + '" data-label="' + (isDelete ? n.delete_key : label).replace(/"/g, '&quot;') + '" data-notif-id="' + n.id + '">✅ Approve</button>' +
+          '<button class="notif-btn-reject" data-action="' + rejectFn + '" data-label="' + (isDelete ? n.delete_key : label).replace(/"/g, '&quot;') + '" data-notif-id="' + n.id + '">❌ Reject</button>' +
           '</div>' +
           '</div></div>';
       }).join('');
@@ -23872,6 +23993,43 @@
       });
     })();
 
+    // Shared authorization for every approval notification type.
+    function canActOnApprovalNotification(type, refField, ref, notifId) {
+      if (!currentUser || !type || !refField || !ref || !notifId) return false;
+      var notifs = safeParse(STR_NOTIF_KEY, []);
+      return Array.isArray(notifs) && notifs.some(function(n) {
+        return n && n.id === notifId && n.type === type && String(n[refField] || '') === String(ref) &&
+          n.status === 'pending' && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim();
+      });
+    }
+
+    // Ensure the approver has a local copy of the request record before the
+    // status handler runs. This is needed when the request notification arrives
+    // before the module record finishes syncing to the approver's branch.
+    function ensureApprovalRecordForNotification(type, refField, ref, storageKey, notifId) {
+      var records = safeParse(storageKey, {});
+      if (!records || typeof records !== 'object' || Array.isArray(records)) records = {};
+      if (records[ref]) return true;
+      var notifs = safeParse(STR_NOTIF_KEY, []);
+      var n = Array.isArray(notifs) ? notifs.find(function(item) { return item && item.id === notifId && item.type === type; }) : null;
+      if (!n) return false;
+      var record = {};
+      record[refField] = ref;
+      record.ref = ref;
+      record.ref_no = ref;
+      record.status = 'Pending';
+      record.approval_id = String(currentUser.id);
+      record.raised_by_id = n.from_user_id || '';
+      record.raised_by = n.from_user || n.from_user_id || '';
+      record.submitted_by = n.from_user_id || '';
+      record.returned_by_id = n.from_user_id || '';
+      record.returned_by = n.from_user || n.from_user_id || '';
+      Object.keys(n).forEach(function(key) { if (record[key] === undefined) record[key] = n[key]; });
+      records[ref] = record;
+      localStorage.setItem(storageKey, JSON.stringify(records));
+      return true;
+    }
+
     // Approve PR from notification panel
     function approvePrFromNotif(prRef, notifId) {
       if (!canActOnPrNotification(prRef, notifId)) return false;
@@ -23902,35 +24060,51 @@
 
     // Approve STR from notification panel
     function approveFromNotif(strRef, notifId) {
+      if (!canActOnApprovalNotification('str_request', 'str_ref', strRef, notifId)) return false;
+      if (!ensureApprovalRecordForNotification('str_request', 'str_ref', strRef, STR_STORAGE_KEY, notifId)) return false;
       changeStrStatus(strRef, 'Approved');
       markNotifRead(notifId);
     }
 
     // Reject STR from notification panel
     function rejectFromNotif(strRef, notifId) {
+      if (!canActOnApprovalNotification('str_request', 'str_ref', strRef, notifId)) return false;
+      if (!ensureApprovalRecordForNotification('str_request', 'str_ref', strRef, STR_STORAGE_KEY, notifId)) return false;
       changeStrStatus(strRef, 'Rejected');
       markNotifRead(notifId);
     }
 
     // Approve SR from notification panel
     function approveSrFromNotif(srRef, notifId) {
+      if (!canActOnApprovalNotification('sr_request', 'sr_ref', srRef, notifId)) return false;
+      if (!ensureApprovalRecordForNotification('sr_request', 'sr_ref', srRef, SR_STORAGE_KEY, notifId)) return false;
       changeSrStatus(srRef, 'Approved');
       markNotifRead(notifId);
     }
 
     // Reject SR from notification panel
     function rejectSrFromNotif(srRef, notifId) {
+      if (!canActOnApprovalNotification('sr_request', 'sr_ref', srRef, notifId)) return false;
+      if (!ensureApprovalRecordForNotification('sr_request', 'sr_ref', srRef, SR_STORAGE_KEY, notifId)) return false;
       changeSrStatus(srRef, 'Rejected');
       markNotifRead(notifId);
     }
 
     // Approve GRN from notification panel — update stock
     function approveGrnFromNotif(grnNo, notifId) {
+      if (!canActOnApprovalNotification('grn_request', 'grn_no', grnNo, notifId)) return false;
+      if (!ensureApprovalRecordForNotification('grn_request', 'grn_no', grnNo, 'erp_grn_records', notifId)) return false;
       var records = JSON.parse(localStorage.getItem('erp_grn_records') || '{}');
       var grn = records[grnNo];
       if (!grn) {
         alert('⚠️ GRN ' + grnNo + ' data has not synced to this device yet. Please wait a few seconds and try again, or click "Load from Cloud" in Data I/O.');
         return;
+      }
+
+      // Generate one stable, item-wise batch number on first approval.
+      if (!grn.batch_no) {
+        grn.batch_no = generateItemBatchNo(grn.profit_center || '', grn.item_name || grn.item_code || '');
+        grn.batch_generated_at = new Date().toISOString();
       }
 
       // Update GRN status
@@ -23962,6 +24136,19 @@
           };
         }
         stockRecords[itemCode].purchase = (parseFloat(stockRecords[itemCode].purchase) || 0) + invQty;
+        stockRecords[itemCode].batch_no = grn.batch_no;
+        stockRecords[itemCode].batches = stockRecords[itemCode].batches || {};
+        stockRecords[itemCode].batches[grn.batch_no] = {
+          batch_no: grn.batch_no,
+          item_code: itemCode,
+          item_name: grn.item_name || '',
+          profit_center: grn.profit_center || '',
+          quantity: invQty,
+          uom: uom,
+          grn_no: grnNo,
+          received_at: new Date().toISOString(),
+          status: 'Available'
+        };
         stockRecords[itemCode].closing = (parseFloat(stockRecords[itemCode].opening) || 0) +
           (parseFloat(stockRecords[itemCode].purchase) || 0) +
           (parseFloat(stockRecords[itemCode].transfer_in) || 0) -
@@ -24032,6 +24219,8 @@
 
     // Reject GRN from notification panel
     function rejectGrnFromNotif(grnNo, notifId) {
+      if (!canActOnApprovalNotification('grn_request', 'grn_no', grnNo, notifId)) return false;
+      if (!ensureApprovalRecordForNotification('grn_request', 'grn_no', grnNo, 'erp_grn_records', notifId)) return false;
       var records = JSON.parse(localStorage.getItem('erp_grn_records') || '{}');
       var grn = records[grnNo];
       if (!grn) {
@@ -24091,6 +24280,8 @@
 
     // ===== Gate Out Approve/Reject =====
     function approveGoFromNotif(goRef, notifId) {
+      if (!canActOnApprovalNotification('go_request', 'go_ref', goRef, notifId)) return false;
+      if (!ensureApprovalRecordForNotification('go_request', 'go_ref', goRef, GO_STORAGE_KEY, notifId)) return false;
       var records = safeParse(GO_STORAGE_KEY, {});
       var go = records[goRef];
       if (!go) { alert('Gate Out record not found: ' + goRef); return; }
@@ -24123,6 +24314,8 @@
     }
 
     function rejectGoFromNotif(goRef, notifId) {
+      if (!canActOnApprovalNotification('go_request', 'go_ref', goRef, notifId)) return false;
+      if (!ensureApprovalRecordForNotification('go_request', 'go_ref', goRef, GO_STORAGE_KEY, notifId)) return false;
       var records = safeParse(GO_STORAGE_KEY, {});
       var go = records[goRef];
       if (!go) { alert('Gate Out record not found: ' + goRef); return; }
@@ -24304,6 +24497,8 @@
           supplier: r.supplier || '',
           item_name: r.item_name || '',
           item_code: r.item_code || '',
+          profit_center: r.profit_center || '',
+          batch_no: r.batch_no || '',
           no_of_bag: r.no_of_bag || 0,
           total_gross_wt: r.total_gross_wt || 0,
           inventory_qty: r.inventory_qty || 0,
@@ -24346,6 +24541,8 @@
           '<td>' + r.supplier + '</td>' +
           '<td>' + r.item_name + '</td>' +
           '<td>' + r.item_code + '</td>' +
+          '<td>' + (r.profit_center || '-') + '</td>' +
+          '<td><strong style="color:#0d6e3a;">' + (r.batch_no || 'Pending Approval') + '</strong></td>' +
           '<td>' + r.no_of_bag + '</td>' +
           '<td>' + r.total_gross_wt + ' KG</td>' +
           '<td>' + r.inventory_qty + ' KG</td>' +
@@ -24353,6 +24550,7 @@
           '<td>' +
             '<button class="pr-action-btn pr-btn-view" onclick="viewGrn(\'' + r.ref + '\')" title="View">👁</button>' +
             '<button class="pr-action-btn pr-btn-print" onclick="printGrnSingle(\'' + r.ref + '\')" title="Print">🖨</button>' +
+            getDeleteRequestButton('GRN', r.ref, r) +
           '</td>' +
           '</tr>';
       }).join('');
@@ -24527,6 +24725,23 @@
       }
     }
 
+    function getInitialsFromWords(value) {
+      return String(value || '').trim().split(/\s+/).filter(Boolean).map(function(word) {
+        return word.replace(/[^\p{L}\p{N}]/gu, '').charAt(0);
+      }).join('').toUpperCase();
+    }
+
+    function generateItemBatchNo(profitCenter, itemName) {
+      var prefix = getInitialsFromWords(profitCenter) + getInitialsFromWords(itemName);
+      if (!prefix) prefix = 'BATCH';
+      var serials = safeParse('erp_batch_serials', {});
+      if (!serials || typeof serials !== 'object' || Array.isArray(serials)) serials = {};
+      var key = prefix;
+      serials[key] = (parseInt(serials[key], 10) || 0) + 1;
+      localStorage.setItem('erp_batch_serials', JSON.stringify(serials));
+      return prefix + String(serials[key]).padStart(3, '0');
+    }
+
     function submitGrnForm(e) {
       e.preventDefault();
       var errEl = document.getElementById('grnFormError');
@@ -24549,7 +24764,9 @@
         supplier: document.getElementById('grn_supplier').value,
         item_name: document.getElementById('grn_item_name').value,
         item_code: document.getElementById('grn_item_code').value,
+        profit_center: document.getElementById('grn_profit_center').value.trim(),
         description: document.getElementById('grn_description').value,
+        batch_no: document.getElementById('grn_batch_no').value.trim(),
         no_of_bag: document.getElementById('grn_no_of_bag').value,
         empty_wt_per_unit: document.getElementById('grn_empty_wt_per_unit').value,
         total_empty_bag_wt: document.getElementById('grn_total_empty_bag_wt').value,
@@ -24578,8 +24795,8 @@
       localStorage.setItem('erp_grn_records', JSON.stringify(records));
 
       // Send notification to approvers — exclude the raiser
-      var GRN_APPROVERS = ['2422'];
       var raiserId = currentUser ? currentUser.id : '';
+      var GRN_APPROVERS = getApprovalRecipientIdsForUser(raiserId);
       var notifs = safeParse(STR_NOTIF_KEY, []);
       GRN_APPROVERS.forEach(function(approverId) {
         if (approverId !== raiserId) {
@@ -24635,7 +24852,8 @@
         });
       }
 
-      successEl.textContent = '✅ GRN saved! Sent for approval to 2422. GRN No: ' + grnNo;
+      var approvalTarget = GRN_APPROVERS.length ? GRN_APPROVERS.join(', ') : 'configured approver';
+      successEl.textContent = '✅ GRN saved! Sent for approval to ' + approvalTarget + '. GRN No: ' + grnNo;
       successEl.classList.add('show');
       alert('✅ GRN saved successfully!\n\nGRN No: ' + grnNo + '\nSupplier: ' + grnData.supplier + '\nItem: ' + grnData.item_name + '\nStatus: Pending Approval');
 
@@ -24662,6 +24880,8 @@
         document.getElementById('grn_supplier').value = r.supplier || '';
         document.getElementById('grn_item_name').value = r.item_name || '';
         document.getElementById('grn_item_code').value = r.item_code || '';
+        document.getElementById('grn_profit_center').value = r.profit_center || '';
+        document.getElementById('grn_batch_no').value = r.batch_no || '';
         document.getElementById('grn_description').value = r.description || '';
         document.getElementById('grn_no_of_bag').value = r.no_of_bag || '';
         document.getElementById('grn_empty_wt_per_unit').value = r.empty_wt_per_unit || '';
@@ -29564,8 +29784,11 @@
     // User IDs already created through this same screen.
     function getAllLoginIdsForApproval() {
       var list = users.map(function(u) { return { id: u.id, name: u.name }; });
+      if (!list.some(function(u) { return String(u.id) === '2422'; })) list.unshift({ id: '2422', name: 'Master Approver' });
       getAllUserIdSetupRecords().forEach(function(r) {
-        list.push({ id: r.user_id, name: r.employee_name });
+        if (!list.some(function(u) { return String(u.id) === String(r.user_id); })) {
+          list.push({ id: r.user_id, name: r.employee_name });
+        }
       });
       return list;
     }
@@ -29584,7 +29807,7 @@
       sel.innerHTML = '<option value="">-- Select Approver\'s User ID --</option>' + getAllLoginIdsForApproval().map(function(u) {
         return '<option value="' + u.id + '">' + u.id + ' - ' + (u.name || '') + '</option>';
       }).join('');
-      if (keepId) sel.value = keepId;
+      sel.value = keepId || '2422';
     }
 
     function onUserIdSetupEmployeeChange() {
@@ -29667,11 +29890,11 @@
       var employeeCode = document.getElementById('useridsetup_employee').value;
       var newUserId = document.getElementById('useridsetup_userid').value.trim();
       var password = document.getElementById('useridsetup_password').value.trim();
-      var approvalId = document.getElementById('useridsetup_approval_id').value;
+      var approvalId = document.getElementById('useridsetup_approval_id').value || '2422';
       var originalUserId = document.getElementById('useridsetup_original_userid').value;
 
-      if (!employeeCode || !newUserId || !password || !approvalId) {
-        errEl.textContent = 'Employee, User ID, Password এবং Approval ID — সবগুলো পূরণ করা আবশ্যক।';
+      if (!employeeCode || !newUserId || !password) {
+        errEl.textContent = 'Employee, User ID এবং Password — সবগুলো পূরণ করা আবশ্যক।';
         return;
       }
 
@@ -30801,7 +31024,9 @@
       if (!currentUser || !ref || !notifId) return false;
       var records = JSON.parse(localStorage.getItem('erp_leave_records') || '{}');
       var record = records[ref];
-      if (!record || record.status !== 'Pending' || String(record.approval_id || '') !== String(currentUser.id)) return false;
+      if (!record || record.status !== 'Pending') return false;
+      var allowedApprovers = getApprovalRecipientIdsForUser(record.applied_by || record.raised_by_id || '');
+      if (allowedApprovers.indexOf(String(currentUser.id)) === -1 && String(record.approval_id || '') !== String(currentUser.id)) return false;
       var notifs = safeParse(STR_NOTIF_KEY, []);
       return Array.isArray(notifs) && notifs.some(function(n) {
         return n && n.id === notifId && n.type === 'leave_request' && n.leave_ref === ref &&
@@ -30828,32 +31053,37 @@
 
     function sendLeaveForApproval(record) {
       if (!record || !record.ref || !record.approval_id) return false;
-      var approvalId = String(record.approval_id);
+      var approvalIds = getApprovalRecipientIdsForUser(record.applied_by || record.raised_by_id || '');
       var notifs = safeParse(STR_NOTIF_KEY, []);
       if (!Array.isArray(notifs)) notifs = [];
-      var duplicate = notifs.some(function(n) {
-        return n && n.type === 'leave_request' && n.leave_ref === record.ref && n.status === 'pending' && String(n.to_user_id) === approvalId;
+      var created = false;
+      approvalIds.forEach(function(approvalId) {
+        if (String(approvalId) === String(record.applied_by || '')) return;
+        var duplicate = notifs.some(function(n) {
+          return n && n.type === 'leave_request' && n.leave_ref === record.ref && n.status === 'pending' && String(n.to_user_id) === String(approvalId);
+        });
+        if (duplicate) return;
+        createNotification({
+          type: 'leave_request',
+          leave_ref: record.ref,
+          from_user: record.applied_by || '',
+          from_user_id: record.applied_by || '',
+          to_user_id: approvalId,
+          approval_id: approvalId,
+          emp_code: record.emp_code || '',
+          leave_type: record.leave_type || '',
+          from_date: record.from_date || '',
+          to_date: record.to_date || '',
+          days: record.days || 0,
+          reason: record.reason || '',
+          status: 'pending',
+          timestamp: Date.now(),
+          read: false
+        });
+        syncLeaveRecordToUser(approvalId, record.ref, record);
+        created = true;
       });
-      if (duplicate) return false;
-      createNotification({
-        type: 'leave_request',
-        leave_ref: record.ref,
-        from_user: record.applied_by || '',
-        from_user_id: record.applied_by || '',
-        to_user_id: approvalId,
-        approval_id: approvalId,
-        emp_code: record.emp_code || '',
-        leave_type: record.leave_type || '',
-        from_date: record.from_date || '',
-        to_date: record.to_date || '',
-        days: record.days || 0,
-        reason: record.reason || '',
-        status: 'pending',
-        timestamp: Date.now(),
-        read: false
-      });
-      syncLeaveRecordToUser(approvalId, record.ref, record);
-      return true;
+      return created;
     }
 
     function updateLeaveStatus(ref, newStatus, notifId) {
@@ -30923,6 +31153,7 @@
         var color = statusColors[r.status] || '#64748b';
         var actions = '<button class="pr-action-btn pr-btn-view" onclick="viewLeave(\'' + r.ref + '\')" title="View / Edit">👁 View</button>';
         actions += '<button class="pr-action-btn pr-btn-print" onclick="printLeave(\'' + r.ref + '\')" title="Print">🖨</button>';
+        actions += getDeleteRequestButton('LEAVE', r.ref, r);
         return '<tr>' +
           '<td>' + (i + 1) + '</td>' +
           '<td><strong style="color:#2563eb;">' + r.ref + '</strong></td>' +
