@@ -6657,7 +6657,12 @@
           <button onclick="exportStockReportCSV()" title="Export CSV" style="background:#e67e22; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">📥</button>
         </div>
       </div>
-      <div style="overflow-x:auto; background:#f8f9fa; max-height:70vh; overflow-y:auto;">
+        <div style="display:flex; gap:6px; padding:8px 16px; background:#eef2f7; border-bottom:1px solid #cbd5e1;">
+          <button id="stockSummaryTabBtn" onclick="showStockReportTab('summary')" style="padding:7px 14px; border:1px solid #2563eb; border-radius:4px; background:#2563eb; color:#fff; font-weight:700; cursor:pointer;">📊 Stock Summary</button>
+          <button id="stockBatchTabBtn" onclick="showStockReportTab('batch')" style="padding:7px 14px; border:1px solid #94a3b8; border-radius:4px; background:#fff; color:#334155; font-weight:700; cursor:pointer;">🏷 Batch-wise Stock</button>
+        </div>
+        <div id="stockSummaryPanel" style="display:block;">
+        <div style="overflow-x:auto; background:#f8f9fa; max-height:70vh; overflow-y:auto;">
         <table class="str-table" style="font-size:0.75rem; white-space:nowrap;">
           <thead>
             <tr style="background:#2c3e50; color:#fff;">
@@ -6690,6 +6695,38 @@
         <div style="text-align:center; padding:40px 20px; color:#94a3b8; font-size:0.9rem; display:none;" id="stockReportEmpty">
           <span style="font-size:2.5rem; display:block; margin-bottom:10px;">📊</span>
           No stock data found.<br>Stock will appear here after materials are issued or received.
+        </div>
+      </div>
+      </div>
+      <div id="stockBatchPanel" style="display:none;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:8px 16px; background:#f8fafc; border-bottom:1px solid #cbd5e1;">
+          <input type="text" id="stockBatchSearch" placeholder="🔍 Search Batch, Item, Code..." oninput="filterBatchStockReport()" style="padding:6px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.82rem; min-width:240px;">
+          <select id="stockBatchWarehouse" onchange="filterBatchStockReport()" style="padding:6px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.82rem;"><option value="">All Warehouses</option></select>
+          <select id="stockBatchProfitCenter" onchange="filterBatchStockReport()" style="padding:6px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.82rem;"><option value="">All Profit Centers</option></select>
+          <select id="stockBatchStatus" onchange="filterBatchStockReport()" style="padding:6px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.82rem;"><option value="">All Status</option><option value="Available">Available</option><option value="Low Stock">Low Stock</option><option value="Out of Stock">Out of Stock</option></select>
+          <button onclick="printBatchStockReport()" title="Print Batch Report" style="background:#8e44ad; color:#fff; border:none; padding:6px 10px; border-radius:3px; cursor:pointer;">🖨 Print</button>
+          <button onclick="exportBatchStockReportCSV()" title="Export Batch CSV" style="background:#e67e22; color:#fff; border:none; padding:6px 10px; border-radius:3px; cursor:pointer;">📥 CSV</button>
+        </div>
+        <div id="batchStockKpis" style="display:flex; gap:10px; flex-wrap:wrap; padding:10px 16px; background:#fff; border-bottom:1px solid #e2e8f0;"></div>
+        <div style="overflow-x:auto; background:#f8f9fa; max-height:62vh; overflow-y:auto;">
+          <table class="str-table" style="font-size:0.75rem; white-space:nowrap;">
+            <thead><tr style="background:#2c3e50; color:#fff;">
+              <th style="padding:8px 6px; position:sticky; top:0; background:#2c3e50;">Batch No</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#2c3e50;">Item Code</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#2c3e50;">Item Name</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#2c3e50;">Profit Center</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#2c3e50;">Warehouse</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#1e8449;">Received Qty</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#922b21;">Issued Qty</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#d4ac0d; color:#000;">Available Qty</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#2c3e50;">UOM</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#2c3e50;">GRN No</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#2c3e50;">Receive Date</th>
+              <th style="padding:8px 6px; position:sticky; top:0; background:#2c3e50;">Status</th>
+            </tr></thead>
+            <tbody id="batchStockReportBody"></tbody>
+          </table>
+          <div id="batchStockReportEmpty" style="text-align:center; padding:40px 20px; color:#94a3b8; font-size:0.9rem; display:none;">🏷 No batch stock data found.</div>
         </div>
       </div>
       <div style="background:#d5dbdb; padding:8px 16px; border-top:1px solid #bdc3c7; display:flex; align-items:center; justify-content:space-between;">
@@ -12174,7 +12211,7 @@
     function hasPendingApprovalNotification(userId) {
       if (!userId) return false;
       var notifs = safeParse(STR_NOTIF_KEY, []);
-      var approvalTypes = ['pr_request', 'str_request', 'sr_request', 'mr_request', 'grn_request', 'go_request', 'leave_request'];
+      var approvalTypes = ['pr_request', 'str_request', 'sr_request', 'mr_request', 'grn_request', 'go_request', 'leave_request', 'delete_request', 'edit_request', 'undo_request'];
       return Array.isArray(notifs) && notifs.some(function(n) {
         return n && approvalTypes.indexOf(n.type) !== -1 && n.status === 'pending' && String(n.to_user_id || '').trim() === String(userId).trim();
       });
@@ -23458,9 +23495,25 @@ return btns;
 
     function openStockReport() {
       document.getElementById('stockReportSearch').value = '';
+      var bs = document.getElementById('stockBatchSearch'); if (bs) bs.value = '';
       populateStockReportWarehouses();
+      populateBatchStockFilters();
       renderStockReport();
+      renderBatchStockReport();
+      showStockReportTab('summary');
       document.getElementById('stockReportOverlay').classList.add('active');
+    }
+
+    function showStockReportTab(tab) {
+      var summary = document.getElementById('stockSummaryPanel');
+      var batch = document.getElementById('stockBatchPanel');
+      var sb = document.getElementById('stockSummaryTabBtn');
+      var bb = document.getElementById('stockBatchTabBtn');
+      if (!summary || !batch) return;
+      summary.style.display = tab === 'summary' ? 'block' : 'none';
+      batch.style.display = tab === 'batch' ? 'block' : 'none';
+      if (sb) { sb.style.background = tab === 'summary' ? '#2563eb' : '#fff'; sb.style.color = tab === 'summary' ? '#fff' : '#334155'; }
+      if (bb) { bb.style.background = tab === 'batch' ? '#2563eb' : '#fff'; bb.style.color = tab === 'batch' ? '#fff' : '#334155'; }
     }
 
     function closeStockReport() {
@@ -23486,6 +23539,140 @@ return btns;
     function formatNum(n) {
       if (n === 0 || n === null || n === undefined || n === '') return '  -  ';
       return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function batchEsc(v) {
+      return String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, function(c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+      });
+    }
+
+    function getBatchStockRows() {
+      var rows = {};
+      var issuedByBatch = {};
+      var txns = safeParse(STOCK_TXN_KEY, []);
+      (Array.isArray(txns) ? txns : []).forEach(function(t) {
+        if (!t || !t.batch_no) return;
+        var type = String(t.type || '').toLowerCase();
+        var direction = String(t.direction || '').toUpperCase();
+        var isOut = direction === 'OUT' || ['consumption','transfer_issue','sale','purchase_return','material_direct_issue','loan_return','goods_exchange_issue','negative_adjustment','wastage_sale','issue'].indexOf(type) !== -1;
+        if (isOut) issuedByBatch[String(t.batch_no)] = (issuedByBatch[String(t.batch_no)] || 0) + Math.abs(parseFloat(t.qty) || 0);
+      });
+      var stock = safeParse(STOCK_STORAGE_KEY, {});
+      Object.keys(stock || {}).forEach(function(key) {
+        var item = stock[key] || {};
+        Object.keys(item.batches || {}).forEach(function(batchKey) {
+          var b = item.batches[batchKey] || {};
+          var batchNo = String(b.batch_no || batchKey || '').trim();
+          if (!batchNo) return;
+          var received = parseFloat(b.quantity || b.received_qty || 0) || 0;
+          var issued = parseFloat(b.issued_qty || b.issue || issuedByBatch[batchNo] || 0) || 0;
+          var rowKey = batchNo + '||' + String(b.item_code || item.item_code || '').toLowerCase();
+          rows[rowKey] = {
+            batch_no: batchNo,
+            item_code: b.item_code || item.item_code || '',
+            item_name: b.item_name || item.item_name || '',
+            profit_center: b.profit_center || item.profit_center || '',
+            warehouse: b.warehouse || item.warehouse || '',
+            received_qty: received,
+            issued_qty: issued,
+            available_qty: Math.max(0, received - issued),
+            uom: b.uom || item.uom || '',
+            grn_no: b.grn_no || b.ref_no || '',
+            receive_date: b.received_at || b.receive_date || '',
+            status: b.status || ''
+          };
+        });
+      });
+      // Include approved GRN batch records even if the stock ledger was synced separately.
+      var grns = safeParse('erp_grn_records', {});
+      Object.keys(grns || {}).forEach(function(ref) {
+        var g = grns[ref] || {};
+        if (String(g.status || '').toLowerCase() !== 'approved' || !g.batch_no) return;
+        var code = g.item_code || '';
+        var rowKey = String(g.batch_no) + '||' + String(code).toLowerCase();
+        if (!rows[rowKey]) {
+          var qty = parseFloat(g.inventory_qty || 0) || 0;
+          rows[rowKey] = { batch_no:g.batch_no, item_code:code, item_name:g.item_name || '', profit_center:g.profit_center || '', warehouse:g.warehouse || g.store || '', received_qty:qty, issued_qty:0, available_qty:qty, uom:g.type_measure || 'KG', grn_no:g.grn_no || ref, receive_date:g.date || '', status:'' };
+        }
+      });
+      return Object.keys(rows).map(function(k) {
+        var r = rows[k];
+        var threshold = Math.max(1, r.received_qty * 0.10);
+        r.status = r.available_qty <= 0 ? 'Out of Stock' : (r.available_qty <= threshold ? 'Low Stock' : 'Available');
+        return r;
+      }).sort(function(a,b) { return a.batch_no.localeCompare(b.batch_no); });
+    }
+
+    function populateBatchStockFilters() {
+      var rows = getBatchStockRows();
+      var wh = document.getElementById('stockBatchWarehouse');
+      var pc = document.getElementById('stockBatchProfitCenter');
+      if (wh) {
+        var wcur = wh.value; var ws = {};
+        rows.forEach(function(r){ if(r.warehouse) ws[r.warehouse] = true; });
+        wh.innerHTML = '<option value="">All Warehouses</option>' + Object.keys(ws).sort().map(function(v){ return '<option value="'+batchEsc(v)+'">'+batchEsc(v)+'</option>'; }).join(''); wh.value = wcur;
+      }
+      if (pc) {
+        var pcur = pc.value; var ps = {};
+        rows.forEach(function(r){ if(r.profit_center) ps[r.profit_center] = true; });
+        pc.innerHTML = '<option value="">All Profit Centers</option>' + Object.keys(ps).sort().map(function(v){ return '<option value="'+batchEsc(v)+'">'+batchEsc(v)+'</option>'; }).join(''); pc.value = pcur;
+      }
+    }
+
+    function renderBatchStockReport() {
+      var rows = getBatchStockRows();
+      var search = ((document.getElementById('stockBatchSearch') || {}).value || '').toLowerCase().trim();
+      var warehouse = ((document.getElementById('stockBatchWarehouse') || {}).value || '');
+      var pc = ((document.getElementById('stockBatchProfitCenter') || {}).value || '');
+      var status = ((document.getElementById('stockBatchStatus') || {}).value || '');
+      var filtered = rows.filter(function(r) {
+        var hay = [r.batch_no,r.item_code,r.item_name,r.profit_center,r.warehouse,r.grn_no].join(' ').toLowerCase();
+        return (!search || hay.indexOf(search) !== -1) && (!warehouse || r.warehouse === warehouse) && (!pc || r.profit_center === pc) && (!status || r.status === status);
+      });
+      var body = document.getElementById('batchStockReportBody');
+      var empty = document.getElementById('batchStockReportEmpty');
+      if (!body) return;
+      body.innerHTML = filtered.map(function(r) {
+        var color = r.status === 'Available' ? '#1e8449' : (r.status === 'Low Stock' ? '#b9770e' : '#922b21');
+        return '<tr>' +
+          '<td style="font-weight:700;color:#2563eb;">'+batchEsc(r.batch_no)+'</td>' +
+          '<td>'+batchEsc(r.item_code)+'</td><td>'+batchEsc(r.item_name)+'</td>' +
+          '<td>'+batchEsc(r.profit_center || '-')+'</td><td>'+batchEsc(r.warehouse || '-')+'</td>' +
+          '<td style="text-align:right;color:#1e8449;font-weight:700;">'+formatNum(r.received_qty)+'</td>' +
+          '<td style="text-align:right;color:#922b21;">'+formatNum(r.issued_qty)+'</td>' +
+          '<td style="text-align:right;background:#fef9c3;font-weight:700;">'+formatNum(r.available_qty)+'</td>' +
+          '<td>'+batchEsc(r.uom)+'</td><td>'+batchEsc(r.grn_no)+'</td>' +
+          '<td>'+batchEsc(r.receive_date ? String(r.receive_date).split('T')[0] : '-')+'</td>' +
+          '<td><span style="font-weight:700;color:'+color+';">'+batchEsc(r.status)+'</span></td></tr>';
+      }).join('');
+      if (empty) empty.style.display = filtered.length ? 'none' : 'block';
+      var totalReceived = filtered.reduce(function(a,r){return a+r.received_qty;},0);
+      var totalIssued = filtered.reduce(function(a,r){return a+r.issued_qty;},0);
+      var totalAvailable = filtered.reduce(function(a,r){return a+r.available_qty;},0);
+      var kpi = document.getElementById('batchStockKpis');
+      if (kpi) kpi.innerHTML = [
+        ['Active Batches', filtered.length, '#2563eb'],
+        ['Received Qty', formatNum(totalReceived), '#1e8449'],
+        ['Issued Qty', formatNum(totalIssued), '#922b21'],
+        ['Available Qty', formatNum(totalAvailable), '#b9770e'],
+        ['Low / Out', filtered.filter(function(r){return r.status !== 'Available';}).length, '#7c3aed']
+      ].map(function(x){ return '<div style="min-width:130px;background:#fff;border:1px solid #dbe4ee;border-left:4px solid '+x[2]+';border-radius:6px;padding:7px 10px;"><div style="font-size:.72rem;color:#64748b;">'+x[0]+'</div><strong style="font-size:1rem;color:#0f172a;">'+x[1]+'</strong></div>'; }).join('');
+    }
+
+    function filterBatchStockReport() { renderBatchStockReport(); }
+
+    function exportBatchStockReportCSV() {
+      var rows = getBatchStockRows();
+      var headers = ['Batch No','Item Code','Item Name','Profit Center','Warehouse','Received Qty','Issued Qty','Available Qty','UOM','GRN No','Receive Date','Status'];
+      var csv = [headers].concat(rows.map(function(r){ return [r.batch_no,r.item_code,r.item_name,r.profit_center,r.warehouse,r.received_qty,r.issued_qty,r.available_qty,r.uom,r.grn_no,r.receive_date,r.status]; })).map(function(row){ return row.map(function(v){ return '"'+String(v === undefined ? '' : v).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+      var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'}); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Batch_Stock_Report_'+new Date().toISOString().split('T')[0]+'.csv'; a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);},500);
+    }
+
+    function printBatchStockReport() {
+      var rows = getBatchStockRows(); var date = new Date().toLocaleString('en-GB');
+      var body = rows.map(function(r){ return '<tr><td>'+batchEsc(r.batch_no)+'</td><td>'+batchEsc(r.item_code)+'</td><td>'+batchEsc(r.item_name)+'</td><td>'+batchEsc(r.profit_center)+'</td><td>'+batchEsc(r.warehouse)+'</td><td>'+r.received_qty+'</td><td>'+r.issued_qty+'</td><td><b>'+r.available_qty+'</b></td><td>'+batchEsc(r.uom)+'</td><td>'+batchEsc(r.grn_no)+'</td><td>'+batchEsc(r.status)+'</td></tr>'; }).join('');
+      var w = window.open('', '_blank'); if (!w) return; w.document.write('<html><head><title>Batch Stock Report</title><style>body{font-family:Segoe UI,sans-serif;font-size:12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:5px}th{background:#dbeafe}</style></head><body><h2>Opened ERP - Batch-wise Stock Report</h2><p>Printed: '+date+'</p><table><thead><tr><th>Batch No</th><th>Item Code</th><th>Item Name</th><th>Profit Center</th><th>Warehouse</th><th>Received</th><th>Issued</th><th>Available</th><th>UOM</th><th>GRN No</th><th>Status</th></tr></thead><tbody>'+body+'</tbody></table></body></html>'); w.document.close(); w.focus(); setTimeout(function(){w.print();},500);
     }
 
     function renderStockReport() {
@@ -23684,29 +23871,56 @@ return btns;
     // ===== NOTIFICATION SYSTEM =====
     // =====================================================================
 
-    function createNotification(notif) {
-      var notifs = safeParse(STR_NOTIF_KEY, []);
-      if (!Array.isArray(notifs)) notifs = [];
-      notif.id = 'notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-      notif.read = false;
-      notifs.unshift(notif); // newest first
-      localStorage.setItem(STR_NOTIF_KEY, JSON.stringify(notifs));
-      loadNotifications();
+    function getNotificationActionHeader(type, explicitHeader) {
+      if (explicitHeader) return String(explicitHeader);
+      var t = String(type || '').toLowerCase();
+      if (t.indexOf('delete_') === 0) return t === 'delete_request' ? 'Delete Request' : 'Delete ' + t.replace('delete_', '').replace(/^./, function(c){ return c.toUpperCase(); });
+      if (t.indexOf('edit_') === 0) return t === 'edit_request' ? 'Edit Request' : 'Edit ' + t.replace('edit_', '').replace(/^./, function(c){ return c.toUpperCase(); });
+      if (t.indexOf('undo_') === 0) return t === 'undo_request' ? 'Undo Request' : 'Undo ' + t.replace('undo_', '').replace(/^./, function(c){ return c.toUpperCase(); });
+      if (t.indexOf('_request') !== -1) return t === 'leave_request' ? 'Leave Approval Request' : 'Approval Request';
+      if (t.indexOf('_approved') !== -1) return 'Approval Approved';
+      if (t.indexOf('_rejected') !== -1) return 'Approval Rejected';
+      return 'ERP Notification';
+    }
 
-      // Push notification to the TARGET user's Firebase path so they can see it
-      if (notif.to_user_id && db && notif.to_user_id !== (currentUser ? currentUser.id : '')) {
-        var targetRef = db.ref('users/' + notif.to_user_id + '/data/erp_str_notifications');
+    function createNotification(notif) {
+      notif = notif || {};
+      var targetUserId = String(notif.to_user_id || '').trim();
+      var activeUserId = String(currentUser && currentUser.id || '').trim();
+      notif.to_user_id = targetUserId;
+      if (notif.from_user_id !== undefined) notif.from_user_id = String(notif.from_user_id || '').trim();
+      if (notif.approval_id !== undefined) notif.approval_id = String(notif.approval_id || '').trim();
+      notif.action_header = getNotificationActionHeader(notif.type, notif.action_header);
+      notif.id = notif.id || ('notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5));
+      notif.read = false;
+
+      // A request/status notification belongs only to its target user. Do not
+      // leak it into the sender's local notification list.
+      if (!targetUserId || !activeUserId || targetUserId === activeUserId) {
+        var localNotifs = safeParse(STR_NOTIF_KEY, []);
+        if (!Array.isArray(localNotifs)) localNotifs = [];
+        if (!localNotifs.some(function(n){ return n && n.id === notif.id; })) {
+          localNotifs.unshift(notif);
+          localStorage.setItem(STR_NOTIF_KEY, JSON.stringify(localNotifs));
+        }
+        loadNotifications();
+      }
+
+      // Always push to the target user's Firebase branch. This is the only
+      // cross-user delivery path for approval and status notifications.
+      if (targetUserId && db && targetUserId !== activeUserId) {
+        var targetRef = db.ref('users/' + targetUserId + '/data/erp_str_notifications');
         targetRef.once('value', function(snap) {
           var targetNotifs = [];
           try { targetNotifs = JSON.parse(snap.val()) || []; } catch(e) { targetNotifs = []; }
-          // Avoid duplicates
-          var exists = targetNotifs.some(function(n) { return n.id === notif.id; });
-          if (!exists) {
+          if (!Array.isArray(targetNotifs)) targetNotifs = [];
+          if (!targetNotifs.some(function(n) { return n && n.id === notif.id; })) {
             targetNotifs.unshift(notif);
             targetRef.set(JSON.stringify(targetNotifs));
           }
         });
       }
+      return notif.id;
     }
 
     // Approval-gated deletion gateway for transactional modules.
@@ -23788,7 +24002,10 @@ return btns;
             n.type === 'mr_approved' || n.type === 'mr_rejected' ||
             n.type === 'grn_approved' || n.type === 'grn_rejected' ||
             n.type === 'go_approved' || n.type === 'go_rejected' ||
-            n.type === 'leave_approved' || n.type === 'leave_rejected'
+            n.type === 'leave_approved' || n.type === 'leave_rejected' ||
+            n.type === 'delete_approved' || n.type === 'delete_rejected' ||
+            n.type === 'edit_approved' || n.type === 'edit_rejected' ||
+            n.type === 'undo_approved' || n.type === 'undo_rejected'
           );
         }).length;
       }
@@ -23884,6 +24101,11 @@ return btns;
               icon = '⏳'; iconClass = 'pending';
               title = 'Leave ' + n.leave_ref + ' Sent for Approval';
               desc = 'Leave request sent to Approval ID ' + (n.to_user_id || '') + '.';
+            } else if (n.type === 'edit_approved' || n.type === 'edit_rejected' || n.type === 'undo_approved' || n.type === 'undo_rejected') {
+              icon = n.type.indexOf('_approved') !== -1 ? '✅' : '❌';
+              iconClass = n.type.indexOf('_approved') !== -1 ? 'approved' : 'rejected';
+              title = (n.action_header || getNotificationActionHeader(n.type)) + ': ' + (n.ref || n.record_ref || '');
+              desc = n.message || ('Request status: ' + (n.type.indexOf('_approved') !== -1 ? 'Approved' : 'Rejected') + '.');
             }
 
             var time = n.timestamp ? new Date(n.timestamp).toLocaleString('en-GB') : '';
@@ -23900,8 +24122,8 @@ return btns;
       }
 
       // Approver (2422) sees pending requests
-      var pendingNotifs = notifs.filter(function(n) {
-        return (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request' || n.type === 'delete_request') && n.status === 'pending' && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim();
+              var pendingNotifs = notifs.filter(function(n) {
+        return (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request' || n.type === 'delete_request' || n.type === 'edit_request' || n.type === 'undo_request') && n.status === 'pending' && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim();
       }).slice(0, 20);
 
       if (pendingNotifs.length === 0) {
@@ -23921,6 +24143,9 @@ return btns;
         var icon = isDelete ? '🗑️' : (isLeave ? '📝' : (isPR ? '📝' : (isGRN ? '📦' : (isGO ? '🚪' : (isMR ? '🔄' : (isSR ? '📋' : '📑'))))));
         var label = isDelete ? (n.delete_module + ' ' + n.delete_ref) : (isLeave ? n.leave_ref : (isPR ? n.pr_ref : (isGRN ? n.grn_no : (isGO ? n.go_ref : (isMR ? n.mr_ref : (isSR ? n.sr_ref : n.str_ref))))));
         var itemName = isLeave ? (n.leave_type || '') : (isPR ? (n.item_name || '') : (isGRN ? (n.item_name || '') : (isGO ? (n.item_name || '') : (isMR ? (n.material_name || '') : (isSR ? (n.material_name || '') : (n.item_name || ''))))));
+        var actionHeader = isDelete ? 'Delete Request' : (n.action_header || (isLeave ? 'Leave Approval Request' : 'Approval Request'));
+        if (n.type === 'edit_request') actionHeader = 'Edit Request';
+        if (n.type === 'undo_request') actionHeader = 'Undo Request';
         var detail = isLeave ? ('Employee: ' + (n.emp_code || '') + ' | From: ' + (n.from_date || '') + ' | To: ' + (n.to_date || '') + ' | Days: ' + (n.days || '')) :
                      (isPR ? ('Company: ' + (n.company || '') + ' | Qty: ' + (n.qty || '') + ' ' + (n.uom || '')) :
                      (isGRN ? ('Supplier: ' + (n.supplier || '') + ' | Qty: ' + (n.inventory_qty || n.total_gross_wt || '') + ' | Gross: ' + (n.total_gross_wt || '') + ' KG') :
@@ -23931,7 +24156,7 @@ return btns;
         return '<div class="notification-item unread">' +
           '<div class="notification-icon pending">' + icon + '</div>' +
           '<div class="notification-content">' +
-          '<div class="title">' + label + ' - ' + itemName + '</div>' +
+          '<div class="title"><strong style="color:#1d4ed8;">' + actionHeader + '</strong><br>' + label + (itemName ? ' - ' + itemName : '') + '</div>' +
           '<div class="desc">From: ' + (n.from_user || n.from_user_id || '') + ' | ' + detail + '</div>' +
           '<div class="time">' + time + '</div>' +
           '<div class="notification-action-btns">' +
@@ -24143,6 +24368,7 @@ return btns;
           item_code: itemCode,
           item_name: grn.item_name || '',
           profit_center: grn.profit_center || '',
+          warehouse: grn.warehouse || grn.store || grn.receiving_warehouse || '',
           quantity: invQty,
           uom: uom,
           grn_no: grnNo,
@@ -24164,6 +24390,9 @@ return btns;
           ref: grnNo,
           item_code: itemCode,
           item_name: grn.item_name || '',
+          batch_no: grn.batch_no || '',
+          profit_center: grn.profit_center || '',
+          warehouse: grn.warehouse || grn.store || grn.receiving_warehouse || '',
           qty: invQty,
           uom: uom,
           direction: 'IN',
@@ -24797,16 +25026,16 @@ return btns;
       // Send notification to approvers — exclude the raiser
       var raiserId = currentUser ? currentUser.id : '';
       var GRN_APPROVERS = getApprovalRecipientIdsForUser(raiserId);
-      var notifs = safeParse(STR_NOTIF_KEY, []);
       GRN_APPROVERS.forEach(function(approverId) {
-        if (approverId !== raiserId) {
-          notifs.push({
-          id: 'grn_' + grnNo + '_' + approverId + '_' + Date.now(),
+        if (String(approverId) === String(raiserId)) return;
+        createNotification({
           type: 'grn_request',
+          action_header: 'Approval Request',
           grn_no: grnNo,
           from_user_id: currentUser ? currentUser.id : '',
           from_user: currentUser ? currentUser.name : '',
-          to_user_id: approverId,
+          to_user_id: String(approverId),
+          approval_id: String(approverId),
           status: 'pending',
           item_name: grnData.item_name,
           item_code: grnData.item_code,
@@ -24815,10 +25044,8 @@ return btns;
           total_gross_wt: grnData.total_gross_wt,
           timestamp: Date.now(),
           read: false
-          });
-        }
+        });
       });
-      localStorage.setItem(STR_NOTIF_KEY, JSON.stringify(notifs));
 
       // Sync to Firebase if available
       if (db && currentUser) {
@@ -24839,13 +25066,10 @@ return btns;
             targetRef.once('value', function(snap) {
               var targetNotifs = [];
               try { targetNotifs = JSON.parse(snap.val()) || []; } catch(e) { targetNotifs = []; }
-              var grnNotif = notifs.find(function(n) { return n.to_user_id === approverId; });
-              if (grnNotif) {
-                var exists = targetNotifs.some(function(n) { return n.id === grnNotif.id; });
-                if (!exists) {
-                  targetNotifs.unshift(grnNotif);
-                  targetRef.set(JSON.stringify(targetNotifs));
-                }
+              var grnNotif = safeParse(STR_NOTIF_KEY, []).find(function(n) { return n.type === 'grn_request' && String(n.to_user_id) === String(approverId) && String(n.grn_no) === String(grnNo); });
+              if (grnNotif && !targetNotifs.some(function(n) { return n.id === grnNotif.id; })) {
+                targetNotifs.unshift(grnNotif);
+                targetRef.set(JSON.stringify(targetNotifs));
               }
             });
           }
