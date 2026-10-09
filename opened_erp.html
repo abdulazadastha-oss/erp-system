@@ -2,7 +2,7 @@
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Opened ERP · Login</title>
+  <title>Opened ERP · Login · Production</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -411,6 +411,7 @@
 
     .module-content { display: none; }
     .module-content.active { display: block; }
+
 
     .module-placeholder {
       max-width: 640px;
@@ -2452,7 +2453,11 @@
       .leave-balance-donut { width: 112px; height: 112px; flex-basis: 112px; }
       .leave-balance-donut::after { width: 72px; height: 72px; }
     }
-  </style>
+  
+    .production-module-content { padding: 0; background: #fff; }
+    .production-embedded-root { width: 100%; min-height: calc(100vh - 112px); background: #fff; }
+    .production-shell { width: 100%; min-height: 100vh; background: #f4f4f2; }
+</style>
 </head>
 <body>
 
@@ -2583,9 +2588,9 @@
     <!-- ===== Module Tab Bar (top-level ERP modules) ===== -->
     <nav class="module-bar" id="moduleBar">
       <div class="module-tab" data-module="mm" onclick="switchModule('mm')">🧱 Materials Management</div>
+      <div class="module-tab" data-module="prod" onclick="switchModule('prod')">🏭 Production</div>
       <div class="module-tab" data-module="sd" onclick="switchModule('sd')">💰 Sales &amp; Distribution</div>
       <div class="module-tab" data-module="fico" onclick="switchModule('fico')">📗 FICO</div>
-      <div class="module-tab" data-module="mfg" onclick="switchModule('mfg')">🏭 Manufacturing</div>
       <div class="module-tab" data-module="hr" onclick="switchModule('hr')">👥 HR</div>
     </nav>
 
@@ -2983,127 +2988,412 @@
       </main>
     </div>
 
-    <!-- ===== MODULE: Manufacturing ===== -->
-    <div class="module-content" id="module-mfg">
-
-      <nav class="menu-bar" id="mfgMenuBar">
-        <!-- Home -->
-        <div class="menu-item" data-menu="mfg_home">
-          <a href="#">🏠 Home ▾</a>
-          <div class="dropdown" data-parent="mfg_home">
-            <a href="#" data-sub="mfg_favorite" onclick="event.preventDefault(); mfgComingSoon('Favorite'); return false;"><span class="arrow">⭐</span> Favorite</a>
-          </div>
-        </div>
-        <!-- Production Planning -->
-        <div class="menu-item" data-menu="mfg_planning">
-          <a href="#">🗓️ Production Planning ▾</a>
-          <div class="dropdown" data-parent="mfg_planning">
-            <a href="#" data-sub="mfg_production_order" onclick="event.preventDefault(); openMfgPoList(); return false;"><span class="arrow">▶</span> Production Order</a>
-            <a href="#" data-sub="mfg_mrp_run" onclick="event.preventDefault(); openMfgMrpList(); return false;"><span class="arrow">▶</span> MRP Run</a>
-            <a href="#" data-sub="mfg_capacity_planning" onclick="event.preventDefault(); openMfgCapList(); return false;"><span class="arrow">▶</span> Capacity Planning</a>
-          </div>
-        </div>
-        <!-- BOM -->
-        <div class="menu-item" data-menu="mfg_bom">
-          <a href="#">🧩 BOM ▾</a>
-          <div class="dropdown" data-parent="mfg_bom">
-            <a href="#" data-sub="mfg_bom_master" onclick="event.preventDefault(); openMfgBomList(); return false;"><span class="arrow">▶</span> Bill of Materials</a>
-            <a href="#" data-sub="mfg_bom_version" onclick="event.preventDefault(); openMfgBomVersionList(); return false;"><span class="arrow">▶</span> BOM Version</a>
-            <a href="#" data-sub="mfg_routing" onclick="event.preventDefault(); openMfgRoutingList(); return false;"><span class="arrow">▶</span> Routing</a>
-          </div>
-        </div>
-        <!-- Work Order -->
-        <div class="menu-item" data-menu="mfg_work_order">
-          <a href="#">🛠️ Work Order ▾</a>
-          <div class="dropdown" data-parent="mfg_work_order">
-            <a href="#" data-sub="mfg_wo_creation" onclick="event.preventDefault(); openMfgWocList(); return false;"><span class="arrow">▶</span> Work Order Creation</a>
-            <a href="#" data-sub="mfg_wo_release" onclick="event.preventDefault(); openMfgWorList(); return false;"><span class="arrow">▶</span> Work Order Release</a>
-            <a href="#" data-sub="mfg_wo_confirmation" onclick="event.preventDefault(); openMfgWocoList(); return false;"><span class="arrow">▶</span> Work Order Confirmation</a>
-          </div>
-        </div>
-        <!-- Shop Floor -->
-        <div class="menu-item" data-menu="mfg_shopfloor">
-          <a href="#">🏗️ Shop Floor ▾</a>
-          <div class="dropdown" data-parent="mfg_shopfloor">
-            <a href="#" data-sub="mfg_machine_master" onclick="event.preventDefault(); openMfgMachineList(); return false;"><span class="arrow">▶</span> Machine Master</a>
-            <a href="#" data-sub="mfg_shift_schedule" onclick="event.preventDefault(); openMfgShiftList(); return false;"><span class="arrow">▶</span> Shift Schedule</a>
-            <a href="#" data-sub="mfg_downtime_entry" onclick="event.preventDefault(); openMfgDowntimeList(); return false;"><span class="arrow">▶</span> Downtime Entry</a>
-          </div>
-        </div>
-        <!-- Quality -->
-        <div class="menu-item" data-menu="mfg_quality">
-          <a href="#">🔍 Quality ▾</a>
-          <div class="dropdown" data-parent="mfg_quality">
-            <a href="#" data-sub="mfg_inprocess_qc" onclick="event.preventDefault(); openMfgQcipList(); return false;"><span class="arrow">▶</span> In-process QC</a>
-            <a href="#" data-sub="mfg_final_qc" onclick="event.preventDefault(); openMfgQcfList(); return false;"><span class="arrow">▶</span> Final QC</a>
-            <a href="#" data-sub="mfg_rework" onclick="event.preventDefault(); openMfgReworkList(); return false;"><span class="arrow">▶</span> Rework Management</a>
-          </div>
-        </div>
-        <!-- Maintenance -->
-        <div class="menu-item" data-menu="mfg_maintenance">
-          <a href="#">🔧 Maintenance ▾</a>
-          <div class="dropdown" data-parent="mfg_maintenance">
-            <a href="#" data-sub="mfg_preventive_maint" onclick="event.preventDefault(); openMfgPmtList(); return false;"><span class="arrow">▶</span> Preventive Maintenance</a>
-            <a href="#" data-sub="mfg_breakdown_maint" onclick="event.preventDefault(); openMfgBmtList(); return false;"><span class="arrow">▶</span> Breakdown Maintenance</a>
-            <a href="#" data-sub="mfg_spare_parts" onclick="event.preventDefault(); openMfgSpareList(); return false;"><span class="arrow">▶</span> Spare Parts</a>
-          </div>
-        </div>
-        <!-- Report -->
-        <div class="menu-item" data-menu="mfg_report">
-          <a href="#">📈 Report ▾</a>
-          <div class="dropdown" data-parent="mfg_report">
-            <a href="#" data-sub="mfg_production_report" onclick="event.preventDefault(); openReport('mfg_production'); return false;"><span class="arrow">▶</span> Production Report</a>
-            <a href="#" data-sub="mfg_efficiency_report" onclick="event.preventDefault(); openReport('mfg_efficiency'); return false;"><span class="arrow">▶</span> Efficiency Report</a>
-            <a href="#" data-sub="mfg_wastage_report" onclick="event.preventDefault(); openReport('mfg_wastage'); return false;"><span class="arrow">▶</span> Wastage Report</a>
-            <a href="#" data-sub="mfg_machine_utilization" onclick="event.preventDefault(); openReport('mfg_machine_util'); return false;"><span class="arrow">▶</span> Machine Utilization</a>
-          </div>
-        </div>
-        <!-- Configuration (hidden for all) -->
-        <div class="menu-item" data-menu="mfg_configuration" style="display:none;">
-          <a href="#">⚙️ Configuration</a>
-        </div>
-      </nav>
-
-      <main class="dashboard-container">
-        <h3>
-          🏭 Manufacturing Dashboard
-          <small>— Quick Links</small>
-        </h3>
-        <div class="grid-layout ql-grid" style="grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 8px;">
-          <div class="card ql-card" onclick="openMfgPoList()">
-            <span class="card-icon">🛠️</span>
-            <div class="card-title">Production Order</div>
-            <div class="card-desc">View / New Order</div>
-            <div class="ql-badge ql-blue">PO</div>
-          </div>
-          <div class="card ql-card" onclick="openMfgBomList()">
-            <span class="card-icon">🧩</span>
-            <div class="card-title">Bill of Materials</div>
-            <div class="card-desc">View / New BOM</div>
-            <div class="ql-badge ql-green">BOM</div>
-          </div>
-          <div class="card ql-card" onclick="openMfgWocList()">
-            <span class="card-icon">📝</span>
-            <div class="card-title">Work Order</div>
-            <div class="card-desc">Create / Release / Confirm</div>
-            <div class="ql-badge ql-orange">WO</div>
-          </div>
-          <div class="card ql-card" onclick="openMfgDowntimeList()">
-            <span class="card-icon">🏗️</span>
-            <div class="card-title">Downtime Entry</div>
-            <div class="card-desc">Log Machine Downtime</div>
-            <div class="ql-badge ql-orange">SHOP</div>
-          </div>
-          <div class="card ql-card" onclick="openReport('mfg_production')">
-            <span class="card-icon">📈</span>
-            <div class="card-title">Production Report</div>
-            <div class="card-desc">Efficiency &amp; Wastage</div>
-            <div class="ql-badge ql-purple">REPORT</div>
-          </div>
-        </div>
-      </main>
+    <!-- ===== MODULE: Production (fully merged attached ERP–Production module) ===== -->
+    <div class="module-content production-module-content" id="module-prod">
+      <div id="productionEmbeddedRoot" class="production-embedded-root" aria-label="Production module"></div>
     </div>
+    <script>
+    (function mountMergedProductionModule() {
+      const host = document.getElementById('productionEmbeddedRoot');
+      if (!host || host.shadowRoot) return;
+      const root = host.attachShadow({mode: 'open'});
+      const style = document.createElement('style');
+      style.textContent = `
+:host{--bg:#f4f4f2;--fg:#111;--link:#1a4fd6;--card:#f7f7f6;--bd:#d9d9d6;--mut:#8a8a86;--bar:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px "Segoe UI",Verdana,Arial,sans-serif;min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:8px 16px;background:var(--bar)}
+.burger{font-size:24px;cursor:pointer;line-height:1}
+.brand{display:flex;align-items:center;gap:6px;font-weight:700;letter-spacing:.5px;margin-left:12px}
+.icons{margin-left:auto;display:flex;gap:16px;align-items:center}
+.ic{position:relative;font-size:20px}
+.ic b{position:absolute;top:-8px;right:-10px;min-width:16px;height:16px;border-radius:8px;font-size:10px;color:#fff;text-align:center;line-height:16px}
+.strip{display:flex;height:4px;max-width:150px;margin:0 auto}
+.strip i{flex:1}
+nav{display:flex;gap:18px;padding:6px 16px;border-bottom:1px solid var(--bd);background:var(--bar);flex-wrap:wrap}
+.m{position:relative}
+.m>a{font-weight:700;cursor:pointer;color:var(--fg);text-decoration:none}
+.m>a::after{content:" ▸";font-size:11px}
+.m.home>a::after{content:""}
+.m:hover>a,.m.open>a{color:var(--link)}
+.dd{display:none;position:absolute;top:100%;left:0;z-index:9;min-width:220px;background:var(--bar);border:1px solid var(--bd);box-shadow:0 2px 6px #0003;padding:2px 0}
+.m:hover .dd,.m.open .dd{display:block}
+.dd a{display:block;padding:4px 10px;font-weight:600;white-space:nowrap;color:var(--fg);text-decoration:none;cursor:pointer}
+.dd a::before{content:"▹ ";font-size:11px}
+.dd a:hover{color:var(--link)}
+.sub{padding:8px 16px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;padding:8px 16px 40px}.tile{height:150px;min-height:150px}
+.tile{background:var(--card);border:1px solid var(--bd);padding:14px 8px;text-align:center;color:var(--mut);cursor:pointer;min-height:130px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.tile:hover{color:var(--link);border-color:var(--link)}
+.tile svg{width:56px;height:56px}
+footer{position:fixed;left:0;right:0;bottom:env(safe-area-inset-bottom,0px);background:var(--bar);border-top:1px solid var(--bd);padding:4px 16px;font-size:11px;color:var(--mut);display:flex;justify-content:space-between}
 
+.view{display:none}.view.on{display:block}
+.ttl{padding:8px 16px;font-size:20px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.ttl select,.tb select,.tb input,.fg input,.fg select{font:inherit;font-size:12px;padding:3px 4px;border:1px solid var(--bd);background:var(--bar);color:var(--fg)}
+.pn{margin:0 16px 12px;border:1px solid var(--bd);background:var(--card)}
+.ph{display:flex;align-items:center;gap:10px;padding:6px 10px;font-weight:600;border-bottom:1px solid var(--bd)}
+.mn{width:20px;height:20px;background:#e0503a;color:#fff;text-align:center;line-height:18px;border-radius:2px}
+.tb{padding:8px 10px;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.tb .ac{display:flex;gap:10px;color:var(--link);position:relative}.tb .ac span{cursor:pointer}
+.tip{position:absolute;top:22px;left:0;background:var(--bar);border:1px solid var(--bd);padding:2px 8px;font-size:12px;color:var(--fg);white-space:nowrap;display:none}
+.ac span:first-child:hover+.tip,.ac span:first-child:focus+.tip{display:block}
+.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:12px}
+th{text-align:left;padding:6px 10px;font-weight:600}td{padding:5px 10px}tr.r{border-top:1px solid var(--bd)}
+.nd{padding:8px 16px;text-align:right;color:var(--mut);font-size:12px}
+.ih{background:#dfe8d3;color:#222;padding:5px 10px;font-weight:700;font-size:12px;display:flex;justify-content:space-between}
+.ih .x{background:#d9342b;color:#fff;padding:0 6px;cursor:pointer}
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 24px;padding:12px}
+.fg label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:700;position:relative}
+.inf{position:absolute;right:0;top:0;width:11px;height:11px;border-radius:50%;background:#1f5fa8;color:#fff;font-size:8px;text-align:center;line-height:11px;font-style:normal}
+.fg input:disabled{background:var(--card);color:var(--fg);opacity:1;border-style:dashed;-webkit-text-fill-color:var(--fg)}
+.bt{display:flex;gap:10px;padding:6px 12px 12px;align-items:center}
+.btn{border:0;padding:5px 18px;font-weight:700;color:#fff;cursor:pointer}.sv{background:#4bbfc6}.ex{background:#f0c030}.sm{background:#9ed3e0;opacity:.7;margin-right:auto}
+.user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600}.user i{width:26px;height:26px;border-radius:50%;background:#bbb;display:inline-block}
+body{padding-bottom:40px}
+.fg textarea{font:inherit;font-size:12px;border:1px solid var(--bd);background:var(--bar);color:var(--fg)}
+.bd{padding:1px 8px;border-radius:9px;background:#ddd;font-size:11px;color:#222;white-space:nowrap}.Open{background:#fde68a}.InProgress,.Processed{background:#bfdbfe}.Received,.Completed{background:#bbf7d0}
+td .btn{padding:2px 10px}footer{gap:12px}#st{flex:1}
+header{display:grid;grid-template-columns:1fr auto 1fr}.hl{display:flex;align-items:center;gap:14px}.icons{margin-left:0;justify-self:center}header .user{justify-self:end}
+.btn.pr{background:#6b7280}td .btn{margin-right:2px}
+#pr{display:none;--fg:#000;--bg:#fff;--bd:#999;--mut:#555;--bar:#fff;--card:#fff;color:#000;background:#fff}
+@media print{body.printing>*{display:none!important}body.printing>#pr{display:block!important}}
+.modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);align-items:flex-start;justify-content:center;padding:calc(30px + env(safe-area-inset-top,0px)) 12px 30px;overflow:auto}
+.modal>.pn{margin:0;width:100%;max-width:1000px;background:var(--bg);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.Draft{background:#fed7aa}.Active{background:#bbf7d0}.Inactive{background:#fecaca;color:#7f1d1d}.btn.dl{background:#dc2626}
+
+:host{color-scheme:light;--bg:#fff;--fg:#111;--link:#1a4fd6;--card:#fff;--bd:#d9d9d6;--mut:#555;--bar:#fff}.production-shell{background:#fff;color:#111}
+footer{position:sticky!important;bottom:0}body{padding-bottom:0}.production-shell{position:relative}
+
+/* ===== MM-style white theme ===== */
+:host{color-scheme:light;--bg:#fff;--fg:#1e293b;--link:#1d4ed8;--card:#fff;--bd:#e2e8f0;--mut:#64748b;--bar:#fff}
+.production-shell{background:#fff;color:#1e293b;min-height:calc(100vh - 112px);font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+nav{display:flex;flex-wrap:wrap;gap:0;padding:0 20px;background:#fff;border-bottom:2px solid #e2e8f0;box-shadow:0 2px 4px rgba(0,0,0,.04)}
+.m>a{display:block;padding:14px 18px;font-size:.82rem;font-weight:600;color:#1e293b;border-bottom:3px solid transparent;transition:.2s}
+.m>a::after{content:" ▾";font-size:.8rem}.m.home>a::after{content:" ▾"}
+.m:hover>a,.m.open>a{background:#f1f5f9;color:#1d4ed8;border-bottom-color:#3b82f6}
+.dd{background:#fff;border:1px solid #d1d5db;border-radius:0 0 8px 8px;box-shadow:0 12px 30px rgba(0,0,0,.12);min-width:250px;padding:6px 0;z-index:100}
+.dd a{display:flex;align-items:center;gap:8px;padding:10px 18px;font-size:.82rem;font-weight:400;color:#334155;border-left:3px solid transparent;transition:.15s}
+.dd a::before{content:none}
+.dd a .arrow{color:#94a3b8;font-size:.7rem}
+.dd a:hover{background:#eff6ff;color:#1d4ed8;border-left-color:#3b82f6}
+.dash{padding:30px 35px;background:#fff}
+.dash h3{color:#0f172a;font-size:1.2rem;font-weight:600;margin:0 0 8px;display:flex;align-items:center;gap:10px}
+.dash h3 small{font-weight:400;font-size:.8rem;color:#64748b}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px;padding:8px 0 40px}
+.tile{position:relative;height:auto;min-height:0;background:#fff;border:1px solid #e9edf2;border-radius:10px;padding:20px 14px 16px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.03);cursor:pointer;display:block;color:#1e293b;transition:.2s}
+.tile:hover{transform:translateY(-4px);box-shadow:0 10px 24px rgba(59,130,246,.13);border-color:#93c5fd;color:#1e293b}
+.tile .ci{font-size:2rem;display:block;margin-bottom:6px}
+.tile .ct{font-size:.8rem;font-weight:600;color:#1e293b;line-height:1.4}
+.tile .cd{font-size:.7rem;color:#94a3b8;margin-top:4px}
+.bg{display:inline-block;margin-top:8px;padding:2px 8px;border-radius:20px;font-size:.62rem;font-weight:700;letter-spacing:.05em}
+.b1{background:#dbeafe;color:#1d4ed8}.b2{background:#dcfce7;color:#15803d}.b3{background:#ffedd5;color:#c2410c}.b4{background:#ccfbf1;color:#0f766e}.b5{background:#ede9fe;color:#6d28d9}.b6{background:#fee2e2;color:#b91c1c}
+.view,.pn,.ttl,#views{background:#fff}
+.ttl{color:#0f172a}
+.pn{border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+.ih{background:#f1f5f9;color:#0f172a}
+th{background:#f8fafc}
+footer{background:#fff;border-top:1px solid #e2e8f0}
+/* modal: always above the app header, never cut at the top */
+.modal{position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.55);padding:20px 12px;align-items:flex-start}
+.modal>.pn{margin:0 auto;max-height:calc(100vh - 40px);overflow:auto;background:#fff}
+@media print{.production-shell>*:not(#pr){display:none!important}#pr{display:block!important}}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:650px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:420px){.grid{grid-template-columns:1fr}}
+`;
+      root.appendChild(style);
+      const shell = document.createElement('div');
+      shell.className = 'production-shell';
+      shell.innerHTML = `
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="task" viewBox="0 0 56 56"><rect x="8" y="8" width="30" height="40" rx="3" fill="#e8c27a" stroke="#8a5a1a"/><rect x="12" y="14" width="22" height="30" fill="#fff"/><path d="M15 20l3 3 5-6M15 30l3 3 5-6" stroke="#2a8a2a" stroke-width="2" fill="none"/><path d="M16 38l4 4M20 38l-4 4" stroke="#c22" stroke-width="2"/><path d="M30 40l16-24 5 3-16 24-6 2z" fill="#3b82d6" stroke="#145"/><path d="M46 16l3-4 5 3-3 4z" fill="#e0603a"/></symbol>
+<symbol id="rep" viewBox="0 0 56 56"><rect x="10" y="6" width="34" height="44" rx="3" fill="#c0281f" stroke="#6a0f0a"/><rect x="14" y="12" width="26" height="8" fill="#e6e0d0"/><rect x="14" y="24" width="26" height="6" fill="#e6e0d0"/><g fill="none" stroke="#999" stroke-width="3"><ellipse cx="12" cy="18" rx="6" ry="3"/><ellipse cx="12" cy="30" rx="6" ry="3"/><ellipse cx="12" cy="42" rx="6" ry="3"/></g></symbol>
+</defs></svg>
+
+<nav id="nav">
+ <div class="m home"><a>🏠 Home</a></div>
+ <div class="m"><a>📋 Plan</a><div class="dd">
+  <a data-ws="581"><span class="arrow">▶</span> Daily Production Plan</a></div></div>
+ <div class="m"><a>⚙️ Setup</a><div class="dd">
+  <a data-ws="582"><span class="arrow">▶</span> Recipe (Finished Product)</a></div></div>
+ <div class="m"><a>🏭 Production</a><div class="dd">
+  <a data-ws="630"><span class="arrow">▶</span> Production Process</a><a data-ws="631"><span class="arrow">▶</span> Production From PLC</a><a data-ws="632"><span class="arrow">▶</span> Finished Goods Receive From Production</a><a data-ws="633"><span class="arrow">▶</span> Batch Close</a></div></div>
+ <div class="m"><a>📈 Report</a><div class="dd">
+  <a data-ws="720"><span class="arrow">▶</span> Daily Production Report</a><a data-ws="722"><span class="arrow">▶</span> Warehouse Wise Stock</a><a data-ws="723"><span class="arrow">▶</span> Material Consumption (Production Issue)</a><a data-ws="724"><span class="arrow">▶</span> FG Wise RM Consumption Report</a><a data-ws="725"><span class="arrow">▶</span> Process Loss Report</a></div></div>
+</nav>
+
+<div class="view on" id="v-home"><div class="sub" aria-hidden="true" style="display:none"></div>
+<main class="dash"><h3>📌 ERP Dashboard <small>— Quick Links</small></h3>
+<div class="grid">
+ <div class="tile" data-ws="581"><span class="ci">📝</span><div class="ct">Daily Production Plan</div><div class="cd">View / New Plan</div><span class="bg b1">PLAN</span></div>
+ <div class="tile" data-ws="630"><span class="ci">🏭</span><div class="ct">Production Process</div><div class="cd">Production Entry</div><span class="bg b2">PROD</span></div>
+ <div class="tile" data-ws="631"><span class="ci">📡</span><div class="ct">Production from PLC</div><div class="cd">Sync PLC Quantity</div><span class="bg b3">PLC</span></div>
+ <div class="tile" data-ws="633"><span class="ci">✅</span><div class="ct">Batch Close</div><div class="cd">Close Received Batch</div><span class="bg b4">CLOSE</span></div>
+ <div class="tile" data-ws="720"><span class="ci">📊</span><div class="ct">Daily Production Report</div><div class="cd">Batch &amp; Received Qty</div><span class="bg b5">REPORT</span></div>
+ <div class="tile" data-ws="723"><span class="ci">📦</span><div class="ct">Material Consumption</div><div class="cd">Production Issue Report</div><span class="bg b5">REPORT</span></div>
+ <div class="tile" data-ws="724"><span class="ci">🧪</span><div class="ct">FG Wise RM Consumption</div><div class="cd">Raw Material Usage</div><span class="bg b5">REPORT</span></div>
+ <div class="tile" data-ws="725"><span class="ci">📉</span><div class="ct">Process Loss Report</div><div class="cd">Variance Analysis</div><span class="bg b6">LOSS</span></div>
+</div></main></div><div id="views"></div>
+<footer><span id="st">Ready</span></footer>
+`;
+      root.appendChild(shell);
+      const run = new Function('root', `
+const st=root.querySelector('#' + ('st')),base='/Erp/UI/Dynamic_Production.aspx?Worksheet=';
+root.querySelectorAll('[data-ws]').forEach(e=>{
+ e.addEventListener('mouseenter',()=>st.textContent=base+e.dataset.ws+'&App=16&Comp=1');
+ e.addEventListener('mouseleave',()=>st.textContent='Ready');
+ e.addEventListener('click',()=>{st.textContent='Opening: '+e.textContent.trim();
+  root.querySelectorAll('.m.open').forEach(m=>m.classList.remove('open'))});
+});
+root.querySelectorAll('.m>a').forEach(a=>a.addEventListener('click',()=>{
+ const m=a.parentNode,o=m.classList.contains('open');
+ root.querySelectorAll('.m.open').forEach(x=>x.classList.remove('open'));
+ if(!o)m.classList.add('open');
+}));
+
+
+
+const K='erpProd1',$=s=>root.querySelector(s),pad=n=>String(n).padStart(7,'0'),td=()=>new Date().toISOString().slice(0,10);
+let D;try{D=JSON.parse(localStorage.getItem(K))}catch(e){}
+if(!D)D={seq:{dpp:0,bat:80},plans:[],batches:[],cons:[],
+recipes:[{id:'R-001',fg:'Meat Pellet-Shofol-25 Kg Bag',cat:'Cattle Feed',size:500,lines:[['Maize',200],['Soybean Meal',90],['Rice Polish',110],['Wheat Bran',80],['DCP',10],['Premix',5],['Salt',5]]},
+{id:'R-002',fg:'Dairy Pellet-Shofol-25 Kg Bag',cat:'Cattle Feed',size:500,lines:[['Maize',180],['Soybean Meal',110],['Rice Polish',100],['Wheat Bran',85],['Molasses',5],['DCP',10],['Premix',5],['Salt',5]]}],
+stock:{'RM-Main':{'Maize':20000,'Soybean Meal':8000,'Rice Polish':8000,'Wheat Bran':6000,'DCP':1000,'Premix':500,'Salt':500,'Molasses':800},'FG-Bonpara':{},'FG-Rupshi':{}}};
+D.plans.forEach(p=>{if(!p.items)p.items=[{fg:p.fg,n:p.n,done:0}]});
+function mkCode(n){const o=[];for(const x of n.split(/[\\s-]+/).filter(Boolean)){if(/^\\d/.test(x))break;if(/^[A-Za-z]/.test(x))o.push(x[0])}return o.join('').toUpperCase().slice(0,5)}
+D.recipes.forEach(r=>{if(!r.code||(r.id=='R-001'&&r.code=='MS')||(r.id=='R-002'&&r.code=='DS'))r.code=mkCode(r.fg)});
+D.rcv=D.rcv||[];
+D.batches.filter(b=>b.rq&&!D.rcv.some(r=>r.bn==b.no)).forEach(b=>{const y=(b.rdate||b.date||'2026').slice(0,4),n=D.rcv.filter(r=>r.no.startsWith(y+'-FGR-')).length+1;D.rcv.push({no:y+'-FGR-'+String(n).padStart(4,'0'),date:b.rdate||b.date,bn:b.no,fg:b.fg,wh:b.fgwh,qty:b.rq,sq:b.qty,pq:b.plc??null,last:false,rem:'',st:'Received'})});
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}};
+const toast=(m,e)=>{const t=$('#st');t.textContent=m;t.style.color=e?'#d9342b':'#2da44e';
+ if(m=='Ready')return;let f=$('#ftoast');if(!f){f=document.createElement('div');f.id='ftoast';f.setAttribute('style','position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:2147483600;max-width:90vw;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25)');root.querySelector('.production-shell').appendChild(f)}
+ f.textContent=(e?'⚠ ':'✔ ')+m;f.style.background=e?'#d9342b':'#16a34a';f.style.display='block';clearTimeout(f._t);f._t=setTimeout(()=>{f.style.display='none'},e?4500:2500)};
+const bad=ids=>{let n=0;ids.forEach(i=>{const e=typeof i=='string'?$('#'+i):i;if(!e)return;const x=!e.value;e.style.outline=x?'2px solid #d9342b':'';e.style.borderColor=x?'#d9342b':'';if(x)n++;if(!e._ob){e._ob=1;e.addEventListener('input',()=>{e.style.outline='';e.style.borderColor=''})}});return n};
+const PRINT=()=>{const h=root.host;let g=document.getElementById('prodPrintCss');if(!g){g=document.createElement('style');g.id='prodPrintCss';g.textContent='@media print{body.printing{visibility:hidden}body.printing #productionEmbeddedRoot{visibility:visible;position:absolute;left:0;top:0;width:100%}}';document.head.appendChild(g)}document.body.classList.add('printing');try{window.print()}catch(e){toast('Print is blocked in this view',1)}document.body.classList.remove('printing')};
+const v=id=>($('#'+id)||{}).value,set=(id,x)=>{$('#'+id).value=x};
+const PL=['Bonpara','Rupshi'],UN=['Commercial','Poultry','Fish-1'],rec=n=>D.recipes.find(r=>r.fg==n);
+const ORG_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRV6TAo_ZCWYV8DX3mOZw6f7EfXBGddDJWU4OI0PmCrQZFFRCk6JUwlWKXbx-Rt81uJJc35yZejN_YH/pub?gid=484330499&single=true&output=csv';
+let ORG={rows:[],pi:6};
+const orgParse=t=>t.split(String.fromCharCode(10)).map(r=>r.replace(String.fromCharCode(13),'')).filter(r=>r.trim()).map(r=>{const o=[];let c='',q=false;for(const ch of r){if(ch=='"')q=!q;else if(ch==','&&!q){o.push(c.trim());c=''}else c+=ch}o.push(c.trim());return o});
+const orgLoad=()=>{try{fetch(ORG_URL).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text()}).then(t=>{const R=orgParse(t),h=(R[0]||[]).map(x=>x.toLowerCase()),pi=h.findIndex(x=>x.indexOf('plant')>=0);ORG={rows:R.slice(1).filter(r=>r[0]),pi:pi>=0?pi:6};if($('#co')&&!$('#co').value)A.orgfill()}).catch(e=>console.error('Production: Company/BU/Profit Center/Plant sheet failed to load',e))}catch(e){}};
+const PM_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRV6TAo_ZCWYV8DX3mOZw6f7EfXBGddDJWU4OI0PmCrQZFFRCk6JUwlWKXbx-Rt81uJJc35yZejN_YH/pub?gid=1756894505&single=true&output=csv';
+let PM=[];
+const pmLoad=()=>{try{fetch(PM_URL).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text()}).then(t=>{const R=orgParse(t),h=(R[0]||[]).map(x=>x.toLowerCase()),ni=h.findIndex(x=>x.indexOf('item name')>=0||x.indexOf('product')>=0);PM=uq(R.slice(1).map(r=>r[ni>=0?ni:1]));A.pmfill()}).catch(e=>console.error('Production: Product sheet failed to load',e))}catch(e){}};
+const ITM_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRV6TAo_ZCWYV8DX3mOZw6f7EfXBGddDJWU4OI0PmCrQZFFRCk6JUwlWKXbx-Rt81uJJc35yZejN_YH/pub?gid=911696853&single=true&output=csv';
+let ITM=[];
+const itmLoad=()=>{try{fetch(ITM_URL).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text()}).then(t=>{ITM=orgParse(t).slice(1).filter(r=>r[0]&&r[1]);A.itmfill()}).catch(e=>console.error('Production: Item Category/Item Name sheet failed to load',e))}catch(e){}};
+const itmCats=()=>uq(ITM.map(r=>r[0])),itmNames=c=>uq(ITM.filter(r=>r[0]==c).map(r=>r[1])),itmCatOf=n=>{const r=ITM.find(x=>x[1]==n);return r?r[0]:''};
+const itmCode=(c,n)=>{const r=ITM.find(x=>x[0]==c&&x[1]==n);return r?(r[2]||''):''};
+const opt=(a,sel)=>a.map(o=>'<option'+(o==sel?' selected':'')+'>'+o+'</option>').join('');
+const itmNeed=()=>{if(ITM.length)return false;itmLoad();toast('Item Category / Item Name sheet not loaded yet. Check internet connection and try again',1);return true};
+const WH_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRV6TAo_ZCWYV8DX3mOZw6f7EfXBGddDJWU4OI0PmCrQZFFRCk6JUwlWKXbx-Rt81uJJc35yZejN_YH/pub?gid=1706457181&single=true&output=csv';
+let WH=[];
+const whLoad=()=>{try{fetch(WH_URL).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text()}).then(t=>{const R=orgParse(t),h=(R[0]||[]).map(x=>x.toLowerCase()),wi=h.findIndex(x=>x.indexOf('warehouse')>=0);WH=uq(R.slice(1).map(r=>r[wi>=0?wi:0]));A.whfill()}).catch(e=>console.error('Production: Warehouse sheet failed to load',e))}catch(e){}};
+const whNeed=()=>{if(WH.length)return false;whLoad();toast('Warehouse sheet not loaded yet. Check internet connection and try again',1);return true};
+const PRODS=()=>PM;
+const pmNeed=()=>{if(PM.length)return false;pmLoad();toast('Product master sheet not loaded yet. Check internet connection and try again',1);return true};
+const uq=a=>[...new Set(a.filter(Boolean))];
+const orgCo=()=>uq(ORG.rows.map(r=>r[0]));
+const orgBu=c=>uq(ORG.rows.filter(r=>r[0]==c).map(r=>r[1]));
+const orgPc=(c,b)=>uq(ORG.rows.filter(r=>r[0]==c&&r[1]==b).map(r=>r[2]));
+const orgPl=(c,b,p)=>uq(ORG.rows.filter(r=>r[0]==c&&r[1]==b&&r[2]==p).map(r=>r[ORG.pi]));
+const PLs=()=>ORG.rows.length?uq(ORG.rows.map(r=>r[ORG.pi])):PL;
+const nextNo=(r,d)=>{const pf=(d||td()).slice(0,4)+'-'+r.code+'-',m=D.batches.reduce((a,b)=>b.no.startsWith(pf)?Math.max(a,+b.no.slice(pf.length)||0):a,0);return pf+String(m+1).padStart(4,'0')};
+const fld=(l,h)=>\`<label>\${l}<i class="inf">i</i>\${h}</label>\`;
+const inp=(id,l,val='',ty='text',x='')=>fld(l,\`<input id="\${id}" type="\${ty}" value="\${val}" \${x}>\`);
+const sel=(id,l,a,x='')=>fld(l,\`<select id="\${id}" \${x}><option value="">[ Select \${l} ]</option>\${a.map(o=>\`<option>\${o}</option>\`).join('')}</select>\`);
+const Bd=s=>\`<span class="bd \${s.replace(' ','')}">\${s}</span>\`;
+const BT=(a,x)=>\`<div class="bt"><button class="btn sv" data-act="\${a}">Save</button><button class="btn ex" data-act="\${x||'home'}">Exit</button></div>\`;
+const T=(h,r)=>\`<div class="wrap"><table><tr>\${h.map(x=>\`<th>\${x}</th>\`).join('')}</tr>\${r.length?r.map(x=>\`<tr class="r">\${x.map(c=>\`<td>\${c}</td>\`).join('')}</tr>\`).join(''):\`<tr class="r"><td colspan="\${h.length}" style="color:var(--mut)">No Data</td></tr>\`}</table></div>\`;
+const R={};
+const itemRow=()=>\`<tr class="r it"><td><select class="ifg" data-chg="iq"><option value="">[ Select Product ]</option>\${PRODS().map(n=>\`<option>\${n}</option>\`).join('')}</select></td><td><input class="in" data-chg="iq" type="number" min="1" value="1" style="width:70px"></td><td class="iq">—</td><td><span class="x" data-act="delItem" style="background:#d9342b;color:#fff;padding:0 6px;cursor:pointer">✕</span></td></tr>\`;
+const pacts2=p=>\`<button class="btn sv" data-act="planview" data-id="\${p.no}">View</button> \`+(p.st=='Draft'?\`<button class="btn ex" data-act="planedit" data-id="\${p.no}">Edit</button> \`:'')+\`<button class="btn pr" data-act="planprn" data-id="\${p.no}">🖶 Print</button>\`+(p.st=='Draft'?\` <button class="btn sv" style="background:#16a34a" data-act="plansubmit" data-id="\${p.no}">Submit</button>\`:'');
+const planDoc=p=>{const L=p.items.map(i=>{const sz=(rec(i.fg)||{size:0}).size,pq=i.n*sz,dn=rnd(i.done*sz);return [i.fg,i.n,pq,dn,rnd(pq-dn)]}),t=k=>'<b>'+rnd(L.reduce((a,x)=>a+x[k],0))+'</b>';
+ return \`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['DPP No.',p.no],['Status',p.st],['Plan Date',p.date],['Company',p.co||'—'],['Business Unit',p.bu||'—'],['Profit Center',p.pc||'—'],['Start Time',p.s],['End Time',p.e],['Plant',p.pl],['Remarks',p.rm||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\${T(['Product','Batches','Plan Qty (Kg)','Produced (Kg)','Balance (Kg)'],L.concat([['<b>Total</b>',t(1),t(2),t(3),t(4)]]))}\`};
+const planView=no=>{const p=D.plans.find(x=>x.no==no);return p?\`<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Daily Production Plan \${p.no} [View]<span><button class="btn pr" data-act="planprn" data-id="\${p.no}">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>\${planDoc(p)}</div></div>\`:''};
+R.plan=()=>\`<div class="ttl">Daily Production Planning<button class="btn sv" data-act="plannew">＋ New Plan</button></div>
+<div class="pn"><div class="ph"><span class="mn">−</span>Daily Production Plan (\${D.plans.length})</div>\${T(['DPP Ref. No','Plan Date','Start','End','Company','BU','Profit Center','Plant','Items (Product × Batches)','Total Batches','Total Qty (Kg)','Status','Action'],D.plans.map(p=>[p.no,p.date,p.s,p.e,p.co||'—',p.bu||'—',p.pc||'—',p.pl,p.items.map(i=>\`\${i.fg} × \${i.n}\`).join('<br>'),p.items.reduce((a,i)=>a+i.n,0),p.items.reduce((a,i)=>a+i.n*(rec(i.fg)||{size:0}).size,0),Bd(p.st),pacts2(p)]))}</div>
+<div class="modal" id="ins"><div class="pn"><div class="ih">Daily Production Plan [\${PE?'Edit '+PE:'Insert'} mode]<span class="x" data-act="hide">✕</span></div><div class="fg">\${inp('d','Plan Date',td(),'date')}\${inp('s','Start Time','08:00','time')}\${inp('e','End Time','17:00','time')}\${sel('co','Company',orgCo(),'data-chg="org"')}\${sel('bu','Business Unit',[],'data-chg="org"')}\${sel('pc','Profit Center',[],'data-chg="org"')}\${sel('pl','Plant Name',ORG.rows.length?[]:PL)}\${inp('rm','Remarks')}</div>
+<div class="wrap" style="padding:0 12px"><table id="itb"><tr><th>Product Name</th><th>Batches</th><th>Qty (Kg)</th><th></th></tr>\${itemRow()}</table><button class="btn sv" data-act="addItem" style="margin:6px 0">＋ Add Item</button></div>\${BT('savePlan','hide')}</div></div>\${PWV?planView(PWV):''}\`;
+let RS=null;
+const rRow=(n='',q='',c='',cd='')=>'<tr class="r rr"><td><select class="rc2" data-chg="rcat"><option value="">[ Select Item Category ]</option>'+opt(itmCats(),c)+'</select></td><td><select class="rn" data-chg="rnm"><option value="">[ Select Raw Material ]</option>'+opt(itmNames(c).concat(n&&itmNames(c).indexOf(n)<0?[n]:[]),n)+'</select></td><td><input class="rcd" disabled value="'+(cd||itmCode(c,n))+'" placeholder="Item Code" style="width:110px"></td><td><input class="rq2" data-chg="rt" type="number" min="0" step="any" value="'+q+'" style="width:100px"></td><td><span class="x" data-act="delR" style="background:#d9342b;color:#fff;padding:0 6px;cursor:pointer">✕</span></td></tr>';
+const recDoc=r=>\`<div style="padding:10px 14px"><b>\${r.fg}</b> · \${r.act===false?'Inactive':'Active'} · Code: \${r.code} · \${r.cat} · Batch Size: \${r.size} Kg</div>\${T(['#','Item Category','Raw Material','Item Code','Qty (Kg)','%'],r.lines.map((l,i)=>[i+1,l[2]||itmCatOf(l[0])||'—',l[0],l[3]||itmCode(l[2]||itmCatOf(l[0]),l[0])||'—',l[1],(l[1]/r.size*100).toFixed(2)]).concat([['','','<b>Total</b>','','<b>'+r.lines.reduce((a,l)=>a+l[1],0)+'</b>','']]))}\`;
+R.recipe=()=>{const m=RS&&RS.mode,r=RS&&RS.id&&D.recipes.find(x=>x.id==RS.id),f=m=='new'||m=='edit';
+return \`<div class="ttl">Recipe (Finished Product)<button class="btn sv" data-act="rnew">＋ New Recipe</button></div>
+<div class="pn">\${T(['Recipe No.','Finished Product','Short Code','Category','Batch Size (Kg)','RM Items','Status','Action'],D.recipes.map(x=>[x.id,x.fg,x.code,x.cat,x.size,x.lines.length,Bd(x.act===false?'Inactive':'Active'),\`<button class="btn sv" data-act="rview" data-id="\${x.id}">View</button> <button class="btn ex" data-act="redit" data-id="\${x.id}">Edit</button> <button class="btn \${x.act===false?'sv':'dl'}" data-act="rtoggle" data-id="\${x.id}">\${x.act===false?'Activate':'Inactivate'}</button> <button class="btn pr" data-act="prn" data-id="\${x.id}">🖶 Print</button>\`]))}</div>
+\${m=='view'&&r?\`<div class="pn"><div class="ih">Recipe \${r.id} [View]<span><button class="btn pr" data-act="prn" data-id="\${r.id}">🖶 Print</button> <span class="x" data-act="rhide">✕</span></span></div>\${recDoc(r)}</div>\`:''}
+\${f?\`<div class="modal" id="ins" style="display:flex"><div class="pn"><div class="ih">Recipe [\${m=='edit'?'Edit '+r.id:'Insert'} mode]<span class="x" data-act="rhide">✕</span></div><div class="fg">\${m=='edit'?inp('fg','Finished Product',r?r.fg:'','text','disabled'):sel('fg','Finished Product',PM,'data-chg="rcode"')}\${inp('code','Short Code (Batch No.)',r?r.code:'','text','maxlength=5 data-chg="cman" style="text-transform:uppercase"')}\${fld('Category',\`<select id="cat">\${['Cattle Feed','Poultry Feed','Fish Feed'].map(o=>\`<option\${r&&r.cat==o?' selected':''}>\${o}</option>\`).join('')}</select>\`)}\${inp('size','Batch Size (Kg)',r?r.size:500,'number','data-chg="rt"')}</div>
+<div class="wrap" style="padding:0 12px"><table id="rtb"><tr><th>Item Category</th><th>Raw Material</th><th>Item Code</th><th>Qty (Kg)</th><th></th></tr>\${(r?r.lines:[['','']]).map(l=>rRow(l[0],l[1],l[2]||itmCatOf(l[0]),l[3])).join('')}</table><button class="btn sv" data-act="addR" style="margin:6px 0">＋ Add Item</button> <span id="rtot" style="font-size:12px;margin-left:10px"></span></div>\${BT('saveRecipe','rhide')}</div></div>\`:''}\`};
+R.process=()=>\`<div class="ttl">Production Process<span><button class="btn sv" data-act="pnew">＋ Production Entry</button></span></div><div class="pn">\${T(['Batch No','Date','Product','Runs','Qty (Kg)','Plant','Status','Action'],D.batches.map(b=>[b.no,b.date,b.fg,b.run,b.qty,b.pl,Bd(b.st),pacts(b)]))}</div>
+<div class="modal" id="ins"><div class="pn"><div class="ih">Production Process-Feed [\${PS?'Edit '+PS:'Insert'} mode]<span class="x" data-act="hide">✕</span></div><div class="fg">\${inp('d','Process Date',td(),'date','data-chg="fill"')}\${sel('dpp','DPP No.',D.plans.filter(p=>p.st!='Draft'&&p.items.some(i=>i.n-i.done>1e-6)).map(p=>p.no),'data-chg="fill"')}\${sel('it','Plan Item',[],'data-chg="fill"')}\${inp('pq','Plan Qty (Kg)','','text','disabled')}\${inp('prq','Production Qty (Kg)','','number','min=0 step="any" data-chg="fill"')}\${inp('fg','Product Name','','text','disabled')}\${sel('rc','Recipe No.',[],'data-chg="fill"')}\${inp('bno','Batch No.','','text','disabled')}\${inp('pl','Plant Name','','text','disabled')}\${inp('bs','Batch Size (Kg)','','number','min=1 step="any" data-chg="fill"')}\${inp('run','No. of Batch Run','','text','disabled')}\${sel('sh','Shift Name',['Day','Night'])}\${sel('wg','Worker Group',['Group A','Group B'])}\${sel('wh','RM-Warehouse',WH,'data-chg="rmp"')}\${inp('rm','Remarks')}</div><div id="rmp" class="wrap" style="padding:0 12px 4px"></div>\${BT('saveProc','hide')}</div></div>\${PV?pView(PV):''}\`;
+R.plc=()=>\`<div class="ttl">Production From PLC<button class="btn sv" data-act="plc">⟳ Sync from PLC</button></div><div class="pn">\${T(['Batch No','Product','Std Qty (Kg)','PLC Actual (Kg)','Variance %','Status'],live().map(b=>[b.no,b.fg,b.qty,b.plc??'—',b.plc?((b.plc-b.qty)/b.qty*100).toFixed(2):'—',Bd(b.st)]))}</div>\`;
+const nextRn=d=>{const pf=(d||td()).slice(0,4)+'-FGR-',m=D.rcv.reduce((a,r)=>r.no.startsWith(pf)?Math.max(a,+r.no.slice(pf.length)||0):a,0);return pf+String(m+1).padStart(4,'0')};
+const availB=()=>D.batches.filter(b=>b.st=='Processed'&&!D.rcv.some(r=>r.st=='Draft'&&r.bn==b.no&&r.no!=RV));
+const racts=r=>\`<button class="btn sv" data-act="rcview" data-id="\${r.no}">View</button> \`+(r.st=='Draft'?\`<button class="btn ex" data-act="rcedit" data-id="\${r.no}">Edit</button> \`:'')+\`<button class="btn pr" data-act="rcprn" data-id="\${r.no}">🖶 Print</button>\`+(r.st=='Draft'?\` <button class="btn sv" style="background:#16a34a" data-act="rcsubmit" data-id="\${r.no}">Submit</button>\`:'');
+const rcDoc=r=>\`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['Receive No',r.no],['Status',r.st],['Receive Date',r.date],['Batch No',r.bn],['Product',r.fg],['Std Production (Kg)',r.sq],['PLC Qty (Kg)',r.pq??'—'],['Received Qty (Kg)',r.qty],['Variance (Kg)',rnd(r.qty-r.sq)],['FG-Warehouse',r.wh],['Last Process',r.last?'Yes':'No'],['Remarks',r.rem||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\`;
+const rcView=no=>{const r=D.rcv.find(x=>x.no==no);return r?\`<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Finished Goods Receive \${r.no} [View]<span><button class="btn pr" data-act="rcprn" data-id="\${r.no}">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>\${rcDoc(r)}</div></div>\`:''};
+R.receive=()=>\`<div class="ttl">Finished Goods Receive From Production<button class="btn sv" data-act="rcnew">＋ Receive Entry</button></div>
+<div class="pn">\${T(['Receive No','Date','Batch No','Product','Std Qty (Kg)','Received Qty (Kg)','FG-Warehouse','Status','Action'],D.rcv.map(r=>[r.no,r.date,r.bn,r.fg,r.sq,r.qty,r.wh,Bd(r.st),racts(r)]))}</div>
+<div class="modal" id="ins"><div class="pn"><div class="ih">Finished Goods Receive [\${RV?'Edit '+RV:'Insert'} mode]<span class="x" data-act="hide">✕</span></div><div class="fg">\${inp('rno','Receive No.','','text','disabled')}\${inp('d','Receive Date',td(),'date','data-chg="rf"')}\${sel('bn','Batch No',availB().map(b=>b.no),'data-chg="rf"')}\${inp('fg','Product Name','','text','disabled')}\${inp('sq','Std Production (Kg)','','text','disabled')}\${inp('pq','PLC Qty (Kg)','','text','disabled')}\${inp('rq','Received Qty (Kg)','','number','min=0 step="any"')}\${sel('wh','FG-Warehouse',['FG-Bonpara','FG-Rupshi'])}\${fld('Last Process ?','<input id="lp" type="checkbox">')}\${inp('rm','Remarks')}</div>\${BT('saveRcv','hide')}</div></div>\${RW?rcView(RW):''}\`;
+R.close=()=>\`<div class="ttl">Batch Close</div><div class="pn">\${T(['Batch No','Product','Received Qty','Status',''],D.batches.filter(b=>b.st=='Received'||b.st=='Closed').map(b=>[b.no,b.fg,b.rq,Bd(b.st),b.st=='Received'?\`<button class="btn sv" data-act="close" data-id="\${b.no}">Close Batch</button>\`:'']))}</div>\`;
+const mt=(x,f)=>!f||String(x).toLowerCase().includes(f.trim().toLowerCase());
+const fcombo=(id,l,a,cur)=>fld(l,\`<input id="\${id}" list="\${id}l" value="\${cur||''}" placeholder="All / type to search" autocomplete="off"><datalist id="\${id}l">\${a.map(o=>\`<option value="\${o}">\`).join('')}</datalist>\`);
+const inR=d=>(!F.from||d>=F.from)&&(!F.to||d<=F.to);
+const bOK=b=>inR(b.date)&&mt(b.fg,F.fg)&&mt(b.no,F.bn)&&(!F.loc||b.pl==F.loc);
+const cOK=c=>inR(c.date)&&mt(c.fg,F.fg)&&mt(c.b,F.bn)&&(!F.loc||(D.batches.find(b=>b.no==c.b)||{}).pl==F.loc);
+const fsel=(id,l,a,cur)=>fld(l,\`<select id="\${id}"><option value="">All</option>\${a.map(o=>\`<option\${o==cur?' selected':''}>\${o}</option>\`).join('')}</select>\`);
+const fbar=o=>\`<div class="pn"><div class="ih">Filter</div><div class="fg">\${o.dt?inp('ff','From Date',F.from||'','date')+inp('ft','To Date',F.to||'','date'):''}\${fcombo('fp',o.pl||'Product',o.prods,F.fg)}\${o.bn?fcombo('fb','Batch No',live().map(b=>b.no),F.bn):''}\${fsel('fl',o.ll,o.locs,F.loc)}</div><div class="bt"><button class="btn sv" data-act="fshow">🔍 Show</button><button class="btn ex" data-act="freset">Reset</button></div></div>\`;
+const FP=()=>D.recipes.map(r=>r.fg),cnt=(n,m)=>\`<div class="nd" style="text-align:left">Records: \${n}\${n<m?' of '+m+' (filtered)':''}</div>\`;
+R.rdaily=()=>{const L=live().filter(bOK),q=L.reduce((a,b)=>a+(b.rq||0),0);return \`<div class="ttl">Daily Production Report</div>\${fbar({dt:1,bn:1,prods:FP(),ll:'Location (Plant)',locs:PLs()})}<div class="pn">\${T(['Date','Batch No','Product','Plant','Runs','Std Qty','Received','Variance','Status'],L.map(b=>[b.date,b.no,b.fg,b.pl,b.run,b.qty,b.rq??'—',b.rq?b.rq-b.qty:'—',Bd(b.st)]).concat([['<b>Total</b>','','','','',rnd(L.reduce((a,b)=>a+b.qty,0)),'<b>'+rnd(q)+'</b>','','']]))}\${cnt(L.length,live().length)}</div>\`};
+R.rstock=()=>{const rows=Object.entries(D.stock).filter(([w])=>!F.loc||w==F.loc).flatMap(([w,o])=>Object.entries(o).filter(([i])=>mt(i,F.fg)).map(([i,q])=>[w,i,q])),all=[...new Set(Object.values(D.stock).flatMap(o=>Object.keys(o)))];return \`<div class="ttl">Warehouse Wise Stock</div>\${fbar({prods:all,pl:'Item',ll:'Location (Warehouse)',locs:Object.keys(D.stock)})}<div class="pn">\${T(['Warehouse','Item','Stock (Kg)'],rows)}\${cnt(rows.length,rows.length)}</div>\`};
+R.rcons=()=>{const L=D.cons.filter(cOK);return \`<div class="ttl">Material Consumption (Production Issue)</div>\${fbar({dt:1,bn:1,prods:FP(),pl:'Finished Product',ll:'Location (Plant)',locs:PLs()})}<div class="pn">\${T(['Batch No','Date','Finished Product','Raw Material','Required (Kg)','Actual Consumption (Kg)'],L.map(c=>[c.b,c.date,c.fg,c.rm,c.req??c.q,c.q]).concat([['<b>Total</b>','','','','<b>'+rnd(L.reduce((a,c)=>a+(c.req??c.q),0))+'</b>','<b>'+rnd(L.reduce((a,c)=>a+c.q,0))+'</b>']]))}\${cnt(L.length,D.cons.length)}</div>\`};
+R.rfg=()=>{const m={},L=D.cons.filter(cOK);L.forEach(c=>{const k=c.fg+'|'+c.rm;m[k]=rnd((m[k]||0)+c.q)});return \`<div class="ttl">FG Wise RM Consumption Report</div>\${fbar({dt:1,bn:1,prods:FP(),pl:'Finished Product',ll:'Location (Plant)',locs:PLs()})}<div class="pn">\${T(['Finished Product','Raw Material','Total Consumed (Kg)'],Object.entries(m).map(([k,q])=>[...k.split('|'),q]).concat([['<b>Total</b>','','<b>'+rnd(Object.values(m).reduce((a,q)=>a+q,0))+'</b>']]))}\${cnt(L.length,D.cons.length)}</div>\`};
+R.rloss=()=>{const L=live().filter(bOK),sm=(n,k)=>rnd(D.cons.filter(c=>c.b==n).reduce((a,c)=>a+(k=='r'?(c.req??c.q):c.q),0));
+ const rows=L.map(b=>{const has=b.rq!=null,ac=sm(b.no,'a');return {b,rq:sm(b.no,'r'),ac,has,loss:has?rnd(ac-b.rq):null}}),R2=rows.filter(x=>x.has),t=f=>rnd(R2.reduce((a,x)=>a+f(x),0)),tac=t(x=>x.ac),tl=t(x=>x.loss);
+ return \`<div class="ttl">Process Loss Report</div>\${fbar({dt:1,bn:1,prods:FP(),ll:'Location (Plant)',locs:PLs()})}<div class="pn">\${T(['Date','Batch No','Product','Plant','Std Qty (Kg)','Required RM (Kg)','Actual RM Used (Kg)','FG Received (Kg)','Process Loss (Kg)','Loss %','Status'],rows.map(x=>[x.b.date,x.b.no,x.b.fg,x.b.pl,x.b.qty,x.rq,x.ac,x.has?x.b.rq:'—',x.has?x.loss:'—',x.has&&x.ac?(x.loss/x.ac*100).toFixed(2)+'%':'—',Bd(x.b.st)]).concat([['<b>Total</b>','','','',t(x=>x.b.qty),t(x=>x.rq),tac,t(x=>x.b.rq),'<b>'+tl+'</b>','<b>'+(tac?(tl/tac*100).toFixed(2)+'%':'—')+'</b>','']]))}\${cnt(L.length,live().length)}<div class="nd" style="text-align:left">Process Loss = Actual RM Used − FG Received. Negative value means gain. Batches not yet received show — and are not counted in Total.</div></div>\`};
+const M={581:'plan',582:'recipe',630:'process',631:'plc',632:'receive',633:'close',720:'rdaily',725:'rloss',722:'rstock',723:'rcons',724:'rfg'};
+let cur='home';
+function go(w,keep){if(!keep){RS=null;PS=null;PV=null;RV=null;RW=null;F={};PE=null;PWV=null}cur=w;root.querySelectorAll('.m.open').forEach(m=>m.classList.remove('open'));const h=w==='home'||!M[w];
+ $('#v-home').classList.toggle('on',h);$('#views').innerHTML=h?'':R[M[w]]();
+ if(h)$('#v-home .sub').textContent=\`ERP UI  ·  Plans: \${D.plans.length}  ·  Batches: \${D.batches.length}  ·  Received: \${D.batches.filter(b=>b.rq).length}\`;
+ if(!h&&M[w]=='process')A.pdef();if(!h&&M[w]=='recipe'&&RS&&RS.mode!='view')A.rt();toast('Ready');$('#st').style.color='';window.scrollTo(0,0)}
+const rnd=x=>Math.round(x*1000)/1000;
+let MAN={},PS=null,PV=null,RV=null,RW=null,F={},PE=null,PWV=null;
+const live=()=>D.batches.filter(b=>b.st!='Draft');
+const resv=(p,i)=>D.batches.filter(x=>x.st=='Draft'&&x.dpp==p.no&&x.fg==i.fg&&x.no!=PS).reduce((a,x)=>a+x.qty,0);
+const bLines=b=>{if(b.st=='Draft'){const r=D.recipes.find(x=>x.id==b.rc);return r.lines.map(([n,q])=>[n,rnd(q*b.qty/r.size),b.act[n]])}return D.cons.filter(c=>c.b==b.no).map(c=>[c.rm,c.req??c.q,c.q])};
+const bDoc=b=>\`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['Batch No',b.no],['Status',b.st],['Process Date',b.date],['DPP No.',b.dpp],['Product',b.fg],['Recipe No.',b.rc||'—'],['Plant',b.pl],['Shift',b.sh||'—'],['Worker Group',b.wg||'—'],['RM-Warehouse',b.wh||'—'],['Production Qty (Kg)',b.qty],['Batch Size (Kg)',b.bs||'—'],['No. of Batch Run',b.run],['Remarks',b.rem||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\${T(['Raw Material','Required (Kg)','Actual Consumption (Kg)'],bLines(b).concat([['<b>Total</b>','<b>'+rnd(bLines(b).reduce((a,l)=>a+(+l[1]||0),0))+'</b>','<b>'+rnd(bLines(b).reduce((a,l)=>a+(+l[2]||0),0))+'</b>']]))}\`;
+const pView=no=>{const b=D.batches.find(x=>x.no==no);return b?\`<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Production Entry \${b.no} [View]<span><button class="btn pr" data-act="pprn" data-id="\${b.no}">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>\${bDoc(b)}</div></div>\`:''};
+const pacts=b=>\`<button class="btn sv" data-act="pview" data-id="\${b.no}">View</button> \`+(b.st=='Draft'?\`<button class="btn ex" data-act="pedit" data-id="\${b.no}">Edit</button> \`:'')+\`<button class="btn pr" data-act="pprn" data-id="\${b.no}">🖶 Print</button>\`+(b.st=='Draft'?\` <button class="btn sv" style="background:#16a34a" data-act="submit" data-id="\${b.no}">Submit</button>\`:'');
+const shiftNow=()=>{const h=new Date().getHours();return h>=6&&h<18?'Day':'Night'};
+const A={np:()=>{const e=$('#ins');e.style.display=e.classList.contains('modal')?'flex':'block';e.scrollIntoView({behavior:'smooth'})},hide:()=>$('#ins').style.display='none',home:()=>go('home'),
+pdef(){MAN={};set('sh',shiftNow());set('wg','Group A');const o=[...$('#dpp').options].filter(x=>x.value);
+ if(o.length==1){set('dpp',o[0].value);A.fill({id:'dpp'});const it=[...$('#it').options].filter(x=>x.value);if(it.length==1){set('it',it[0].value);A.fill({id:'it'})}}A.rmp()},
+rmp(){const p=D.plans.find(x=>x.no==v('dpp')),i=p&&p.items.find(x=>x.fg==v('it')),r=i&&rec(i.fg),qty=+v('prq')||0,st=D.stock[v('wh')]||{};
+ if(!r){$('#rmp').innerHTML='';return}
+ const rows=r.lines.map(([n,q])=>{const need=rnd(q*qty/r.size),a=MAN[n]!==undefined?MAN[n]:need,av=st[n]||0;return {n,need,a,av}}),sum=k=>rnd(rows.reduce((t,x)=>t+(+x[k]||0),0));
+ $('#rmp').innerHTML=T(['Raw Material','Required (Kg)','Available (Kg)','Actual Consumption (Kg)','Status'],rows.map(x=>[x.n,x.need,x.av,\`<input class="act" data-rm="\${x.n}" data-av="\${x.av}" data-chg="rmv" type="number" min="0" step="any" value="\${x.a}" style="width:110px">\`,+x.a<=x.av?'✔':'<span style="color:#d9342b">✘ short</span>']).concat([['<b>Total</b>',\`<b>\${sum('need')}</b>\`,'',\`<b id="tac">\${sum('a')}</b>\`,'']]))},
+rmv(t){if(t.value==='')delete MAN[t.dataset.rm];else MAN[t.dataset.rm]=t.value;t.closest('tr').lastElementChild.innerHTML=+t.value<=+t.dataset.av?'✔':'<span style="color:#d9342b">✘ short</span>';$('#tac').textContent=rnd([...root.querySelectorAll('.act')].reduce((a,x)=>a+(+x.value||0),0))},
+rnew(){RS={mode:'new'};if(!PM.length)pmLoad();if(!ITM.length)itmLoad();go('582',1)},
+fshow(){if(v('ff')&&v('ft')&&v('ff')>v('ft'))return toast('From Date is after To Date',1);F={from:v('ff')||'',to:v('ft')||'',fg:(v('fp')||'').trim(),bn:(v('fb')||'').trim(),loc:v('fl')||''};go(cur,1)},
+freset(){F={};go(cur,1)},rcode(){if(!$('#code').dataset.man)set('code',mkCode(v('fg')))},cman(){$('#code').dataset.man=v('code')?'1':''},rview(a){RS={mode:'view',id:a.dataset.id};go('582',1)},rtoggle(a){const r=D.recipes.find(x=>x.id==a.dataset.id);if(!r)return;r.act=r.act===false;save();go('582');toast('Recipe '+r.id+(r.act===false?' inactivated':' activated'))},
+redit(a){if(!ITM.length)itmLoad();RS={mode:'edit',id:a.dataset.id};go('582',1)},rhide(){RS=null;go('582',1)},
+addR:()=>$('#rtb').insertAdjacentHTML('beforeend',rRow()),delR(a){if(root.querySelectorAll('.rr').length>1){a.closest('tr').remove();A.rt()}},
+rt(){const t=[...root.querySelectorAll('.rq2')].reduce((a,x)=>a+(+x.value||0),0),b=+v('size')||0,e=$('#rtot');e.innerHTML=\`Total RM: <b>\${t}</b> Kg / Batch size: <b>\${b}</b> Kg \${t==b?'✔':'✘ mismatch'}\`;e.style.color=t==b?'#2da44e':'#d9342b'},
+prn(a){const r=D.recipes.find(x=>x.id==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">Recipe \${r.id}</h2>\`+recDoc(r);PRINT()},addItem:()=>$('#itb').insertAdjacentHTML('beforeend',itemRow()),delItem(a){if(root.querySelectorAll('.it').length>1)a.closest('tr').remove()},iq(){root.querySelectorAll('.it').forEach(r=>{const q=rec(r.querySelector('.ifg').value);r.querySelector('.iq').textContent=q?q.size*(+r.querySelector('.in').value||0):'—'})},
+savePlan(){const it=[...root.querySelectorAll('.it')].map(r=>({fg:r.querySelector('.ifg').value,n:+r.querySelector('.in').value,done:0}));
+ if(bad(['d','s','e'].concat(ORG.rows.length?['co','bu','pc']:[],['pl']).concat([...root.querySelectorAll('.ifg')])))return toast('Please fill all required fields (marked red): Company, Business Unit, Profit Center, Plant and Product',1);
+ if(it.some(i=>!i.fg||!(i.n>=1)))return toast('Every item needs a product and batches ≥ 1',1);
+ if(pmNeed())return;
+ {const x=it.find(i=>PM.indexOf(i.fg)<0);if(x)return toast('Product "'+x.fg+'" is not in the Product master sheet',1)}
+ if(new Set(it.map(i=>i.fg)).size<it.length)return toast('Duplicate product in items',1);
+ const o={date:v('d'),s:v('s'),e:v('e'),co:v('co')||'',bu:v('bu')||'',pc:v('pc')||'',pl:v('pl'),rm:v('rm'),items:it};let no=PE;
+ if(no)Object.assign(D.plans.find(x=>x.no==no),o);else{no='DPP-'+pad(++D.seq.dpp);D.plans.push({no,...o,st:'Draft'})}
+ save();go('581');toast(\`Draft \${no} saved with \${it.length} item(s). Click Submit to release it for production\`)},
+org(t){const g=i=>$('#'+i),fill=(i,a,l)=>{const e=g(i);if(!e)return;e.innerHTML='<option value="">[ Select '+l+' ]</option>'+a.map(o=>'<option>'+o+'</option>').join('')};
+ if(!ORG.rows.length)return;
+ if(t.id=='co'){fill('bu',orgBu(v('co')),'Business Unit');fill('pc',[],'Profit Center');fill('pl',[],'Plant Name')}
+ if(t.id=='bu'){fill('pc',orgPc(v('co'),v('bu')),'Profit Center');fill('pl',[],'Plant Name')}
+ if(t.id=='pc')fill('pl',orgPl(v('co'),v('bu'),v('pc')),'Plant Name')},
+pmfill(){root.querySelectorAll('.ifg').forEach(sl=>{const c=sl.value;sl.innerHTML='<option value="">[ Select Product ]</option>'+PRODS().map(n=>'<option>'+n+'</option>').join('');sl.value=c});const l=$('#rml');if(l)l.innerHTML=PM.map(n=>'<option>'+n+'</option>').join('')},
+whfill(){const e=$('#wh');if(!e||e.disabled)return;if(!$('#dpp'))return;const c=e.value;e.innerHTML='<option value="">[ Select RM-Warehouse ]</option>'+opt(WH,c)},
+rcat(t){const tr=t.closest('tr'),e=tr.querySelector('.rn');e.innerHTML='<option value="">[ Select Raw Material ]</option>'+opt(itmNames(t.value));e.style.outline='';tr.querySelector('.rcd').value=''},
+rnm(t){const tr=t.closest('tr');tr.querySelector('.rcd').value=itmCode(tr.querySelector('.rc2').value,t.value)},
+itmfill(){root.querySelectorAll('.rr').forEach(x=>{const c=x.querySelector('.rc2'),n=x.querySelector('.rn'),cv=c.value||itmCatOf(n.value),nv=n.value;c.innerHTML='<option value="">[ Select Item Category ]</option>'+opt(itmCats(),cv);n.innerHTML='<option value="">[ Select Raw Material ]</option>'+opt(itmNames(cv).concat(nv&&itmNames(cv).indexOf(nv)<0?[nv]:[]),nv);x.querySelector('.rcd').value=itmCode(cv,nv)})},
+orgfill(){const e=$('#co');if(!e)return;const c=e.value;e.innerHTML='<option value="">[ Select Company ]</option>'+orgCo().map(o=>'<option>'+o+'</option>').join('');e.value=c;if(!c){['bu','pc','pl'].forEach(i=>{const x=$('#'+i);if(x)x.innerHTML='<option value="">[ Select ]</option>'})}},
+plannew(){PE=null;if(!PM.length)pmLoad();go('581',1);A.np()},
+planedit(a){const p=D.plans.find(x=>x.no==a.dataset.id);if(!p||p.st!='Draft')return;PE=p.no;go('581',1);
+ set('d',p.date);set('s',p.s);set('e',p.e);set('co',p.co||'');A.org({id:'co'});set('bu',p.bu||'');A.org({id:'bu'});set('pc',p.pc||'');A.org({id:'pc'});set('pl',p.pl);set('rm',p.rm||'');
+ root.querySelectorAll('.it').forEach(r=>r.remove());
+ p.items.forEach(i=>{$('#itb').insertAdjacentHTML('beforeend',itemRow());const r=[...root.querySelectorAll('.it')].pop();const fs=r.querySelector('.ifg');if(![...fs.options].some(o=>o.value==i.fg))fs.insertAdjacentHTML('beforeend','<option>'+i.fg+'</option>');fs.value=i.fg;r.querySelector('.in').value=i.n});
+ A.iq();A.np()},
+planview(a){PWV=a.dataset.id;go('581',1)},
+planprn(a){const p=D.plans.find(x=>x.no==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">Daily Production Plan \${p.no}</h2>\`+planDoc(p);PRINT()},
+plansubmit(a){const p=D.plans.find(x=>x.no==a.dataset.id);if(!p||p.st!='Draft')return;
+ {const x=p.items.find(i=>!rec(i.fg));if(x)return toast('A product in this plan has no recipe',1);const y=p.items.find(i=>rec(i.fg).act===false);if(y)return toast('Recipe for "'+y.fg+'" is Inactive. Activate it first',1)}
+ p.st='Open';save();go('581');toast(\`\${p.no} submitted, now available in Production Process\`)},
+saveRecipe(){const L=[...root.querySelectorAll('.rr')].map(x=>[x.querySelector('.rn').value.trim(),+x.querySelector('.rq2').value,x.querySelector('.rc2').value,itmCode(x.querySelector('.rc2').value,x.querySelector('.rn').value.trim())]).filter(l=>l[0]||l[1]),ed=RS&&RS.mode=='edit',size=+v('size'),code=v('code').trim().toUpperCase();
+ const rr=[...root.querySelectorAll('.rr')].filter(x=>x.querySelector('.rn').value.trim()||x.querySelector('.rq2').value),rin=[];rr.forEach(x=>rin.push(x.querySelector('.rc2'),x.querySelector('.rn'),x.querySelector('.rq2')));
+ if(bad(['fg','code','size'].concat(rin))||!L.length)return toast('Please fill all required fields (marked red): Finished Product, Short Code, Batch Size and at least one RM item with Item Category, Raw Material and Qty',1);
+ if(!ed&&pmNeed())return;
+ if(!ed&&PM.indexOf(v('fg').trim())<0){bad(['fg']);$('#fg').style.outline='2px solid #d9342b';return toast('Product "'+v('fg').trim()+'" is not in the Product master sheet. Select from the list',1)}
+ if(itmNeed())return;
+ {const bx=rr.find(x=>!ITM.some(t=>t[0]==x.querySelector('.rc2').value&&t[1]==x.querySelector('.rn').value));if(bx){const e=bx.querySelector('.rn');e.style.outline='2px solid #d9342b';e.focus();return toast('Raw material "'+e.value+'" is not in Item Category "'+bx.querySelector('.rc2').value+'" of the Item master sheet',1)}}
+ if(!/^[A-Z0-9]{1,5}$/.test(code))return toast('Short Code: 1–5 letters/numbers (e.g. MS)',1);
+ if(D.recipes.some(x=>x.code==code&&!(ed&&x.id==RS.id)))return toast('Short Code already used',1);
+ if(L.some(l=>!l[0]||!(l[1]>0)))return toast('Every RM item needs a name and Qty > 0',1);
+ if(new Set(L.map(l=>l[0].toLowerCase())).size<L.length)return toast('Duplicate RM in items',1);
+ const t=L.reduce((a,l)=>a+l[1],0);if(t!=size)return toast(\`RM total \${t} ≠ batch size \${size}\`,1);
+ if(ed){const r=D.recipes.find(x=>x.id==RS.id);Object.assign(r,{cat:v('cat'),size,lines:L,code})}
+ else{if(D.recipes.some(x=>x.fg.toLowerCase()==v('fg').trim().toLowerCase()))return toast('Recipe for this product already exists',1);
+  D.recipes.push({id:'R-'+String(D.recipes.length+1).padStart(3,'0'),fg:v('fg').trim(),code,cat:v('cat'),size,lines:L})}
+ save();RS=null;go('582');toast('Recipe saved')},
+fill(t){const p=D.plans.find(x=>x.no==v('dpp')),bal=i=>rnd((i.n-i.done)*rec(i.fg).size-resv(p,i)),pend=i=>i.n-i.done>1e-6;
+ if(t&&t.id=='dpp'){$('#it').innerHTML='<option value="">[ Select Plan Item ]</option>'+(p?p.items.filter(pend).map(i=>\`<option value="\${i.fg}">\${i.fg} (balance \${bal(i)} Kg)</option>\`).join(''):'');
+  const f=p&&p.items.find(pend);if(f)set('it',f.fg)}
+ const i=p&&p.items.find(x=>x.fg==v('it'));
+ if(t&&(t.id=='dpp'||t.id=='it')){const rs=i?D.recipes.filter(x=>x.fg==i.fg&&x.act!==false):[];$('#rc').innerHTML='<option value="">[ Select Recipe No. ]</option>'+rs.map(x=>\`<option value="\${x.id}">\${x.id} – \${x.fg}</option>\`).join('');if(rs.length)set('rc',rs[0].id);set('prq','');MAN={}}
+ const r=i&&D.recipes.find(x=>x.id==v('rc'));
+ ['fg','pl'].forEach((k,x)=>set(k,r?[i.fg,p.pl][x]:''));if(!t||t.id=='dpp'||t.id=='it'||t.id=='rc'||!v('bs'))set('bs',r?r.size:'');
+ set('pq',r?i.n*r.size:'');$('#prq').placeholder=i?'Max '+bal(i)+' Kg':'';
+ {const bs=+v('bs');set('run',bs>0&&+v('prq')?rnd(v('prq')/bs):'')};set('bno',r?(PS||nextNo(r,v('d'))):'');A.rmp()},
+saveProc(){const p=D.plans.find(x=>x.no==v('dpp')),i=p&&p.items.find(x=>x.fg==v('it')),qty=+v('prq');
+ if(bad(['dpp','it','prq','rc','bs','sh','wh']))return toast('Please fill all required fields (marked red): DPP No., Plan Item, Production Qty, Recipe, Batch Size, Shift and RM-Warehouse',1);
+ if(whNeed())return;
+ if(WH.indexOf(v('wh'))<0){bad(['wh']);return toast('RM-Warehouse "'+v('wh')+'" is not in the Warehouse sheet',1)}
+ if(!i)return toast('DPP and Plan Item required',1);
+ if(!(qty>0))return toast('Production Qty (Kg) required',1);
+ const bs=+v('bs');if(!(bs>0))return toast('Batch Size (Kg) required',1);
+ const r=D.recipes.find(x=>x.id==v('rc'));if(!r||r.fg!=i.fg)return toast('Select a valid Recipe No.',1);
+ const bal=rnd((i.n-i.done)*r.size-resv(p,i));if(qty>bal+1e-6)return toast(\`Production Qty exceeds plan balance (\${bal} Kg)\`,1);
+ const act={};root.querySelectorAll('.act').forEach(x=>act[x.dataset.rm]=x.value===''?NaN:+x.value);
+ const ln=r.lines.map(([n,q])=>[n,act[n]===undefined?rnd(q*qty/r.size):rnd(act[n])]);
+ if(ln.some(l=>!(l[1]>=0)))return toast('Actual Consumption must be 0 or more',1);
+ const o={date:v('d'),dpp:p.no,fg:i.fg,rc:r.id,pl:p.pl,bs,run:rnd(qty/bs),qty,sh:v('sh'),wg:v('wg'),wh:v('wh'),act:Object.fromEntries(ln),rem:v('rm')};
+ let no=PS;if(no)Object.assign(D.batches.find(x=>x.no==no),o);else{no=nextNo(r,o.date);D.batches.push({no,...o,st:'Draft',plc:null})}
+ save();go('630');toast(\`Draft \${no} saved. Click Submit to post it to stock\`)},
+pnew(){PS=null;if(!WH.length)whLoad();go('630',1);A.np()},
+pedit(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Draft')return;PS=b.no;go('630',1);
+ if(![...$('#dpp').options].some(o=>o.value==b.dpp))return toast('Plan item already fully produced, cannot edit',1);
+ set('d',b.date);set('dpp',b.dpp);A.fill({id:'dpp'});set('it',b.fg);A.fill({id:'it'});set('rc',b.rc);set('bs',b.bs||(D.recipes.find(x=>x.id==b.rc)||{}).size||'');{const r=D.recipes.find(x=>x.id==b.rc);MAN=Object.fromEntries(Object.entries(b.act).filter(([n,q])=>{const l=r.lines.find(l=>l[0]==n);return l&&rnd(l[1]*b.qty/r.size)!=q}))}set('prq',b.qty);set('sh',b.sh);set('wg',b.wg);{const w=$('#wh');if(b.wh&&![...w.options].some(o=>o.value==b.wh))w.insertAdjacentHTML('beforeend','<option>'+b.wh+'</option>')}set('wh',b.wh);set('rm',b.rem||'');A.fill({id:'prq'});A.np()},
+pview(a){PV=a.dataset.id;go('630',1)},pvhide(){PV=null;RW=null;PWV=null;go(cur,1)},
+pprn(a){const b=D.batches.find(x=>x.no==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">Production Entry \${b.no}</h2>\`+bDoc(b);PRINT()},
+submit(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Draft')return;
+ const p=D.plans.find(x=>x.no==b.dpp),i=p&&p.items.find(x=>x.fg==b.fg),r=D.recipes.find(x=>x.id==b.rc);if(!i||!r)return toast('Plan or recipe not found',1);
+ if(b.qty>(i.n-i.done)*r.size+1e-6)return toast('Qty exceeds plan balance, edit this entry first',1);
+ const st=D.stock[b.wh]=D.stock[b.wh]||{},sh=Object.entries(b.act).filter(([n,q])=>(st[n]||0)<q).map(x=>x[0]);if(sh.length)return toast('Insufficient RM stock: '+sh.join(', '),1);
+ r.lines.forEach(([n,q])=>{const u=rnd(b.act[n]);st[n]=rnd(st[n]-u);D.cons.push({b:b.no,date:b.date,fg:b.fg,rm:n,req:rnd(q*b.qty/r.size),q:u})});
+ i.done=Math.round((i.done+b.qty/r.size)*1e6)/1e6;p.st='In Progress';b.st='Processed';save();go('630');toast(\`Batch \${b.no} submitted, RM consumed from stock\`)},
+plc(){let n=0;D.batches.forEach(b=>{if(b.st=='Processed'&&b.plc==null){b.plc=Math.round(b.qty*(1+(Math.random()-.5)*.01));n++}});save();go('631');toast(n+' batch(es) synced')},
+rf(t){const b=D.batches.find(x=>x.no==v('bn'));set('fg',b?b.fg:'');set('sq',b?b.qty:'');set('pq',b?b.plc??'':'');if(!t||t.id=='bn')set('rq',b?b.plc??b.qty:'');set('rno',RV||nextRn(v('d')))},
+rcnew(){RV=null;go('632',1);const o=availB();if(o.length==1){set('bn',o[0].no);A.rf({id:'bn'})}else A.rf();A.np()},
+saveRcv(){const b=D.batches.find(x=>x.no==v('bn')),q=+v('rq');if(!b||!v('wh')||!(q>0)||!v('d'))return toast('Date, Batch, Received Qty and FG-Warehouse required',1);
+ const o={date:v('d'),bn:b.no,fg:b.fg,wh:v('wh'),qty:q,sq:b.qty,pq:b.plc??null,last:$('#lp').checked,rem:v('rm')};let no=RV;
+ if(no)Object.assign(D.rcv.find(x=>x.no==no),o);else{no=nextRn(o.date);D.rcv.push({no,...o,st:'Draft'})}
+ save();go('632');toast(\`Draft \${no} saved. Click Submit to receive into stock\`)},
+rcedit(a){const r=D.rcv.find(x=>x.no==a.dataset.id);if(!r||r.st!='Draft')return;RV=r.no;go('632',1);
+ set('d',r.date);set('bn',r.bn);A.rf({id:'bn'});set('rq',r.qty);set('wh',r.wh);$('#lp').checked=!!r.last;set('rm',r.rem||'');A.rf({id:'d'});A.np()},
+rcview(a){RW=a.dataset.id;go('632',1)},
+rcprn(a){const r=D.rcv.find(x=>x.no==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">Finished Goods Receive \${r.no}</h2>\`+rcDoc(r);PRINT()},
+rcsubmit(a){const r=D.rcv.find(x=>x.no==a.dataset.id);if(!r||r.st!='Draft')return;const b=D.batches.find(x=>x.no==r.bn);
+ if(!b||b.st!='Processed')return toast('Batch is not available for receive',1);
+ const s=D.stock[r.wh];s[r.fg]=rnd((s[r.fg]||0)+r.qty);Object.assign(b,{rq:r.qty,st:'Received',fgwh:r.wh,rdate:r.date});
+ if(r.last){const p=D.plans.find(x=>x.no==b.dpp);if(p)p.st='Completed'}r.st='Received';save();go('632');toast(\`\${r.no} submitted, \${r.qty} Kg added to \${r.wh}\`)},
+close(a){D.batches.find(b=>b.no==a.dataset.id).st='Closed';save();go('633');toast('Batch closed')}};
+$('#views').addEventListener('click',e=>{const a=e.target.closest('[data-act]');a&&A[a.dataset.act](a)});
+['change','input'].forEach(t=>$('#views').addEventListener(t,e=>{const c=e.target.dataset.chg;c&&A[c](e.target)}));
+root.querySelectorAll('[data-ws]').forEach(e=>e.addEventListener('click',()=>go(e.dataset.ws)));
+$('#views').addEventListener('click',e=>{if(e.target.classList.contains('modal'))e.target.id=='vw'?A.pvhide():(RS&&cur=='582'?A.rhide():A.hide())});
+root.addEventListener('keydown',e=>{if(e.key!='Escape')return;if($('#vw'))A.pvhide();else if($('#ins'))(RS&&cur=='582'?A.rhide():A.hide())});
+$('#views').addEventListener('keydown',e=>{if(e.key=='Enter'&&['ff','ft','fp','fb','fl'].includes(e.target.id))A.fshow()});
+$('.m.home>a').addEventListener('click',()=>go('home'));
+$('#v-home .sub').insertAdjacentHTML('beforeend','<a href="#" id="rst" style="color:var(--link);float:right">Reset demo data</a>');
+$('#rst').addEventListener('click',e=>{e.preventDefault();try{localStorage.removeItem(K)}catch(x){}window.location.reload()});
+orgLoad();pmLoad();itmLoad();whLoad();
+go('home');
+`);
+      run(root);
+    })();
+    </script>
     <!-- ===== MODULE: HR (Human Resources) ===== -->
     <div class="module-content" id="module-hr">
 
@@ -3221,1094 +3511,6 @@
       </main>
     </div>
   </div>
-
-  <!-- ===================== Manufacturing: Production Order (Google Sheet) ===================== -->
-  <div class="str-list-overlay" id="mfgPoOverlay" onclick="if(event.target===this) closeMfgPo()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #d35400; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #a04000, #d35400); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🛠️ Production Order</h2>
-        <button class="str-close-list-btn" onclick="closeMfgPo()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgPoListView">
-        <div style="background:#fdebd0; padding:8px 16px; border-bottom:1px solid #f5cba7; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Production Orders (<span id="mfgPoCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgPoSearch" placeholder="🔍 Search PO no, item..." oninput="renderMfgPoTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgPoForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgPoList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>PO No</th><th>Item</th>
-                <th>Planned Qty</th><th>UOM</th><th>Start Date</th><th>End Date</th>
-                <th>Priority</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgPoTableBody"></tbody>
-          </table>
-          <div id="mfgPoEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🛠️</span>
-            No Production Order records found. Click "+" to add one.
-          </div>
-          <div id="mfgPoLoadingMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">⏳ Loading…</div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgPoFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgPoId">
-        <div class="erp-field-grid">
-          <div class="erp-field"><div class="erp-field-label-row"><label for="mfgPoRefNo">PO No</label><span class="erp-info-icon">i</span></div><input type="text" id="mfgPoRefNo" readonly style="font-weight:700; color:#2563eb;"></div>
-          <div class="erp-field"><div class="erp-field-label-row"><label for="mfgPoDate">PO Date</label><span class="erp-info-icon">i</span></div><input type="date" id="mfgPoDate"></div>
-          <div class="erp-field"><div class="erp-field-label-row"><label for="mfgPoPriority">Priority</label><span class="erp-info-icon">i</span></div>
-            <select id="mfgPoPriority"><option>Low</option><option selected>Medium</option><option>High</option></select>
-          </div>
-          <div class="erp-field"><div class="erp-field-label-row"><label for="mfgPoStatus">Status</label><span class="erp-info-icon">i</span></div>
-            <select id="mfgPoStatus"><option>Draft</option><option>Released</option><option>In Progress</option><option>Completed</option><option>Cancelled</option></select>
-          </div>
-          <div class="erp-field"><div class="erp-field-label-row"><label for="mfgPoStart">Start Date</label><span class="erp-info-icon">i</span></div><input type="date" id="mfgPoStart"></div>
-          <div class="erp-field"><div class="erp-field-label-row"><label for="mfgPoEnd">End Date</label><span class="erp-info-icon">i</span></div><input type="date" id="mfgPoEnd"></div>
-        </div>
-
-        <h4 style="margin:18px 0 6px; font-size:0.92rem; color:#1e293b; display:flex; align-items:center; justify-content:space-between;">
-          Items (Products to Produce)
-          <button type="button" class="pr-add-item-btn" onclick="addMfgPoItemRow()">➕ Add Item</button>
-        </h4>
-        <div style="overflow-x:auto;">
-          <table class="str-table" style="font-size:0.78rem; min-width:820px;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">Line#</th><th>Item Group</th><th>Item / Product Name</th><th>Product Code</th>
-                <th>UOM</th><th>Planned Qty</th><th></th>
-              </tr>
-            </thead>
-            <tbody id="mfgPoItemsBody"></tbody>
-          </table>
-        </div>
-        <div style="text-align:right; margin-top:6px; font-size:0.82rem; color:#334155;">
-          Total Planned Qty: <strong id="mfgPoTotalQty">0.00</strong>
-        </div>
-
-        <div class="form-group" style="margin-top:14px;"><label for="mfgPoRemarks">Remarks</label><textarea id="mfgPoRemarks" rows="2" style="border:1px solid #c7cdd4; border-radius:2px; padding:7px 10px; font-size:0.85rem; font-family:inherit; width:100%;"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:18px;">
-          <button onclick="saveMfgPo()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgPoList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgPoDeleteBtn" onclick="deleteMfgPo()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== Manufacturing: MRP Run (Google Sheet) ===================== -->
-  <div class="str-list-overlay" id="mfgMrpOverlay" onclick="if(event.target===this) closeMfgMrp()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #117864; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #0b5345, #117864); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🗓️ MRP Run</h2>
-        <button class="str-close-list-btn" onclick="closeMfgMrp()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <div id="mfgMrpListView">
-        <div style="background:#d1f2eb; padding:8px 16px; border-bottom:1px solid #a3e4d7; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">MRP Runs (<span id="mfgMrpCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgMrpSearch" placeholder="🔍 Search run id, item..." oninput="renderMfgMrpTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgMrpForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgMrpList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Run Date</th><th>Item</th><th>Required Qty</th>
-                <th>Available Stock</th><th>Shortage Qty</th><th>Suggested Order Qty</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgMrpTableBody"></tbody>
-          </table>
-          <div id="mfgMrpEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🗓️</span>
-            No MRP Run records found. Click "+" to add one.
-          </div>
-          <div id="mfgMrpLoadingMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">⏳ Loading…</div>
-        </div>
-      </div>
-
-      <div id="mfgMrpFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgMrpId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-          <div class="form-group"><label>Run Date</label><input type="date" id="mfgMrpDate"></div>
-          <div class="form-group"><label>Planning Horizon (From)</label><input type="date" id="mfgMrpFrom"></div>
-          <div class="form-group"><label>Planning Horizon (To)</label><input type="date" id="mfgMrpTo"></div>
-          <div class="form-group"><label>Item / Product</label><input type="text" id="mfgMrpItem"></div>
-          <div class="form-group"><label>Required Qty</label><input type="number" id="mfgMrpReqQty" step="0.01"></div>
-          <div class="form-group"><label>Available Stock</label><input type="number" id="mfgMrpStock" step="0.01"></div>
-          <div class="form-group"><label>Shortage Qty</label><input type="number" id="mfgMrpShortage" step="0.01"></div>
-          <div class="form-group"><label>Suggested Order Qty</label><input type="number" id="mfgMrpSuggested" step="0.01"></div>
-          <div class="form-group"><label>Status</label>
-            <select id="mfgMrpStatus"><option>Pending</option><option>Reviewed</option><option>Converted to PO</option></select>
-          </div>
-        </div>
-        <div class="form-group"><label>Remarks</label><textarea id="mfgMrpRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgMrp()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgMrpList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgMrpDeleteBtn" onclick="deleteMfgMrp()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== Manufacturing: Capacity Planning (Google Sheet) ===================== -->
-  <div class="str-list-overlay" id="mfgCapOverlay" onclick="if(event.target===this) closeMfgCap()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #1a5276; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #154360, #1a5276); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">📐 Capacity Planning</h2>
-        <button class="str-close-list-btn" onclick="closeMfgCap()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <div id="mfgCapListView">
-        <div style="background:#d6eaf8; padding:8px 16px; border-bottom:1px solid #aed6f1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Capacity Plans (<span id="mfgCapCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgCapSearch" placeholder="🔍 Search machine, PO ref..." oninput="renderMfgCapTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgCapForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgCapList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Planning Date</th><th>Machine / Work Center</th>
-                <th>Available Capacity (hr)</th><th>Allocated Capacity (hr)</th><th>Remaining (hr)</th>
-                <th>Production Order Ref</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgCapTableBody"></tbody>
-          </table>
-          <div id="mfgCapEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">📐</span>
-            No Capacity Planning records found. Click "+" to add one.
-          </div>
-          <div id="mfgCapLoadingMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">⏳ Loading…</div>
-        </div>
-      </div>
-
-      <div id="mfgCapFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgCapId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-          <div class="form-group"><label>Planning Date</label><input type="date" id="mfgCapDate"></div>
-          <div class="form-group"><label>Machine / Work Center</label><input type="text" id="mfgCapMachine"></div>
-          <div class="form-group"><label>Available Capacity (hr)</label><input type="number" id="mfgCapAvail" step="0.5"></div>
-          <div class="form-group"><label>Allocated Capacity (hr)</label><input type="number" id="mfgCapAlloc" step="0.5"></div>
-          <div class="form-group"><label>Production Order Ref</label><input type="text" id="mfgCapPoRef" placeholder="e.g. PRD-0001"></div>
-          <div class="form-group"><label>Status</label>
-            <select id="mfgCapStatus"><option>Planned</option><option>Confirmed</option></select>
-          </div>
-        </div>
-        <div class="form-group"><label>Remarks</label><textarea id="mfgCapRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgCap()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgCapList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgCapDeleteBtn" onclick="deleteMfgCap()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== Manufacturing: Bill of Materials (BOM) ===================== -->
-  <div class="str-list-overlay" id="mfgBomOverlay" onclick="if(event.target===this) closeMfgBom()">
-    <div class="str-list-outer" style="max-width:1200px; border-radius:8px; border:2px solid #6c3483; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #4a235a, #6c3483); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🧩 Bill of Materials</h2>
-        <button class="str-close-list-btn" onclick="closeMfgBom()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgBomListView">
-        <div style="background:#e8daef; padding:8px 16px; border-bottom:1px solid #d2b4de; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">BOMs (<span id="mfgBomCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgBomSearch" placeholder="🔍 Search BOM ref, product..." oninput="renderMfgBomTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgBomForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgBomList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>BOM Ref</th><th>Product / FG Name</th>
-                <th>Product Code</th><th>UOM</th><th>Version</th><th>Effective Date</th>
-                <th># Components</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgBomTableBody"></tbody>
-          </table>
-          <div id="mfgBomEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🧩</span>
-            No BOM records found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgBomFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgBomId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-          <div class="form-group"><label>BOM Ref</label><input type="text" id="mfgBomRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Product / FG Name</label><input type="text" id="mfgBomProduct" placeholder="e.g. Broiler Feed 50kg"></div>
-          <div class="form-group"><label>Product Code</label><input type="text" id="mfgBomProductCode" placeholder="e.g. FG-0012"></div>
-          <div class="form-group"><label>UOM (Output)</label><input type="text" id="mfgBomUom" placeholder="e.g. Bag / Kg / Ton"></div>
-          <div class="form-group"><label>Version</label><input type="text" id="mfgBomVersion" value="1.0"></div>
-          <div class="form-group"><label>Effective Date</label><input type="date" id="mfgBomEffDate"></div>
-          <div class="form-group"><label>Status</label>
-            <select id="mfgBomStatus"><option>Draft</option><option>Active</option><option>Obsolete</option></select>
-          </div>
-        </div>
-
-        <h4 style="margin:18px 0 6px; font-size:0.92rem; color:#1e293b; display:flex; align-items:center; justify-content:space-between;">
-          Components (Raw Materials)
-          <button type="button" class="pr-add-item-btn" onclick="addMfgBomItemRow()">➕ Add Component</button>
-        </h4>
-        <div style="overflow-x:auto;">
-          <table class="str-table" style="font-size:0.78rem; min-width:700px;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">Line#</th><th>Component Code</th><th>Component Name</th>
-                <th>Qty (per unit output)</th><th>UOM</th><th></th>
-              </tr>
-            </thead>
-            <tbody id="mfgBomItemsBody"></tbody>
-          </table>
-        </div>
-
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgBomRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgBom()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgBomList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgBomDeleteBtn" onclick="deleteMfgBom()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Work Order Creation ===================== -->
-  <div class="str-list-overlay" id="mfgWocOverlay" onclick="if(event.target===this) closeMfgWoc()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #154360; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #0b2d4d, #154360); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">📝 Work Order Creation</h2>
-        <button class="str-close-list-btn" onclick="closeMfgWoc()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgWocListView">
-        <div style="background:#d4e6f1; padding:8px 16px; border-bottom:1px solid #aed6f1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Work Orders (<span id="mfgWocCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgWocSearch" placeholder="🔍 Search..." oninput="renderMfgWocTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgWocForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgWocList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>WO No</th><th>Date</th><th>Item</th><th>BOM Ref</th><th>Routing Ref</th><th>Order Qty</th><th>UOM</th><th>Plan Start</th><th>Plan End</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgWocTableBody"></tbody>
-          </table>
-          <div id="mfgWocEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">📝</span>
-            No Work Order records found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgWocFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgWocId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>WO No</label><input type="text" id="mfgWocRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>WO Date</label><input type="date" id="mfgWocDate"></div>
-          <div class="form-group"><label>Production Order Ref</label><input type="text" id="mfgWocPoRef" placeholder="e.g. PRD-000012"></div>
-          <div class="form-group"><label>Item / Product Name</label><input type="text" id="mfgWocItem" placeholder="e.g. Broiler Feed 50kg"></div>
-          <div class="form-group"><label>BOM Reference</label><input type="text" id="mfgWocBomRef" placeholder="e.g. BOM-000007"></div>
-          <div class="form-group"><label>Routing Reference</label><input type="text" id="mfgWocRoutingRef" placeholder="e.g. RTG-000003"></div>
-          <div class="form-group"><label>Order Qty</label><input type="number" id="mfgWocQty" step="0.01"></div>
-          <div class="form-group"><label>UOM</label><input type="text" id="mfgWocUom" placeholder="e.g. Bag / Kg / Ton"></div>
-          <div class="form-group"><label>Planned Start</label><input type="date" id="mfgWocPlanStart"></div>
-          <div class="form-group"><label>Planned End</label><input type="date" id="mfgWocPlanEnd"></div>
-          <div class="form-group"><label>Status</label><select id="mfgWocStatus"><option>Draft</option><option>Confirmed</option><option>Cancelled</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgWocRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgWoc()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgWocList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgWocDeleteBtn" onclick="deleteMfgWoc()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Work Order Release ===================== -->
-  <div class="str-list-overlay" id="mfgWorOverlay" onclick="if(event.target===this) closeMfgWor()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #9c640c; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #7e5109, #9c640c); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🚀 Work Order Release</h2>
-        <button class="str-close-list-btn" onclick="closeMfgWor()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgWorListView">
-        <div style="background:#fdebd0; padding:8px 16px; border-bottom:1px solid #f8c471; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Work Order Releases (<span id="mfgWorCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgWorSearch" placeholder="🔍 Search..." oninput="renderMfgWorTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgWorForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgWorList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Release No</th><th>Date</th><th>WO Ref</th><th>Machine</th><th>Shift</th><th>Operator</th><th>Released Qty</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgWorTableBody"></tbody>
-          </table>
-          <div id="mfgWorEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🚀</span>
-            No Work Order Release records found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgWorFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgWorId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>Release No</label><input type="text" id="mfgWorRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Release Date</label><input type="date" id="mfgWorDate"></div>
-          <div class="form-group"><label>Work Order Ref</label><input type="text" id="mfgWorWoRef" placeholder="e.g. WOC-000005"></div>
-          <div class="form-group"><label>Machine / Work Center</label><input type="text" id="mfgWorMachine" placeholder="e.g. Mixer-01"></div>
-          <div class="form-group"><label>Shift</label><input type="text" id="mfgWorShift" placeholder="e.g. Shift A (6am-2pm)"></div>
-          <div class="form-group"><label>Operator / Supervisor</label><input type="text" id="mfgWorOperator"></div>
-          <div class="form-group"><label>Released Qty</label><input type="number" id="mfgWorReleasedQty" step="0.01"></div>
-          <div class="form-group"><label>UOM</label><input type="text" id="mfgWorUom" placeholder="e.g. Bag / Kg / Ton"></div>
-          <div class="form-group"><label>Status</label><select id="mfgWorStatus"><option>Released</option><option>On Hold</option><option>Cancelled</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgWorRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgWor()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgWorList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgWorDeleteBtn" onclick="deleteMfgWor()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Work Order Confirmation ===================== -->
-  <div class="str-list-overlay" id="mfgWocoOverlay" onclick="if(event.target===this) closeMfgWoco()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #186a3b; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #0e4d29, #186a3b); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">✅ Work Order Confirmation</h2>
-        <button class="str-close-list-btn" onclick="closeMfgWoco()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgWocoListView">
-        <div style="background:#d5f5e3; padding:8px 16px; border-bottom:1px solid #a9dfbf; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Work Order Confirmations (<span id="mfgWocoCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgWocoSearch" placeholder="🔍 Search..." oninput="renderMfgWocoTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgWocoForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgWocoList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Conf No</th><th>Date</th><th>WO Ref</th><th>Produced Qty</th><th>Wastage Qty</th><th>Consumed Qty</th><th>Confirmed By</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgWocoTableBody"></tbody>
-          </table>
-          <div id="mfgWocoEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">✅</span>
-            No Work Order Confirmation records found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgWocoFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgWocoId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>Conf No</label><input type="text" id="mfgWocoRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Confirmation Date</label><input type="date" id="mfgWocoDate"></div>
-          <div class="form-group"><label>Work Order Ref</label><input type="text" id="mfgWocoWoRef" placeholder="e.g. WOC-000005"></div>
-          <div class="form-group"><label>Produced (Good) Qty</label><input type="number" id="mfgWocoProducedQty" step="0.01"></div>
-          <div class="form-group"><label>Wastage / Scrap Qty</label><input type="number" id="mfgWocoWastageQty" step="0.01" placeholder="0"></div>
-          <div class="form-group"><label>Raw Material Consumed Qty</label><input type="number" id="mfgWocoConsumedQty" step="0.01"></div>
-          <div class="form-group"><label>UOM</label><input type="text" id="mfgWocoUom" placeholder="e.g. Bag / Kg / Ton"></div>
-          <div class="form-group"><label>Confirmed By</label><input type="text" id="mfgWocoConfirmedBy"></div>
-          <div class="form-group"><label>Status</label><select id="mfgWocoStatus"><option>Partially Confirmed</option><option>Fully Confirmed</option><option>Cancelled</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgWocoRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgWoco()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgWocoList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgWocoDeleteBtn" onclick="deleteMfgWoco()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Machine Master ===================== -->
-  <div class="str-list-overlay" id="mfgMachineOverlay" onclick="if(event.target===this) closeMfgMachine()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #4d5656; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #333333, #4d5656); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">⚙️ Machine Master</h2>
-        <button class="str-close-list-btn" onclick="closeMfgMachine()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgMachineListView">
-        <div style="background:#eaecee; padding:8px 16px; border-bottom:1px solid #ccd1d1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Machines (<span id="mfgMachineCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgMachineSearch" placeholder="🔍 Search..." oninput="renderMfgMachineTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgMachineForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgMachineList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Machine Code</th><th>Name</th><th>Type</th><th>Location</th><th>Capacity</th><th>UOM</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgMachineTableBody"></tbody>
-          </table>
-          <div id="mfgMachineEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">⚙️</span>
-            No machines found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgMachineFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgMachineId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>Ref No</label><input type="text" id="mfgMachineRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Machine Name</label><input type="text" id="mfgMachineName" placeholder="e.g. Pellet Mill 01"></div>
-          <div class="form-group"><label>Machine Type</label><input type="text" id="mfgMachineType" placeholder="e.g. Mixer / Pellet Mill / Boiler"></div>
-          <div class="form-group"><label>Location / Work Center</label><input type="text" id="mfgMachineLocation"></div>
-          <div class="form-group"><label>Rated Capacity (per hr)</label><input type="number" id="mfgMachineCapacity" step="0.01"></div>
-          <div class="form-group"><label>Capacity UOM</label><input type="text" id="mfgMachineUom" placeholder="e.g. Kg/hr, Ton/hr"></div>
-          <div class="form-group"><label>Installation Date</label><input type="date" id="mfgMachineInstallDate"></div>
-          <div class="form-group"><label>Status</label><select id="mfgMachineStatus"><option>Active</option><option>Under Maintenance</option><option>Inactive</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgMachineRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgMachine()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgMachineList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgMachineDeleteBtn" onclick="deleteMfgMachine()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Shift Schedule ===================== -->
-  <div class="str-list-overlay" id="mfgShiftOverlay" onclick="if(event.target===this) closeMfgShift()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #5b2c6f; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #42235a, #5b2c6f); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🕒 Shift Schedule</h2>
-        <button class="str-close-list-btn" onclick="closeMfgShift()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgShiftListView">
-        <div style="background:#ebdef0; padding:8px 16px; border-bottom:1px solid #d2b4de; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Shift Schedules (<span id="mfgShiftCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgShiftSearch" placeholder="🔍 Search..." oninput="renderMfgShiftTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgShiftForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgShiftList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Shift Code</th><th>Shift Name</th><th>Start</th><th>End</th><th>Machine</th><th>Days</th><th>Supervisor</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgShiftTableBody"></tbody>
-          </table>
-          <div id="mfgShiftEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🕒</span>
-            No shift schedules found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgShiftFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgShiftId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>Ref No</label><input type="text" id="mfgShiftRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Shift Name</label><input type="text" id="mfgShiftShiftName" placeholder="e.g. Shift A"></div>
-          <div class="form-group"><label>Start Time</label><input type="text" id="mfgShiftStartTime" placeholder="e.g. 06:00"></div>
-          <div class="form-group"><label>End Time</label><input type="text" id="mfgShiftEndTime" placeholder="e.g. 14:00"></div>
-          <div class="form-group"><label>Machine / Work Center</label><input type="text" id="mfgShiftMachine" placeholder="Optional - leave blank for all"></div>
-          <div class="form-group"><label>Applicable Days</label><input type="text" id="mfgShiftDays" placeholder="e.g. Sat-Thu"></div>
-          <div class="form-group"><label>Shift Supervisor</label><input type="text" id="mfgShiftSupervisor"></div>
-          <div class="form-group"><label>Status</label><select id="mfgShiftStatus"><option>Active</option><option>Inactive</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgShiftRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgShift()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgShiftList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgShiftDeleteBtn" onclick="deleteMfgShift()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Downtime Entry ===================== -->
-  <div class="str-list-overlay" id="mfgDowntimeOverlay" onclick="if(event.target===this) closeMfgDowntime()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #943126; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #6e2419, #943126); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">⛔ Downtime Entry</h2>
-        <button class="str-close-list-btn" onclick="closeMfgDowntime()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgDowntimeListView">
-        <div style="background:#f5b7b1; padding:8px 16px; border-bottom:1px solid #e6807a; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Downtime Entries (<span id="mfgDowntimeCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgDowntimeSearch" placeholder="🔍 Search..." oninput="renderMfgDowntimeTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgDowntimeForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgDowntimeList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Ref#</th><th>Date</th><th>Machine</th><th>Start</th><th>End</th><th>Duration (hr)</th><th>Reason</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgDowntimeTableBody"></tbody>
-          </table>
-          <div id="mfgDowntimeEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">⛔</span>
-            No downtime entries found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgDowntimeFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgDowntimeId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>Ref#</label><input type="text" id="mfgDowntimeRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Date</label><input type="date" id="mfgDowntimeDate"></div>
-          <div class="form-group"><label>Machine</label><input type="text" id="mfgDowntimeMachine" placeholder="e.g. Pellet Mill 01"></div>
-          <div class="form-group"><label>Start Time</label><input type="text" id="mfgDowntimeStartTime" placeholder="e.g. 10:15"></div>
-          <div class="form-group"><label>End Time</label><input type="text" id="mfgDowntimeEndTime" placeholder="e.g. 11:00"></div>
-          <div class="form-group"><label>Duration (hr)</label><input type="number" id="mfgDowntimeDurationHr" step="0.01"></div>
-          <div class="form-group"><label>Reason</label><select id="mfgDowntimeReason"><option>Breakdown</option><option>Power Outage</option><option>Changeover</option><option>Material Shortage</option><option>Planned Maintenance</option><option>Other</option></select></div>
-          <div class="form-group"><label>Reported By</label><input type="text" id="mfgDowntimeReportedBy"></div>
-          <div class="form-group"><label>Status</label><select id="mfgDowntimeStatus"><option>Open</option><option>Resolved</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgDowntimeRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgDowntime()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgDowntimeList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgDowntimeDeleteBtn" onclick="deleteMfgDowntime()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: In-process QC ===================== -->
-  <div class="str-list-overlay" id="mfgQcipOverlay" onclick="if(event.target===this) closeMfgQcip()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #117864; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #0b5345, #117864); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🔍 In-process QC</h2>
-        <button class="str-close-list-btn" onclick="closeMfgQcip()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgQcipListView">
-        <div style="background:#d1f2eb; padding:8px 16px; border-bottom:1px solid #a3e4d7; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">In-process QC Checks (<span id="mfgQcipCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgQcipSearch" placeholder="🔍 Search..." oninput="renderMfgQcipTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgQcipForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgQcipList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>QC Ref#</th><th>Date</th><th>WO Ref</th><th>Stage</th><th>Parameter</th><th>Observed Value</th><th>Result</th><th>Checked By</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgQcipTableBody"></tbody>
-          </table>
-          <div id="mfgQcipEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🔍</span>
-            No in-process QC records found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgQcipFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgQcipId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>QC Ref#</label><input type="text" id="mfgQcipRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Check Date</label><input type="date" id="mfgQcipDate"></div>
-          <div class="form-group"><label>Work Order Ref</label><input type="text" id="mfgQcipWoRef" placeholder="e.g. WOC-000005"></div>
-          <div class="form-group"><label>Process Stage / Checkpoint</label><input type="text" id="mfgQcipStage" placeholder="e.g. After Mixing"></div>
-          <div class="form-group"><label>Parameter Checked</label><input type="text" id="mfgQcipParameter" placeholder="e.g. Moisture %, Pellet size"></div>
-          <div class="form-group"><label>Observed Value</label><input type="text" id="mfgQcipObservedValue"></div>
-          <div class="form-group"><label>Result</label><select id="mfgQcipResult"><option>Pass</option><option>Fail</option><option>Hold</option></select></div>
-          <div class="form-group"><label>Checked By</label><input type="text" id="mfgQcipCheckedBy"></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgQcipRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgQcip()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgQcipList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgQcipDeleteBtn" onclick="deleteMfgQcip()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Final QC ===================== -->
-  <div class="str-list-overlay" id="mfgQcfOverlay" onclick="if(event.target===this) closeMfgQcf()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #1a5276; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #0e3a52, #1a5276); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">✔️ Final QC</h2>
-        <button class="str-close-list-btn" onclick="closeMfgQcf()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgQcfListView">
-        <div style="background:#d6eaf8; padding:8px 16px; border-bottom:1px solid #aed6f1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Final QC Checks (<span id="mfgQcfCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgQcfSearch" placeholder="🔍 Search..." oninput="renderMfgQcfTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgQcfForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgQcfList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>QC Ref#</th><th>Date</th><th>WO Ref</th><th>Qty Inspected</th><th>Qty Passed</th><th>Qty Rejected</th><th>Result</th><th>Inspected By</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgQcfTableBody"></tbody>
-          </table>
-          <div id="mfgQcfEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">✔️</span>
-            No final QC records found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgQcfFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgQcfId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>QC Ref#</label><input type="text" id="mfgQcfRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Inspection Date</label><input type="date" id="mfgQcfDate"></div>
-          <div class="form-group"><label>Work Order Ref / Item</label><input type="text" id="mfgQcfWoRef" placeholder="e.g. WOC-000005"></div>
-          <div class="form-group"><label>Qty Inspected</label><input type="number" id="mfgQcfQtyInspected" step="0.01"></div>
-          <div class="form-group"><label>Qty Passed</label><input type="number" id="mfgQcfQtyPassed" step="0.01"></div>
-          <div class="form-group"><label>Qty Rejected</label><input type="number" id="mfgQcfQtyRejected" step="0.01"></div>
-          <div class="form-group"><label>Overall Result</label><select id="mfgQcfResult"><option>Passed</option><option>Rejected</option><option>Partially Passed</option></select></div>
-          <div class="form-group"><label>Inspected By</label><input type="text" id="mfgQcfInspectedBy"></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgQcfRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgQcf()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgQcfList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgQcfDeleteBtn" onclick="deleteMfgQcf()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Rework Management ===================== -->
-  <div class="str-list-overlay" id="mfgReworkOverlay" onclick="if(event.target===this) closeMfgRework()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #9a7d0a; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #7d6608, #9a7d0a); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🔁 Rework Management</h2>
-        <button class="str-close-list-btn" onclick="closeMfgRework()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgReworkListView">
-        <div style="background:#fcf3cf; padding:8px 16px; border-bottom:1px solid #f7dc6f; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Rework Records (<span id="mfgReworkCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgReworkSearch" placeholder="🔍 Search..." oninput="renderMfgReworkTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgReworkForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgReworkList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Ref#</th><th>Date</th><th>Source Ref</th><th>Item</th><th>Qty</th><th>Reason</th><th>Assigned To</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgReworkTableBody"></tbody>
-          </table>
-          <div id="mfgReworkEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🔁</span>
-            No rework records found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgReworkFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgReworkId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>Ref#</label><input type="text" id="mfgReworkRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Date</label><input type="date" id="mfgReworkDate"></div>
-          <div class="form-group"><label>Source Ref (WO / QC)</label><input type="text" id="mfgReworkSourceRef" placeholder="e.g. QCF-000002"></div>
-          <div class="form-group"><label>Item</label><input type="text" id="mfgReworkItem"></div>
-          <div class="form-group"><label>Qty for Rework</label><input type="number" id="mfgReworkQty" step="0.01"></div>
-          <div class="form-group"><label>Rework Reason</label><input type="text" id="mfgReworkReason"></div>
-          <div class="form-group"><label>Assigned To</label><input type="text" id="mfgReworkAssignedTo"></div>
-          <div class="form-group"><label>Status</label><select id="mfgReworkStatus"><option>Pending</option><option>In Progress</option><option>Completed</option><option>Scrapped</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgReworkRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgRework()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgReworkList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgReworkDeleteBtn" onclick="deleteMfgRework()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Preventive Maintenance ===================== -->
-  <div class="str-list-overlay" id="mfgPmtOverlay" onclick="if(event.target===this) closeMfgPmt()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #186a3b; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #0e4d29, #186a3b); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🛡️ Preventive Maintenance</h2>
-        <button class="str-close-list-btn" onclick="closeMfgPmt()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgPmtListView">
-        <div style="background:#d5f5e3; padding:8px 16px; border-bottom:1px solid #a9dfbf; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Preventive Maintenance Schedules (<span id="mfgPmtCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgPmtSearch" placeholder="🔍 Search..." oninput="renderMfgPmtTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgPmtForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgPmtList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Ref#</th><th>Sched. Date</th><th>Machine</th><th>Task</th><th>Frequency</th><th>Assigned To</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgPmtTableBody"></tbody>
-          </table>
-          <div id="mfgPmtEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🛡️</span>
-            No preventive maintenance records found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgPmtFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgPmtId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>Ref#</label><input type="text" id="mfgPmtRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Scheduled Date</label><input type="date" id="mfgPmtDate"></div>
-          <div class="form-group"><label>Machine</label><input type="text" id="mfgPmtMachine" placeholder="e.g. Pellet Mill 01"></div>
-          <div class="form-group"><label>Maintenance Task</label><input type="text" id="mfgPmtTask" placeholder="e.g. Lubrication, Belt check"></div>
-          <div class="form-group"><label>Frequency</label><select id="mfgPmtFrequency"><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Quarterly</option><option>Yearly</option></select></div>
-          <div class="form-group"><label>Assigned To</label><input type="text" id="mfgPmtAssignedTo"></div>
-          <div class="form-group"><label>Status</label><select id="mfgPmtStatus"><option>Scheduled</option><option>Completed</option><option>Overdue</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgPmtRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgPmt()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgPmtList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgPmtDeleteBtn" onclick="deleteMfgPmt()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Breakdown Maintenance ===================== -->
-  <div class="str-list-overlay" id="mfgBmtOverlay" onclick="if(event.target===this) closeMfgBmt()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #943126; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #6e2419, #943126); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🚨 Breakdown Maintenance</h2>
-        <button class="str-close-list-btn" onclick="closeMfgBmt()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgBmtListView">
-        <div style="background:#f5b7b1; padding:8px 16px; border-bottom:1px solid #e6807a; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Breakdown Maintenance Records (<span id="mfgBmtCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgBmtSearch" placeholder="🔍 Search..." oninput="renderMfgBmtTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgBmtForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgBmtList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Ref#</th><th>Date</th><th>Machine</th><th>Issue</th><th>Downtime (hr)</th><th>Resolved Date</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgBmtTableBody"></tbody>
-          </table>
-          <div id="mfgBmtEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🚨</span>
-            No breakdown maintenance records found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgBmtFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgBmtId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>Ref#</label><input type="text" id="mfgBmtRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Breakdown Date</label><input type="date" id="mfgBmtDate"></div>
-          <div class="form-group"><label>Machine</label><input type="text" id="mfgBmtMachine" placeholder="e.g. Pellet Mill 01"></div>
-          <div class="form-group"><label>Reported By</label><input type="text" id="mfgBmtReportedBy"></div>
-          <div class="form-group"><label>Issue Description</label><input type="text" id="mfgBmtIssue"></div>
-          <div class="form-group"><label>Downtime (hr)</label><input type="number" id="mfgBmtDowntimeHr" step="0.01"></div>
-          <div class="form-group"><label>Resolved Date</label><input type="date" id="mfgBmtResolvedDate"></div>
-          <div class="form-group"><label>Status</label><select id="mfgBmtStatus"><option>Open</option><option>In Progress</option><option>Resolved</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgBmtRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgBmt()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgBmtList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgBmtDeleteBtn" onclick="deleteMfgBmt()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ===================== Manufacturing: Spare Parts ===================== -->
-  <div class="str-list-overlay" id="mfgSpareOverlay" onclick="if(event.target===this) closeMfgSpare()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #6c3483; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #4a235a, #6c3483); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🔩 Spare Parts</h2>
-        <button class="str-close-list-btn" onclick="closeMfgSpare()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgSpareListView">
-        <div style="background:#e8daef; padding:8px 16px; border-bottom:1px solid #d2b4de; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Spare Parts (<span id="mfgSpareCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgSpareSearch" placeholder="🔍 Search..." oninput="renderMfgSpareTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgSpareForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgSpareList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Part Code</th><th>Part Name</th><th>Machine</th><th>Stock Qty</th><th>UOM</th><th>Reorder Level</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgSpareTableBody"></tbody>
-          </table>
-          <div id="mfgSpareEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🔩</span>
-            No spare parts found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgSpareFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgSpareId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-                    <div class="form-group"><label>Ref No</label><input type="text" id="mfgSpareRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Part Name</label><input type="text" id="mfgSpareName" placeholder="e.g. V-Belt A52"></div>
-          <div class="form-group"><label>Compatible Machine</label><input type="text" id="mfgSpareMachine"></div>
-          <div class="form-group"><label>Stock Qty</label><input type="number" id="mfgSpareStockQty" step="0.01"></div>
-          <div class="form-group"><label>UOM</label><input type="text" id="mfgSpareUom" placeholder="e.g. Pcs / Set"></div>
-          <div class="form-group"><label>Reorder Level</label><input type="number" id="mfgSpareReorderLevel" step="0.01"></div>
-          <div class="form-group"><label>Store Location</label><input type="text" id="mfgSpareLocation"></div>
-          <div class="form-group"><label>Status</label><select id="mfgSpareStatus"><option>Active</option><option>Discontinued</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgSpareRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgSpare()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgSpareList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgSpareDeleteBtn" onclick="deleteMfgSpare()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== Manufacturing: Routing ===================== -->
-  <div class="str-list-overlay" id="mfgRoutingOverlay" onclick="if(event.target===this) closeMfgRouting()">
-    <div class="str-list-outer" style="max-width:1200px; border-radius:8px; border:2px solid #1b4f72; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #113355, #1b4f72); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🛣️ Routing</h2>
-        <button class="str-close-list-btn" onclick="closeMfgRouting()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-
-      <!-- LIST VIEW -->
-      <div id="mfgRoutingListView">
-        <div style="background:#d4e6f1; padding:8px 16px; border-bottom:1px solid #aed6f1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Routings (<span id="mfgRoutingCount">0</span>)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="mfgRoutingSearch" placeholder="🔍 Search routing ref, product..." oninput="renderMfgRoutingTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:200px;">
-            <button onclick="openMfgRoutingForm(null)" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
-            <button onclick="loadMfgRoutingList()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto; background:#f8f9fa; max-height:440px;">
-          <table class="str-table" style="font-size:0.78rem;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">SL#</th><th>Routing Ref</th><th>Product</th><th>BOM Ref</th>
-                <th>Version</th><th># Operations</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mfgRoutingTableBody"></tbody>
-          </table>
-          <div id="mfgRoutingEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-            <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🛣️</span>
-            No Routing records found. Click "+" to add one.
-          </div>
-        </div>
-      </div>
-
-      <!-- FORM VIEW -->
-      <div id="mfgRoutingFormView" style="display:none; padding:20px; background:#fff;">
-        <input type="hidden" id="mfgRoutingId">
-        <div class="grid-layout" style="grid-template-columns: repeat(3,1fr); gap:14px;">
-          <div class="form-group"><label>Routing Ref</label><input type="text" id="mfgRoutingRefNo" readonly style="background:#f1f5f9; font-weight:700;"></div>
-          <div class="form-group"><label>Product</label><input type="text" id="mfgRoutingProduct" placeholder="e.g. Broiler Feed 50kg"></div>
-          <div class="form-group"><label>BOM Reference</label><input type="text" id="mfgRoutingBomRef" placeholder="e.g. BOM-000007"></div>
-          <div class="form-group"><label>Version</label><input type="text" id="mfgRoutingVersion" value="1.0"></div>
-          <div class="form-group"><label>Status</label>
-            <select id="mfgRoutingStatus"><option>Draft</option><option>Active</option><option>Obsolete</option></select>
-          </div>
-        </div>
-
-        <h4 style="margin:18px 0 6px; font-size:0.92rem; color:#1e293b; display:flex; align-items:center; justify-content:space-between;">
-          Operations (Process Steps)
-          <button type="button" class="pr-add-item-btn" onclick="addMfgRoutingOpRow()">➕ Add Operation</button>
-        </h4>
-        <div style="overflow-x:auto;">
-          <table class="str-table" style="font-size:0.78rem; min-width:700px;">
-            <thead>
-              <tr>
-                <th style="min-width:36px;">Seq#</th><th>Operation Name</th><th>Work Center / Machine</th>
-                <th>Setup Time (hr)</th><th>Run Time (hr)</th><th>Remarks</th><th></th>
-              </tr>
-            </thead>
-            <tbody id="mfgRoutingOpsBody"></tbody>
-          </table>
-        </div>
-
-        <div class="form-group" style="margin-top:14px;"><label>Remarks</label><textarea id="mfgRoutingRemarks" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px; margin-top:6px;">
-          <button onclick="saveMfgRouting()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
-          <button onclick="backToMfgRoutingList()" style="background:#94a3b8; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">← Back to List</button>
-          <button id="mfgRoutingDeleteBtn" onclick="deleteMfgRouting()" style="display:none; background:#e74c3c; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">🗑 Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== Manufacturing: BOM Version (cross-product, Set Active / Clone) ===================== -->
-  <div class="str-list-overlay" id="mfgBomVersionOverlay" onclick="if(event.target===this) closeMfgBomVersionList()">
-    <div class="str-list-outer" style="max-width:1150px; border-radius:8px; border:2px solid #512e5f; overflow:auto;">
-      <div style="background:linear-gradient(135deg, #3b2145, #512e5f); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
-        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">🧬 BOM Version</h2>
-        <button class="str-close-list-btn" onclick="closeMfgBomVersionList()" style="font-size:1rem; width:28px; height:28px;">X</button>
-      </div>
-      <div style="background:#e8daef; padding:8px 16px; border-bottom:1px solid #d2b4de; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-        <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">BOM Versions Across Products (<span id="mfgBomVersionCount">0</span>)</span>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <input type="text" id="mfgBomVersionSearch" placeholder="🔍 Search product, BOM ref..." oninput="renderMfgBomVersionTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:220px;">
-          <button onclick="renderMfgBomVersionTable()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
-        </div>
-      </div>
-      <div style="overflow-x:auto; background:#f8f9fa; max-height:480px;">
-        <table class="str-table" style="font-size:0.78rem;">
-          <thead>
-            <tr>
-              <th style="min-width:36px;">SL#</th><th>Product</th><th>BOM Ref</th><th>Version</th>
-              <th>Effective Date</th><th># Components</th><th>Status</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="mfgBomVersionTableBody"></tbody>
-        </table>
-        <div id="mfgBomVersionEmptyMsg" style="text-align:center; padding:36px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
-          <span style="font-size:2.2rem; display:block; margin-bottom:8px;">🧬</span>
-          No BOM records found yet. Create a BOM first under BOM → Bill of Materials, then manage its versions here.
-        </div>
-      </div>
-      <div style="padding:10px 16px; background:#fff; font-size:0.75rem; color:#64748b; border-top:1px solid #e2e8f0;">
-        💡 Tip: "Clone New Version" opens a fresh BOM form pre-filled from the selected version so you can adjust components, then save it as the next version.
-      </div>
-    </div>
-  </div>
-
 
   <!-- ===================== Sales & Distribution: Customer Master ===================== -->
   <div class="str-list-overlay" id="sdCustomerOverlay" onclick="if(event.target===this) closeSdCustomer()">
@@ -7353,14 +6555,6 @@
           <p>Customer Master is auto-pushed (a few seconds after saving) to its own "Customer" tab in your separate SD Google Sheet. Use these buttons to push everything right now.</p>
           <button class="data-io-btn data-io-btn-export" onclick="manualSyncAllToSdGoogleSheet()" style="background:#f97316;">⬆️ Push SD Data to Google Sheet</button>
           <div class="data-io-status" id="sdSheetSyncStatus"></div>
-        </div>
-
-        <!-- Google Sheet Sync Section (MFG Module) -->
-        <div class="data-io-section" style="border-left:3px solid #d35400;">
-          <h3>🛠️ Google Sheet Sync (MFG Module)</h3>
-          <p>Production Order is auto-pushed (a few seconds after saving) to its own "ProductionOrder" tab in your separate MFG Google Sheet — one row per item, for multi-item orders. Use these buttons to push everything right now.</p>
-          <button class="data-io-btn data-io-btn-export" onclick="manualSyncAllToMfgGoogleSheet()" style="background:#d35400;">⬆️ Push MFG Data to Google Sheet</button>
-          <div class="data-io-status" id="mfgSheetSyncStatus"></div>
         </div>
 
         <!-- Google Sheet Sync Section (HR Module) -->
@@ -11341,6 +10535,7 @@
 
     // ===== FIREBASE SYNC: AUTO-SAVE on key data changes =====
     var FB_SYNC_KEYS = [
+      'erpProd1',
       'erp_pr_records','erp_pr_serial',
       'erp_rfq_records','erp_rfq_serial',
       'erp_cs_records','erp_cs_serial',
@@ -11985,7 +11180,7 @@
           inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
         },
         menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: true},
-        modules: { mm: true, sd: true, fico: true, mfg: true, hr: true }
+        modules: { mm: true, sd: true, fico: true, prod: true, hr: true }
       },
 
     };
@@ -12097,8 +11292,8 @@
     // Default module access: only Materials Management is built today, so every
     // user gets it by default. Grant a user other modules via
     // userIdConfigs[userId].modules = { mm:true, sd:true, fico:true, mfg:true, hr:true }
-    const DEFAULT_MODULE_CONFIG = { mm: true, sd: false, fico: false, mfg: false, hr: false };
-    const FULL_MODULE_CONFIG = { mm: true, sd: true, fico: true, mfg: true, hr: true };
+    const DEFAULT_MODULE_CONFIG = { mm: true, sd: false, fico: false, prod: false, hr: false };
+    const FULL_MODULE_CONFIG = { mm: true, sd: true, fico: true, prod: true, hr: true };
     const SUPER_ADMIN_IDS = ['2422'];
 
     function applyAccessConfigForUser(userId) {
@@ -34899,7 +34094,7 @@ return btns;
     }
 
     var DATA_IO_KEYS = [
-      'erp_ap_inv_records','erp_ap_inv_serial','erp_ap_pay_records','erp_ap_pay_serial',
+      'erpProd1', 'erp_ap_inv_records','erp_ap_inv_serial','erp_ap_pay_records','erp_ap_pay_serial',
       'erp_appraisal_records','erp_appraisal_serial','erp_ar_inv_records','erp_ar_inv_serial',
       'erp_ar_rec_records','erp_ar_rec_serial','erp_asset_dep_records','erp_asset_dep_serial',
       'erp_asset_records','erp_asset_serial','erp_asset_transfer_records','erp_asset_transfer_serial',
