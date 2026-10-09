@@ -5847,7 +5847,7 @@ go('home');
         <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">📊 Inventory Stock Report with Valuation</h2>
         <button class="str-close-list-btn" onclick="closeStockReport()" style="font-size:1rem; width:28px; height:28px;">X</button>
       </div>
-      <div style="background:#d5dbdb; padding:8px 16px; border-bottom:1px solid #bdc3c7; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+      <div id="stockTopToolbar" style="background:#d5dbdb; padding:8px 16px; border-bottom:1px solid #bdc3c7; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
         <div style="display:flex; align-items:center; gap:12px;">
           <input type="text" id="stockReportSearch" placeholder="🔍 Search by Material Code, Name..." oninput="filterStockReport()" style="padding:6px 12px; border:1px solid #aaa; border-radius:3px; font-size:0.82rem; min-width:250px;">
           <select id="stockReportWarehouse" onchange="filterStockReport()" style="padding:6px 12px; border:1px solid #aaa; border-radius:3px; font-size:0.82rem;">
@@ -5860,10 +5860,24 @@ go('home');
         </div>
       </div>
         <div style="display:flex; gap:6px; padding:8px 16px; background:#eef2f7; border-bottom:1px solid #cbd5e1;">
+          <button id="stockSheetTabBtn" onclick="showStockReportTab('sheet')" style="padding:7px 14px; border:1px solid #2563eb; border-radius:4px; background:#2563eb; color:#fff; font-weight:700; cursor:pointer;">📄 Materials Stock Report</button>
           <button id="stockSummaryTabBtn" onclick="showStockReportTab('summary')" style="padding:7px 14px; border:1px solid #2563eb; border-radius:4px; background:#2563eb; color:#fff; font-weight:700; cursor:pointer;">📊 Stock Summary</button>
           <button id="stockBatchTabBtn" onclick="showStockReportTab('batch')" style="padding:7px 14px; border:1px solid #94a3b8; border-radius:4px; background:#fff; color:#334155; font-weight:700; cursor:pointer;">🏷 Batch-wise Stock</button>
         </div>
-        <div id="stockSummaryPanel" style="display:block;">
+        <div id="stockSheetPanel" style="display:block;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:8px 16px; background:#f8fafc; border-bottom:1px solid #cbd5e1;">
+          <input type="text" id="stockSheetSearch" placeholder="🔍 Search in report..." oninput="renderStockSheetReport()" style="padding:6px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.82rem; min-width:250px;">
+          <button onclick="loadStockSheetReport(true)" style="padding:6px 12px; border:none; border-radius:3px; background:#2563eb; color:#fff; font-weight:700; cursor:pointer; font-size:0.8rem;">🔄 Refresh</button>
+          <button onclick="exportStockSheetCSV()" style="padding:6px 12px; border:none; border-radius:3px; background:#e67e22; color:#fff; font-weight:700; cursor:pointer; font-size:0.8rem;">📥 Export CSV</button>
+          <button onclick="printStockSheetReport()" style="padding:6px 12px; border:none; border-radius:3px; background:#8e44ad; color:#fff; font-weight:700; cursor:pointer; font-size:0.8rem;">🖨 Print</button>
+          <span id="stockSheetInfo" style="font-size:0.78rem; color:#475569;"></span>
+        </div>
+        <div id="stockSheetMsg" style="display:none; padding:30px 20px; text-align:center; color:#92400e; font-size:0.9rem;"></div>
+        <div id="stockSheetWrap" style="overflow:auto; background:#f8f9fa; max-height:70vh;">
+          
+        </div>
+      </div>
+      <div id="stockSummaryPanel" style="display:none;">
         <div style="overflow-x:auto; background:#f8f9fa; max-height:70vh; overflow-y:auto;">
         <table class="str-table" style="font-size:0.75rem; white-space:nowrap;">
           <thead>
@@ -10602,6 +10616,10 @@ go('home');
         clearTimeout(_mfgSheetSyncTimers[key]);
         _mfgSheetSyncTimers[key] = setTimeout(function() { pushMfgModuleToGoogleSheet(key); }, 800);
       }
+      if (!_ignoreFirebaseUpdate && key === 'erpProd1' && typeof pushProductionModuleToGoogleSheet === 'function') {
+        clearTimeout(window.__prodSheetTimer);
+        window.__prodSheetTimer = setTimeout(pushProductionModuleToGoogleSheet, 800);
+      }
       if (!_ignoreFirebaseUpdate && typeof isHrSheetSyncKey !== 'undefined' && isHrSheetSyncKey(key)) {
         clearTimeout(_hrSheetSyncTimers[key]);
         _hrSheetSyncTimers[key] = setTimeout(function() { pushHrModuleToGoogleSheet(key); }, 800);
@@ -10919,9 +10937,69 @@ go('home');
       }
       showDataMsg('mfgSheetSyncStatus', 'info', 'Pushing all MFG module data to Google Sheet...');
       MFG_SHEET_SYNC_KEYS.forEach(function(key) { pushMfgModuleToGoogleSheet(key); });
+      pushProductionModuleToGoogleSheet();
       setTimeout(function() {
-        showDataMsg('mfgSheetSyncStatus', 'success', MFG_SHEET_SYNC_KEYS.length + ' module(s) pushed to Google Sheet — check your Sheet tabs.');
+        showDataMsg('mfgSheetSyncStatus', 'success', (MFG_SHEET_SYNC_KEYS.length + 4) + ' module(s) pushed to Google Sheet — check your Sheet tabs (incl. ProdPlan, ProdProcess, ProdConsumption, ProdFGReceive).');
       }, 1200);
+    }
+
+    // ===== Production module (localStorage key "erpProd1") -> MFG Google Sheet =====
+    // Production Plan / Process / Material Consumption / FG Receive prottek ta
+    // alada tab-e (ProdPlan, ProdProcess, ProdConsumption, ProdFGReceive) jay.
+    // Prottek save-er por pura snapshot pathano hoy (bulkSync, same MFG_GAS_WEB_APP_URL).
+    function buildProductionSheetTabs(D) {
+      var plans = [], proc = [], cons = [], rcv = [];
+      (D.plans || []).forEach(function(p) {
+        var items = (p.items && p.items.length) ? p.items : [{}];
+        items.forEach(function(it) {
+          plans.push({
+            dpp_no: p.no, date: p.date, start_date: p.s, end_date: p.e,
+            company: p.co || '', business_unit: p.bu || '', profit_center: p.pc || '',
+            plant: p.pl || '', remarks: p.rm || '', status: p.st || '',
+            product: it.fg || '', plan_batches: it.n || '', done_batches: it.done || 0
+          });
+        });
+      });
+      (D.batches || []).forEach(function(b) {
+        proc.push({
+          batch_no: b.no, date: b.date, dpp_no: b.dpp, product: b.fg, recipe_id: b.rc,
+          plant: b.pl, batch_size_kg: b.bs, batch_run: b.run, production_qty_kg: b.qty,
+          shift: b.sh, worker_group: b.wg, rm_warehouse: b.wh, remarks: b.rem || '',
+          status: b.st, plc_actual_kg: (b.plc == null ? '' : b.plc),
+          received_qty_kg: (b.rq == null ? '' : b.rq), fg_warehouse: b.fgwh || '', receive_date: b.rdate || ''
+        });
+      });
+      (D.cons || []).forEach(function(c) {
+        cons.push({ batch_no: c.b, date: c.date, product: c.fg, rm_name: c.rm, required_qty_kg: c.req, actual_qty_kg: c.q });
+      });
+      (D.rcv || []).forEach(function(r) {
+        rcv.push({
+          receive_no: r.no, date: r.date, batch_no: r.bn, product: r.fg, fg_warehouse: r.wh,
+          received_qty_kg: r.qty, batch_qty_kg: r.sq, plc_actual_kg: (r.pq == null ? '' : r.pq),
+          last_receive: r.last ? 'Yes' : 'No', remarks: r.rem || '', status: r.st
+        });
+      });
+      return { ProdPlan: plans, ProdProcess: proc, ProdConsumption: cons, ProdFGReceive: rcv };
+    }
+
+    function pushProductionModuleToGoogleSheet() {
+      if (!MFG_GAS_WEB_APP_URL || MFG_GAS_WEB_APP_URL === '#' || MFG_GAS_WEB_APP_URL.indexOf('PASTE_') === 0) return;
+      var D;
+      try { D = JSON.parse(_origGetItem.call(localStorage, 'erpProd1') || 'null'); } catch (e) { return; }
+      if (!D) return;
+      var tabs = buildProductionSheetTabs(D);
+      Object.keys(tabs).forEach(function(tab) {
+        if (!tabs[tab].length) return;
+        fetch(MFG_GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'bulkSync', form: tab, rows: tabs[tab] })
+        }).then(function(res) {
+          if (!res.ok) console.warn('Production Google Sheet sync HTTP ' + res.status + ' for ' + tab);
+        }).catch(function(err) {
+          console.warn('Production Google Sheet sync failed for ' + tab + ':', err);
+        });
+      });
     }
 
     function testMfgGoogleSheetConnection() {
@@ -22695,20 +22773,166 @@ return btns;
       populateBatchStockFilters();
       renderStockReport();
       renderBatchStockReport();
-      showStockReportTab('summary');
+      showStockReportTab('sheet');
+      loadStockSheetReport(false);
       document.getElementById('stockReportOverlay').classList.add('active');
     }
 
     function showStockReportTab(tab) {
       var summary = document.getElementById('stockSummaryPanel');
       var batch = document.getElementById('stockBatchPanel');
+      var sheet = document.getElementById('stockSheetPanel');
       var sb = document.getElementById('stockSummaryTabBtn');
       var bb = document.getElementById('stockBatchTabBtn');
+      var hb = document.getElementById('stockSheetTabBtn');
+      var tb = document.getElementById('stockTopToolbar');
       if (!summary || !batch) return;
       summary.style.display = tab === 'summary' ? 'block' : 'none';
       batch.style.display = tab === 'batch' ? 'block' : 'none';
+      if (sheet) sheet.style.display = tab === 'sheet' ? 'block' : 'none';
+      if (tb) tb.style.display = tab === 'sheet' ? 'none' : 'flex';
       if (sb) { sb.style.background = tab === 'summary' ? '#2563eb' : '#fff'; sb.style.color = tab === 'summary' ? '#fff' : '#334155'; }
       if (bb) { bb.style.background = tab === 'batch' ? '#2563eb' : '#fff'; bb.style.color = tab === 'batch' ? '#fff' : '#334155'; }
+      if (hb) { hb.style.background = tab === 'sheet' ? '#2563eb' : '#fff'; hb.style.color = tab === 'sheet' ? '#fff' : '#334155'; }
+    }
+
+    // ===== Materials Stock Report: live from Google Sheet (headers/rows exactly as in sheet) =====
+    // Sheet must be shared "Anyone with the link: Viewer" (or use a Publish-to-web CSV link here).
+    var MM_STOCK_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRB7jAPD2aQiSgwQBI1kgFug25sAyXxzw37wg83UpUisy3K9aWHThi2DilddXNhhsy5ZfyyRDtGI4/pub?gid=34367203&single=true&output=csv';
+    var _stockSheetRows = [];
+    var _stockSheetSections = [];
+
+    function parseStockSheetCsv(text) {
+      var rows = [], row = [], cur = '', inQ = false, i, c;
+      for (i = 0; i < text.length; i++) {
+        c = text[i];
+        if (inQ) {
+          if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
+          else cur += c;
+        } else if (c === '"') inQ = true;
+        else if (c === ',') { row.push(cur); cur = ''; }
+        else if (c === '\n' || c === '\r') {
+          if (c === '\r' && text[i + 1] === '\n') i++;
+          row.push(cur); cur = ''; rows.push(row); row = [];
+        } else cur += c;
+      }
+      if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+      return rows.filter(function(r) { return r.some(function(v) { return String(v).trim() !== ''; }); });
+    }
+
+    function stockSheetFilled(r) {
+      return r.filter(function(v) { return String(v).trim() !== ''; }).length;
+    }
+
+    // Split sheet into sections: each section = title rows + header row (has "Material Code") + data rows
+    function buildStockSheetSections(rows) {
+      var hIdx = [];
+      rows.forEach(function(r, i) {
+        if (r.some(function(c) { return String(c).trim().toLowerCase() === 'material code'; })) hIdx.push(i);
+      });
+      if (!hIdx.length) return [{ titles: [], header: rows[0], rows: rows.slice(1) }];
+      var secs = [];
+      for (var k = 0; k < hIdx.length; k++) {
+        var h = hIdx[k], tStart = h;
+        if (k === 0) tStart = 0;
+        else {
+          var floor = hIdx[k - 1] + 1;
+          while (tStart > floor && stockSheetFilled(rows[tStart - 1]) <= 2) tStart--;
+          secs[k - 1].end = tStart;
+        }
+        secs.push({ titles: rows.slice(tStart, h), header: rows[h], start: h + 1, end: rows.length });
+      }
+      secs.forEach(function(sc) { sc.rows = rows.slice(sc.start, sc.end); });
+      return secs;
+    }
+
+    function loadStockSheetReport(force) {
+      var msg = document.getElementById('stockSheetMsg');
+      if (_stockSheetRows.length && !force) { renderStockSheetReport(); return; }
+      msg.style.display = 'block'; msg.style.color = '#334155';
+      msg.textContent = '⏳ Google Sheet theke data load hocche...';
+      document.getElementById('stockSheetWrap').style.display = 'none';
+      var url = MM_STOCK_SHEET_CSV_URL + (MM_STOCK_SHEET_CSV_URL.indexOf('?') === -1 ? '?' : '&') + '_t=' + Date.now();
+      fetch(url, { cache: 'no-store' }).then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      }).then(function(text) {
+        if (/^\s*<(!doctype|html)/i.test(text)) throw new Error('Sheet public nai (login page ashche)');
+        var rows = parseStockSheetCsv(text);
+        if (!rows.length) throw new Error('Sheet faka');
+        _stockSheetRows = rows;
+        _stockSheetSections = buildStockSheetSections(rows);
+        window._stockSheetLoadedAt = new Date().toLocaleString();
+        renderStockSheetReport();
+      }).catch(function(err) {
+        msg.style.display = 'block'; msg.style.color = '#b91c1c';
+        msg.innerHTML = '❌ Google Sheet load hoyni (' + batchEsc(err.message) + ').<br>Sheet-er <b>File → Share → Publish to web → CSV</b> link ta thik ache kina dekhun, ar <code>MM_STOCK_SHEET_CSV_URL</code>-e boshan.';
+      });
+    }
+
+    function renderStockSheetReport() {
+      var secs = _stockSheetSections;
+      var msg = document.getElementById('stockSheetMsg');
+      var wrap = document.getElementById('stockSheetWrap');
+      if (!secs.length) return;
+      msg.style.display = 'none'; wrap.style.display = 'block';
+      var q = (document.getElementById('stockSheetSearch').value || '').toLowerCase();
+      var thS = 'padding:6px 8px; position:sticky; top:0; background:#2c3e50; color:#fff; text-align:left; z-index:1; border-right:1px solid #3d566e;';
+      var tdS = 'padding:5px 8px; border-bottom:1px solid #e9edf2;';
+      var numRe = /^([\s(-]*[\d,]+(\.\d+)?\)?\s*%?|-)$/;
+      var shown = 0, html = '';
+      secs.forEach(function(sc, si) {
+        var cols = sc.header.length;
+        while (cols > 0 && String(sc.header[cols - 1]).trim() === '') cols--;
+        sc.titles.forEach(function(tr, ti) {
+          var txt = tr.filter(function(v) { return String(v).trim() !== ''; }).map(function(v) { return String(v).trim(); }).join('   ');
+          var big = (si === 0 && ti < 3);
+          html += '<div style="padding:' + (big ? '3px' : '5px') + ' 10px; font-weight:700; ' + (big ? 'text-align:left; font-size:' + (ti === 0 ? '1rem' : '0.88rem') + ';' : 'font-size:0.82rem; background:#eef2f7;') + ' white-space:normal;">' + batchEsc(txt) + '</div>';
+        });
+        html += '<table class="str-table" style="font-size:0.75rem; white-space:nowrap; margin-bottom:18px;"><thead><tr>';
+        for (var c = 0; c < cols; c++) html += '<th style="' + thS + '">' + batchEsc(String(sc.header[c]).trim()) + '</th>';
+        html += '</tr></thead><tbody>';
+        sc.rows.forEach(function(row) {
+          if (q && row.join(' ').toLowerCase().indexOf(q) === -1) return;
+          shown++;
+          var isTotal = String(row[1] || '').trim() === '' && String(row[2] || '').trim() === '';
+          html += '<tr' + (isTotal ? ' style="font-weight:700; background:#fef9c3;"' : '') + '>';
+          for (var d = 0; d < cols; d++) {
+            var v = row[d] === undefined ? '' : String(row[d]).trim();
+            var st = tdS;
+            if (v !== '' && numRe.test(v)) st += ' text-align:right;';
+            if (v.charAt(0) === '#') st += ' color:#94a3b8;';
+            if (d === 0 && v !== '') st += ' font-weight:700;';
+            html += '<td style="' + st + '">' + batchEsc(v) + '</td>';
+          }
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+      });
+      wrap.innerHTML = html;
+      var info = document.getElementById('stockSheetInfo');
+      if (info) info.textContent = shown + ' row(s) | Loaded: ' + (window._stockSheetLoadedAt || '');
+    }
+
+    function exportStockSheetCSV() {
+      if (!_stockSheetRows.length) return;
+      var csv = _stockSheetRows.map(function(r) {
+        return r.map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+      }).join('\n');
+      var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'materials_stock_report_' + getTimestamp() + '.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    function printStockSheetReport() {
+      var wrap = document.getElementById('stockSheetWrap');
+      if (!wrap || !_stockSheetRows.length) return;
+      var w = window.open('', '_blank');
+      if (!w) return;
+      w.document.write('<html><head><title>Materials Stock Report</title><style>@page{size:A3 landscape;margin:8mm}body{font-family:Segoe UI,Arial;font-size:9px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:2px 4px;white-space:nowrap}th{background:#2c3e50;color:#fff;position:static!important}</style></head><body>' + wrap.innerHTML + '</body></html>');
+      w.document.close(); w.focus(); w.print();
     }
 
     function closeStockReport() {
