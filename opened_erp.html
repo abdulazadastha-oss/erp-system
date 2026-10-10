@@ -1013,6 +1013,64 @@
     }
 
     /* ===== PR List View ===== */
+    /* ===== Internal Messages (mail-style) ===== */
+    .msg-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:2500; align-items:center; justify-content:center; padding:20px; }
+    .msg-overlay.active { display:flex; }
+    .msg-box { background:#fff; border-radius:8px; width:100%; max-width:1250px; height:86vh; display:flex; flex-direction:column; box-shadow:0 30px 80px rgba(0,0,0,.3); overflow:hidden; }
+    .msg-head { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; border-bottom:1px solid #e5e9ef; background:#f8fafc; }
+    .msg-head h2 { margin:0; font-size:1.1rem; }
+    .msg-x { border:none; background:#ef4444; color:#fff; border-radius:4px; padding:5px 11px; cursor:pointer; font-weight:700; }
+    .msg-body { flex:1; display:flex; min-height:0; }
+    .msg-side { width:170px; border-right:1px solid #e5e9ef; padding:12px 10px; background:#f8fafc; flex-shrink:0; }
+    .msg-compose-btn { width:100%; padding:10px; border:none; border-radius:6px; background:#2563eb; color:#fff; font-weight:700; cursor:pointer; margin-bottom:12px; }
+    .msg-folder { padding:9px 10px; border-radius:6px; cursor:pointer; font-size:.88rem; display:flex; justify-content:space-between; margin-bottom:3px; }
+    .msg-folder:hover { background:#e8eef7; }
+    .msg-folder.active { background:#dbeafe; font-weight:700; color:#1d4ed8; }
+    .msg-listcol { width:340px; border-right:1px solid #e5e9ef; display:flex; flex-direction:column; flex-shrink:0; min-height:0; }
+    .msg-listtop { padding:10px; border-bottom:1px solid #eef1f5; }
+    .msg-listtop input { width:100%; box-sizing:border-box; padding:8px 12px; border:1px solid #c7cdd4; border-radius:4px; font-size:.85rem; outline:none; }
+    .msg-list { flex:1; overflow-y:auto; }
+    .msg-item { padding:10px 14px; border-bottom:1px solid #eef1f5; cursor:pointer; }
+    .msg-item:hover { background:#f3f7fd; }
+    .msg-item.sel { background:#dbeafe; }
+    .msg-item.unread .msg-from, .msg-item.unread .msg-subj { font-weight:800; color:#0f172a; }
+    .msg-item.unread { border-left:4px solid #2563eb; padding-left:10px; }
+    .msg-item-top { display:flex; justify-content:space-between; gap:8px; }
+    .msg-from { font-size:.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .msg-time { font-size:.7rem; color:#64748b; white-space:nowrap; }
+    .msg-subj { font-size:.84rem; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .msg-snip { font-size:.76rem; color:#64748b; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .msg-view { flex:1; overflow-y:auto; padding:18px 24px; min-width:0; }
+    .msg-empty { color:#94a3b8; text-align:center; margin-top:80px; font-size:.95rem; }
+    .msg-read h3 { margin:0 0 8px; font-size:1.1rem; word-break:break-word; }
+    .msg-meta { font-size:.82rem; color:#475569; line-height:1.7; margin-bottom:10px; }
+    .msg-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:10px 0; }
+    .msg-actions button, .msg-small { padding:6px 12px; border:1px solid #c7cdd4; border-radius:4px; background:#fff; cursor:pointer; font-size:.82rem; font-weight:600; }
+    .msg-actions button:hover, .msg-small:hover { background:#eef2f7; }
+    .msg-actions button.primary { background:#2563eb; color:#fff; border-color:#2563eb; }
+    .msg-actions button.danger { color:#dc2626; }
+    .msg-text { white-space:pre-wrap; word-break:break-word; font-size:.92rem; line-height:1.6; border-top:1px solid #e5e9ef; padding-top:14px; }
+    .msg-row { display:flex; gap:8px; align-items:flex-start; margin-bottom:10px; position:relative; }
+    .msg-row > label { width:62px; padding-top:8px; font-size:.82rem; font-weight:700; color:#475569; flex-shrink:0; }
+    .msg-to { flex:1; display:flex; flex-wrap:wrap; gap:5px; align-items:center; border:1px solid #c7cdd4; border-radius:4px; padding:5px 8px; min-height:22px; }
+    .msg-to input { border:none; outline:none; flex:1; min-width:160px; font-size:.88rem; padding:3px; }
+    .msg-chip { background:#dbeafe; color:#1e40af; border-radius:12px; padding:3px 6px 3px 10px; font-size:.8rem; display:inline-flex; gap:6px; align-items:center; }
+    .msg-chip b { cursor:pointer; color:#1e40af; }
+    .msg-sugg { position:absolute; top:100%; left:70px; right:80px; background:#fff; border:1px solid #c7cdd4; border-radius:4px; box-shadow:0 8px 24px rgba(0,0,0,.15); z-index:5; max-height:240px; overflow-y:auto; display:none; }
+    .msg-sugg div { padding:8px 12px; cursor:pointer; font-size:.84rem; border-bottom:1px solid #f1f5f9; }
+    .msg-sugg div:hover { background:#eff6ff; }
+    .msg-sugg small { color:#64748b; }
+    .msg-field { flex:1; padding:8px 10px; border:1px solid #c7cdd4; border-radius:4px; font-size:.9rem; outline:none; font-family:inherit; }
+    .msg-toast { position:fixed; top:80px; right:20px; background:#1e293b; color:#fff; padding:12px 18px; border-radius:8px; z-index:4000; font-size:.85rem; box-shadow:0 8px 24px rgba(0,0,0,.3); max-width:340px; cursor:pointer; }
+    @media (max-width: 860px) {
+      .msg-box { height:94vh; }
+      .msg-body { flex-direction:column; overflow-y:auto; }
+      .msg-side { width:auto; display:flex; gap:8px; border-right:none; border-bottom:1px solid #e5e9ef; padding:8px; align-items:center; }
+      .msg-compose-btn { width:auto; margin:0; padding:8px 12px; }
+      .msg-listcol { width:auto; border-right:none; border-bottom:1px solid #e5e9ef; max-height:38vh; }
+      .msg-view { overflow:visible; padding:14px; }
+    }
+
     .pr-list-overlay {
       display: none;
       position: fixed;
@@ -2567,6 +2625,10 @@
         <span class="role-badge" id="displayRole">👑 Admin</span>
         <div class="avatar" id="displayAvatar">AA</div>
         <strong id="displayName">Abdul Azad</strong>
+        <div class="notification-bell" id="msgBtn" onclick="toggleMessagePanel()" title="Messages">
+          ✉️
+          <span class="notification-badge zero" id="msgBadge">0</span>
+        </div>
         <div class="notification-bell" id="notifBell" onclick="toggleNotificationPanel()" title="Notifications">
           🔔
           <span class="notification-badge zero" id="notifBadge">0</span>
@@ -3205,15 +3267,15 @@ const Bd=s=>\`<span class="bd \${s.replace(' ','')}">\${s}</span>\`;
 const BT=(a,x)=>\`<div class="bt"><button class="btn sv" data-act="\${a}">Save</button><button class="btn ex" data-act="\${x||'home'}">Exit</button></div>\`;
 const T=(h,r)=>\`<div class="wrap"><table><tr>\${h.map(x=>\`<th>\${x}</th>\`).join('')}</tr>\${r.length?r.map(x=>\`<tr class="r">\${x.map(c=>\`<td>\${c}</td>\`).join('')}</tr>\`).join(''):\`<tr class="r"><td colspan="\${h.length}" style="color:var(--mut)">No Data</td></tr>\`}</table></div>\`;
 const R={};
-const itemRow=()=>\`<tr class="r it"><td><select class="ifg" data-chg="iq"><option value="">[ Select Product ]</option>\${PRODS().map(n=>\`<option>\${n}</option>\`).join('')}</select></td><td><input class="in" data-chg="iq" type="number" min="1" value="1" style="width:70px"></td><td class="iq">—</td><td><span class="x" data-act="delItem" style="background:#d9342b;color:#fff;padding:0 6px;cursor:pointer">✕</span></td></tr>\`;
+const itemRow=()=>'<tr class="r it"><td><select class="ipl">'+iplOpts('')+'</select></td><td><select class="ifg" data-chg="iq"><option value="">[ Select Product ]</option>'+PRODS().map(n=>'<option>'+n+'</option>').join('')+'</select></td><td><input class="iqty" data-chg="iq" type="number" min="0" step="any" style="width:100px"></td><td><input class="ibs" data-chg="iq" type="number" min="1" step="any" value="1000" style="width:90px"></td><td class="ib">—</td><td><span class="x" data-act="delItem" style="background:#d9342b;color:#fff;padding:0 6px;cursor:pointer">✕</span></td></tr>';
 const pacts2=p=>\`<button class="btn sv" data-act="planview" data-id="\${p.no}">View</button> \`+(p.st=='Draft'?\`<button class="btn ex" data-act="planedit" data-id="\${p.no}">Edit</button> \`:'')+\`<button class="btn pr" data-act="planprn" data-id="\${p.no}">🖶 Print</button>\`+(p.st=='Draft'?\` <button class="btn sv" style="background:#16a34a" data-act="plansubmit" data-id="\${p.no}">Submit</button>\`:'');
-const planDoc=p=>{const L=p.items.map(i=>{const sz=(rec(i.fg)||{size:0}).size,pq=i.n*sz,dn=rnd(i.done*sz);return [i.fg,i.n,pq,dn,rnd(pq-dn)]}),t=k=>'<b>'+rnd(L.reduce((a,x)=>a+x[k],0))+'</b>';
- return \`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['DPP No.',p.no],['Status',p.st],['Plan Date',p.date],['Company',p.co||'—'],['Business Unit',p.bu||'—'],['Profit Center',p.pc||'—'],['Start Time',p.s],['End Time',p.e],['Plant',p.pl],['Remarks',p.rm||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\${T(['Product','Batches','Plan Qty (Kg)','Produced (Kg)','Balance (Kg)'],L.concat([['<b>Total</b>',t(1),t(2),t(3),t(4)]]))}\`};
+const planDoc=p=>{const L=p.items.map(i=>{const sz=isz(i),pq=rnd(i.n*sz),dn=rnd(i.done*sz);return [i.pl||p.pl,i.fg,pq,sz,rnd(i.n),dn,rnd(pq-dn)]}),t=k=>'<b>'+rnd(L.reduce((a,x)=>a+x[k],0))+'</b>';
+ return \`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['DPP No.',p.no],['Status',p.st],['Plan Date',p.date],['Company',p.co||'—'],['Business Unit',p.bu||'—'],['Profit Center',p.pc||'—'],['Start Time',p.s],['End Time',p.e],['Remarks',p.rm||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\${T(['Plant','Product','Qty (Kg)','Batch Size (Kg)','Batches','Produced (Kg)','Balance (Kg)'],L.concat([['','<b>Total</b>',t(2),'',t(4),t(5),t(6)]]))}\`};
 const planView=no=>{const p=D.plans.find(x=>x.no==no);return p?\`<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Daily Production Plan \${p.no} [View]<span><button class="btn pr" data-act="planprn" data-id="\${p.no}">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>\${planDoc(p)}</div></div>\`:''};
 R.plan=()=>\`<div class="ttl">Daily Production Planning<button class="btn sv" data-act="plannew">＋ New Plan</button></div>
-<div class="pn"><div class="ph"><span class="mn">−</span>Daily Production Plan (\${D.plans.length})</div>\${T(['DPP Ref. No','Plan Date','Start','End','Company','BU','Profit Center','Plant','Items (Product × Batches)','Total Batches','Total Qty (Kg)','Status','Action'],D.plans.map(p=>[p.no,p.date,p.s,p.e,p.co||'—',p.bu||'—',p.pc||'—',p.pl,p.items.map(i=>\`\${i.fg} × \${i.n}\`).join('<br>'),p.items.reduce((a,i)=>a+i.n,0),p.items.reduce((a,i)=>a+i.n*(rec(i.fg)||{size:0}).size,0),Bd(p.st),pacts2(p)]))}</div>
-<div class="modal" id="ins"><div class="pn"><div class="ih">Daily Production Plan [\${PE?'Edit '+PE:'Insert'} mode]<span class="x" data-act="hide">✕</span></div><div class="fg">\${inp('d','Plan Date',td(),'date')}\${inp('s','Start Time','08:00','time')}\${inp('e','End Time','17:00','time')}\${sel('co','Company',orgCo(),'data-chg="org"')}\${sel('bu','Business Unit',[],'data-chg="org"')}\${sel('pc','Profit Center',[],'data-chg="org"')}\${sel('pl','Plant Name',ORG.rows.length?[]:PL)}\${inp('rm','Remarks')}</div>
-<div class="wrap" style="padding:0 12px"><table id="itb"><tr><th>Product Name</th><th>Batches</th><th>Qty (Kg)</th><th></th></tr>\${itemRow()}</table><button class="btn sv" data-act="addItem" style="margin:6px 0">＋ Add Item</button></div>\${BT('savePlan','hide')}</div></div>\${PWV?planView(PWV):''}\`;
+<div class="pn"><div class="ph"><span class="mn">−</span>Daily Production Plan (\${D.plans.length})</div>\${T(['DPP Ref. No','Plan Date','Start','End','Company','BU','Profit Center','Plant','Items (Product × Batches)','Total Batches','Total Qty (Kg)','Status','Action'],D.plans.map(p=>[p.no,p.date,p.s,p.e,p.co||'—',p.bu||'—',p.pc||'—',p.pl,p.items.map(i=>(i.pl||p.pl)+' · '+i.fg+' × '+rnd(i.n)).join('<br>'),rnd(p.items.reduce((a,i)=>a+i.n,0)),rnd(p.items.reduce((a,i)=>a+i.n*isz(i),0)),Bd(p.st),pacts2(p)]))}</div>
+<div class="modal" id="ins"><div class="pn"><div class="ih">Daily Production Plan [\${PE?'Edit '+PE:'Insert'} mode]<span class="x" data-act="hide">✕</span></div><div class="fg">\${inp('d','Plan Date',td(),'date')}\${inp('s','Start Time','08:00','time')}\${inp('e','End Time','17:00','time')}\${sel('co','Company',orgCo(),'data-chg="org"')}\${sel('bu','Business Unit',[],'data-chg="org"')}\${sel('pc','Profit Center',[],'data-chg="org"')}\${inp('rm','Remarks')}</div>
+<div class="wrap" style="padding:0 12px"><table id="itb"><tr><th>Plant Name</th><th>Product Name</th><th>Qty (Kg)</th><th>Batch Size (Kg)</th><th>Batches</th><th></th></tr>\${itemRow()}</table><button class="btn sv" data-act="addItem" style="margin:6px 0">＋ Add Item</button></div>\${BT('savePlan','hide')}</div></div>\${PWV?planView(PWV):''}\`;
 let RS=null;
 const rRow=(n='',q='',c='',cd='')=>'<tr class="r rr"><td><select class="rc2" data-chg="rcat"><option value="">[ Select Item Category ]</option>'+opt(itmCats(),c)+'</select></td><td><select class="rn" data-chg="rnm"><option value="">[ Select Raw Material ]</option>'+opt(itmNames(c).concat(n&&itmNames(c).indexOf(n)<0?[n]:[]),n)+'</select></td><td><input class="rcd" disabled value="'+(cd||itmCode(c,n))+'" placeholder="Item Code" style="width:110px"></td><td><input class="rq2" data-chg="rt" type="number" min="0" step="any" value="'+q+'" style="width:100px"></td><td><span class="x" data-act="delR" style="background:#d9342b;color:#fff;padding:0 6px;cursor:pointer">✕</span></td></tr>';
 const recDoc=r=>\`<div style="padding:10px 14px"><b>\${r.fg}</b> · \${r.act===false?'Inactive':'Active'} · Code: \${r.code} · \${r.cat} · Batch Size: \${r.size} Kg</div>\${T(['#','Item Category','Raw Material','Item Code','Qty (Kg)','%'],r.lines.map((l,i)=>[i+1,l[2]||itmCatOf(l[0])||'—',l[0],l[3]||itmCode(l[2]||itmCatOf(l[0]),l[0])||'—',l[1],(l[1]/r.size*100).toFixed(2)]).concat([['','','<b>Total</b>','','<b>'+r.lines.reduce((a,l)=>a+l[1],0)+'</b>','']]))}\`;
@@ -3233,7 +3295,7 @@ const rcDoc=r=>\`<div style="padding:10px 14px;display:grid;grid-template-column
 const rcView=no=>{const r=D.rcv.find(x=>x.no==no);return r?\`<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Finished Goods Receive \${r.no} [View]<span><button class="btn pr" data-act="rcprn" data-id="\${r.no}">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>\${rcDoc(r)}</div></div>\`:''};
 R.receive=()=>\`<div class="ttl">Finished Goods Receive From Production<button class="btn sv" data-act="rcnew">＋ Receive Entry</button></div>
 <div class="pn">\${T(['Receive No','Date','Batch No','Product','Std Qty (Kg)','Received Qty (Kg)','FG-Warehouse','Status','Action'],D.rcv.map(r=>[r.no,r.date,r.bn,r.fg,r.sq,r.qty,r.wh,Bd(r.st),racts(r)]))}</div>
-<div class="modal" id="ins"><div class="pn"><div class="ih">Finished Goods Receive [\${RV?'Edit '+RV:'Insert'} mode]<span class="x" data-act="hide">✕</span></div><div class="fg">\${inp('rno','Receive No.','','text','disabled')}\${inp('d','Receive Date',td(),'date','data-chg="rf"')}\${sel('bn','Batch No',availB().map(b=>b.no),'data-chg="rf"')}\${inp('fg','Product Name','','text','disabled')}\${inp('sq','Std Production (Kg)','','text','disabled')}\${inp('pq','PLC Qty (Kg)','','text','disabled')}\${inp('rq','Received Qty (Kg)','','number','min=0 step="any"')}\${sel('wh','FG-Warehouse',['FG-Bonpara','FG-Rupshi'])}\${fld('Last Process ?','<input id="lp" type="checkbox">')}\${inp('rm','Remarks')}</div>\${BT('saveRcv','hide')}</div></div>\${RW?rcView(RW):''}\`;
+<div class="modal" id="ins"><div class="pn"><div class="ih">Finished Goods Receive [\${RV?'Edit '+RV:'Insert'} mode]<span class="x" data-act="hide">✕</span></div><div class="fg">\${inp('rno','Receive No.','','text','disabled')}\${inp('d','Receive Date',td(),'date','data-chg="rf"')}\${sel('bn','Batch No',availB().map(b=>b.no),'data-chg="rf"')}\${inp('fg','Product Name','','text','disabled')}\${inp('sq','Std Production (Kg)','','text','disabled')}\${inp('pq','PLC Qty (Kg)','','text','disabled')}\${inp('rq','Received Qty (Kg)','','number','min=0 step="any"')}\${sel('wh','FG-Warehouse',WH)}\${fld('Last Process ?','<input id="lp" type="checkbox">')}\${inp('rm','Remarks')}</div>\${BT('saveRcv','hide')}</div></div>\${RW?rcView(RW):''}\`;
 R.close=()=>\`<div class="ttl">Batch Close</div><div class="pn">\${T(['Batch No','Product','Received Qty','Status',''],D.batches.filter(b=>b.st=='Received'||b.st=='Closed').map(b=>[b.no,b.fg,b.rq,Bd(b.st),b.st=='Received'?\`<button class="btn sv" data-act="close" data-id="\${b.no}">Close Batch</button>\`:'']))}</div>\`;
 const mt=(x,f)=>!f||String(x).toLowerCase().includes(f.trim().toLowerCase());
 const fcombo=(id,l,a,cur)=>fld(l,\`<input id="\${id}" list="\${id}l" value="\${cur||''}" placeholder="All / type to search" autocomplete="off"><datalist id="\${id}l">\${a.map(o=>\`<option value="\${o}">\`).join('')}</datalist>\`);
@@ -3257,9 +3319,12 @@ function go(w,keep){if(!keep){RS=null;PS=null;PV=null;RV=null;RW=null;F={};PE=nu
  if(h)$('#v-home .sub').textContent=\`ERP UI  ·  Plans: \${D.plans.length}  ·  Batches: \${D.batches.length}  ·  Received: \${D.batches.filter(b=>b.rq).length}\`;
  if(!h&&M[w]=='process')A.pdef();if(!h&&M[w]=='recipe'&&RS&&RS.mode!='view')A.rt();toast('Ready');$('#st').style.color='';window.scrollTo(0,0)}
 const rnd=x=>Math.round(x*1000)/1000;
+const isz=i=>+i.bs||(rec(i.fg)||{size:0}).size,ikey=(p,i)=>i.fg+'|'+(i.pl||p.pl||''),ifind=(p,k)=>p?p.items.find(x=>ikey(p,x)==k):undefined;
+const iplList=()=>ORG.rows.length?orgPl(v('co'),v('bu'),v('pc')):PL;
+const iplOpts=c=>{const a=iplList();return '<option value="">[ Select Plant Name ]</option>'+a.concat(c&&a.indexOf(c)<0?[c]:[]).map(n=>'<option'+(n==c?' selected':'')+'>'+n+'</option>').join('')};
 let MAN={},PS=null,PV=null,RV=null,RW=null,F={},PE=null,PWV=null;
 const live=()=>D.batches.filter(b=>b.st!='Draft');
-const resv=(p,i)=>D.batches.filter(x=>x.st=='Draft'&&x.dpp==p.no&&x.fg==i.fg&&x.no!=PS).reduce((a,x)=>a+x.qty,0);
+const resv=(p,i)=>D.batches.filter(x=>x.st=='Draft'&&x.dpp==p.no&&x.fg==i.fg&&x.pl==(i.pl||p.pl)&&x.no!=PS).reduce((a,x)=>a+x.qty,0);
 const bLines=b=>{if(b.st=='Draft'){const r=D.recipes.find(x=>x.id==b.rc);return r.lines.map(([n,q])=>[n,rnd(q*b.qty/r.size),b.act[n]])}return D.cons.filter(c=>c.b==b.no).map(c=>[c.rm,c.req??c.q,c.q])};
 const bDoc=b=>\`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['Batch No',b.no],['Status',b.st],['Process Date',b.date],['DPP No.',b.dpp],['Product',b.fg],['Recipe No.',b.rc||'—'],['Plant',b.pl],['Shift',b.sh||'—'],['Worker Group',b.wg||'—'],['RM-Warehouse',b.wh||'—'],['Production Qty (Kg)',b.qty],['Batch Size (Kg)',b.bs||'—'],['No. of Batch Run',b.run],['Remarks',b.rem||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\${T(['Raw Material','Required (Kg)','Actual Consumption (Kg)'],bLines(b).concat([['<b>Total</b>','<b>'+rnd(bLines(b).reduce((a,l)=>a+(+l[1]||0),0))+'</b>','<b>'+rnd(bLines(b).reduce((a,l)=>a+(+l[2]||0),0))+'</b>']]))}\`;
 const pView=no=>{const b=D.batches.find(x=>x.no==no);return b?\`<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Production Entry \${b.no} [View]<span><button class="btn pr" data-act="pprn" data-id="\${b.no}">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>\${bDoc(b)}</div></div>\`:''};
@@ -3268,7 +3333,7 @@ const shiftNow=()=>{const h=new Date().getHours();return h>=6&&h<18?'Day':'Night
 const A={np:()=>{const e=$('#ins');e.style.display=e.classList.contains('modal')?'flex':'block';e.scrollIntoView({behavior:'smooth'})},hide:()=>$('#ins').style.display='none',home:()=>go('home'),
 pdef(){MAN={};set('sh',shiftNow());set('wg','Group A');const o=[...$('#dpp').options].filter(x=>x.value);
  if(o.length==1){set('dpp',o[0].value);A.fill({id:'dpp'});const it=[...$('#it').options].filter(x=>x.value);if(it.length==1){set('it',it[0].value);A.fill({id:'it'})}}A.rmp()},
-rmp(){const p=D.plans.find(x=>x.no==v('dpp')),i=p&&p.items.find(x=>x.fg==v('it')),r=i&&rec(i.fg),qty=+v('prq')||0,st=D.stock[v('wh')]||{};
+rmp(){const p=D.plans.find(x=>x.no==v('dpp')),i=ifind(p,v('it')),r=i&&rec(i.fg),qty=+v('prq')||0,st=D.stock[v('wh')]||{};
  if(!r){$('#rmp').innerHTML='';return}
  const rows=r.lines.map(([n,q])=>{const need=rnd(q*qty/r.size),a=MAN[n]!==undefined?MAN[n]:need,av=st[n]||0;return {n,need,a,av}}),sum=k=>rnd(rows.reduce((t,x)=>t+(+x[k]||0),0));
  $('#rmp').innerHTML=T(['Raw Material','Required (Kg)','Available (Kg)','Actual Consumption (Kg)','Status'],rows.map(x=>[x.n,x.need,x.av,\`<input class="act" data-rm="\${x.n}" data-av="\${x.av}" data-chg="rmv" type="number" min="0" step="any" value="\${x.a}" style="width:110px">\`,+x.a<=x.av?'✔':'<span style="color:#d9342b">✘ short</span>']).concat([['<b>Total</b>',\`<b>\${sum('need')}</b>\`,'',\`<b id="tac">\${sum('a')}</b>\`,'']]))},
@@ -3279,32 +3344,33 @@ freset(){F={};go(cur,1)},rcode(){if(!$('#code').dataset.man)set('code',mkCode(v(
 redit(a){if(!ITM.length)itmLoad();RS={mode:'edit',id:a.dataset.id};go('582',1)},rhide(){RS=null;go('582',1)},
 addR:()=>$('#rtb').insertAdjacentHTML('beforeend',rRow()),delR(a){if(root.querySelectorAll('.rr').length>1){a.closest('tr').remove();A.rt()}},
 rt(){const t=[...root.querySelectorAll('.rq2')].reduce((a,x)=>a+(+x.value||0),0),b=+v('size')||0,e=$('#rtot');e.innerHTML=\`Total RM: <b>\${t}</b> Kg / Batch size: <b>\${b}</b> Kg \${t==b?'✔':'✘ mismatch'}\`;e.style.color=t==b?'#2da44e':'#d9342b'},
-prn(a){const r=D.recipes.find(x=>x.id==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">Recipe \${r.id}</h2>\`+recDoc(r);PRINT()},addItem:()=>$('#itb').insertAdjacentHTML('beforeend',itemRow()),delItem(a){if(root.querySelectorAll('.it').length>1)a.closest('tr').remove()},iq(){root.querySelectorAll('.it').forEach(r=>{const q=rec(r.querySelector('.ifg').value);r.querySelector('.iq').textContent=q?q.size*(+r.querySelector('.in').value||0):'—'})},
-savePlan(){const it=[...root.querySelectorAll('.it')].map(r=>({fg:r.querySelector('.ifg').value,n:+r.querySelector('.in').value,done:0}));
- if(bad(['d','s','e'].concat(ORG.rows.length?['co','bu','pc']:[],['pl']).concat([...root.querySelectorAll('.ifg')])))return toast('Please fill all required fields (marked red): Company, Business Unit, Profit Center, Plant and Product',1);
- if(it.some(i=>!i.fg||!(i.n>=1)))return toast('Every item needs a product and batches ≥ 1',1);
+prn(a){const r=D.recipes.find(x=>x.id==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">Recipe \${r.id}</h2>\`+recDoc(r);PRINT()},addItem:()=>$('#itb').insertAdjacentHTML('beforeend',itemRow()),delItem(a){if(root.querySelectorAll('.it').length>1)a.closest('tr').remove()},iq(){root.querySelectorAll('.it').forEach(r=>{const q=+r.querySelector('.iqty').value,b=+r.querySelector('.ibs').value;r.querySelector('.ib').textContent=q>0&&b>0?rnd(q/b):'—'})},
+savePlan(){const it=[...root.querySelectorAll('.it')].map(r=>({pl:r.querySelector('.ipl').value,fg:r.querySelector('.ifg').value,qty:+r.querySelector('.iqty').value,bs:+r.querySelector('.ibs').value,n:Math.round((+r.querySelector('.iqty').value)/(+r.querySelector('.ibs').value||1)*1e6)/1e6,done:0}));
+ if(bad(['d','s','e'].concat(ORG.rows.length?['co','bu','pc']:[]).concat([...root.querySelectorAll('.ipl,.ifg,.iqty,.ibs')])))return toast('Please fill all required fields (marked red): Company, Business Unit, Profit Center, Plant and Product',1);
+ if(it.some(i=>!i.fg||!(i.qty>0)||!(i.bs>0)))return toast('Every item needs a Plant, Product, Qty (Kg) > 0 and Batch Size > 0',1);
  if(pmNeed())return;
  {const x=it.find(i=>PM.indexOf(i.fg)<0);if(x)return toast('Product "'+x.fg+'" is not in the Product master sheet',1)}
- if(new Set(it.map(i=>i.fg)).size<it.length)return toast('Duplicate product in items',1);
- const o={date:v('d'),s:v('s'),e:v('e'),co:v('co')||'',bu:v('bu')||'',pc:v('pc')||'',pl:v('pl'),rm:v('rm'),items:it};let no=PE;
+ if(new Set(it.map(i=>i.fg+'|'+i.pl)).size<it.length)return toast('Duplicate Plant + Product in items',1);
+ const o={date:v('d'),s:v('s'),e:v('e'),co:v('co')||'',bu:v('bu')||'',pc:v('pc')||'',pl:[...new Set(it.map(i=>i.pl))].join(', '),rm:v('rm'),items:it};let no=PE;
  if(no)Object.assign(D.plans.find(x=>x.no==no),o);else{no='DPP-'+pad(++D.seq.dpp);D.plans.push({no,...o,st:'Draft'})}
  save();go('581');toast(\`Draft \${no} saved with \${it.length} item(s). Click Submit to release it for production\`)},
 org(t){const g=i=>$('#'+i),fill=(i,a,l)=>{const e=g(i);if(!e)return;e.innerHTML='<option value="">[ Select '+l+' ]</option>'+a.map(o=>'<option>'+o+'</option>').join('')};
  if(!ORG.rows.length)return;
  if(t.id=='co'){fill('bu',orgBu(v('co')),'Business Unit');fill('pc',[],'Profit Center');fill('pl',[],'Plant Name')}
  if(t.id=='bu'){fill('pc',orgPc(v('co'),v('bu')),'Profit Center');fill('pl',[],'Plant Name')}
- if(t.id=='pc')fill('pl',orgPl(v('co'),v('bu'),v('pc')),'Plant Name')},
+ if(t.id=='pc')fill('pl',orgPl(v('co'),v('bu'),v('pc')),'Plant Name');A.iplfill()},
+iplfill(){const a=iplList();root.querySelectorAll('.ipl').forEach(e=>{const c=e.value;e.innerHTML='<option value="">[ Select Plant Name ]</option>'+a.map(n=>'<option>'+n+'</option>').join('');if(a.indexOf(c)>=0)e.value=c})},
 pmfill(){root.querySelectorAll('.ifg').forEach(sl=>{const c=sl.value;sl.innerHTML='<option value="">[ Select Product ]</option>'+PRODS().map(n=>'<option>'+n+'</option>').join('');sl.value=c});const l=$('#rml');if(l)l.innerHTML=PM.map(n=>'<option>'+n+'</option>').join('')},
-whfill(){const e=$('#wh');if(!e||e.disabled)return;if(!$('#dpp'))return;const c=e.value;e.innerHTML='<option value="">[ Select RM-Warehouse ]</option>'+opt(WH,c)},
+whfill(){const e=$('#wh');if(!e||e.disabled)return;const L=$('#dpp')?'RM-Warehouse':($('#rno')?'FG-Warehouse':'');if(!L)return;const c=e.value;e.innerHTML='<option value="">[ Select '+L+' ]</option>'+opt(WH,c)},
 rcat(t){const tr=t.closest('tr'),e=tr.querySelector('.rn');e.innerHTML='<option value="">[ Select Raw Material ]</option>'+opt(itmNames(t.value));e.style.outline='';tr.querySelector('.rcd').value=''},
 rnm(t){const tr=t.closest('tr');tr.querySelector('.rcd').value=itmCode(tr.querySelector('.rc2').value,t.value)},
 itmfill(){root.querySelectorAll('.rr').forEach(x=>{const c=x.querySelector('.rc2'),n=x.querySelector('.rn'),cv=c.value||itmCatOf(n.value),nv=n.value;c.innerHTML='<option value="">[ Select Item Category ]</option>'+opt(itmCats(),cv);n.innerHTML='<option value="">[ Select Raw Material ]</option>'+opt(itmNames(cv).concat(nv&&itmNames(cv).indexOf(nv)<0?[nv]:[]),nv);x.querySelector('.rcd').value=itmCode(cv,nv)})},
 orgfill(){const e=$('#co');if(!e)return;const c=e.value;e.innerHTML='<option value="">[ Select Company ]</option>'+orgCo().map(o=>'<option>'+o+'</option>').join('');e.value=c;if(!c){['bu','pc','pl'].forEach(i=>{const x=$('#'+i);if(x)x.innerHTML='<option value="">[ Select ]</option>'})}},
 plannew(){PE=null;if(!PM.length)pmLoad();go('581',1);A.np()},
 planedit(a){const p=D.plans.find(x=>x.no==a.dataset.id);if(!p||p.st!='Draft')return;PE=p.no;go('581',1);
- set('d',p.date);set('s',p.s);set('e',p.e);set('co',p.co||'');A.org({id:'co'});set('bu',p.bu||'');A.org({id:'bu'});set('pc',p.pc||'');A.org({id:'pc'});set('pl',p.pl);set('rm',p.rm||'');
+ set('d',p.date);set('s',p.s);set('e',p.e);set('co',p.co||'');A.org({id:'co'});set('bu',p.bu||'');A.org({id:'bu'});set('pc',p.pc||'');A.org({id:'pc'});set('rm',p.rm||'');
  root.querySelectorAll('.it').forEach(r=>r.remove());
- p.items.forEach(i=>{$('#itb').insertAdjacentHTML('beforeend',itemRow());const r=[...root.querySelectorAll('.it')].pop();const fs=r.querySelector('.ifg');if(![...fs.options].some(o=>o.value==i.fg))fs.insertAdjacentHTML('beforeend','<option>'+i.fg+'</option>');fs.value=i.fg;r.querySelector('.in').value=i.n});
+ p.items.forEach(i=>{$('#itb').insertAdjacentHTML('beforeend',itemRow());const r=[...root.querySelectorAll('.it')].pop();const fs=r.querySelector('.ifg');if(![...fs.options].some(o=>o.value==i.fg))fs.insertAdjacentHTML('beforeend','<option>'+i.fg+'</option>');fs.value=i.fg;const pe=r.querySelector('.ipl'),pv=i.pl||p.pl||'';if(pv&&![...pe.options].some(o=>o.value==pv))pe.insertAdjacentHTML('beforeend','<option>'+pv+'</option>');pe.value=pv;r.querySelector('.ibs').value=isz(i);r.querySelector('.iqty').value=i.qty!=null?i.qty:rnd(i.n*isz(i))});
  A.iq();A.np()},
 planview(a){PWV=a.dataset.id;go('581',1)},
 planprn(a){const p=D.plans.find(x=>x.no==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">Daily Production Plan \${p.no}</h2>\`+planDoc(p);PRINT()},
@@ -3327,16 +3393,16 @@ saveRecipe(){const L=[...root.querySelectorAll('.rr')].map(x=>[x.querySelector('
  else{if(D.recipes.some(x=>x.fg.toLowerCase()==v('fg').trim().toLowerCase()))return toast('Recipe for this product already exists',1);
   D.recipes.push({id:'R-'+String(D.recipes.length+1).padStart(3,'0'),fg:v('fg').trim(),code,cat:v('cat'),size,lines:L})}
  save();RS=null;go('582');toast('Recipe saved')},
-fill(t){const p=D.plans.find(x=>x.no==v('dpp')),bal=i=>rnd((i.n-i.done)*rec(i.fg).size-resv(p,i)),pend=i=>i.n-i.done>1e-6;
- if(t&&t.id=='dpp'){$('#it').innerHTML='<option value="">[ Select Plan Item ]</option>'+(p?p.items.filter(pend).map(i=>\`<option value="\${i.fg}">\${i.fg} (balance \${bal(i)} Kg)</option>\`).join(''):'');
-  const f=p&&p.items.find(pend);if(f)set('it',f.fg)}
- const i=p&&p.items.find(x=>x.fg==v('it'));
+fill(t){const p=D.plans.find(x=>x.no==v('dpp')),bal=i=>rnd((i.n-i.done)*isz(i)-resv(p,i)),pend=i=>i.n-i.done>1e-6;
+ if(t&&t.id=='dpp'){$('#it').innerHTML='<option value="">[ Select Plan Item ]</option>'+(p?p.items.filter(pend).map(i=>\`<option value="\${ikey(p,i)}">\${(i.pl||p.pl)+' · '+i.fg} (balance \${bal(i)} Kg)</option>\`).join(''):'');
+  const f=p&&p.items.find(pend);if(f)set('it',ikey(p,f))}
+ const i=ifind(p,v('it'));
  if(t&&(t.id=='dpp'||t.id=='it')){const rs=i?D.recipes.filter(x=>x.fg==i.fg&&x.act!==false):[];$('#rc').innerHTML='<option value="">[ Select Recipe No. ]</option>'+rs.map(x=>\`<option value="\${x.id}">\${x.id} – \${x.fg}</option>\`).join('');if(rs.length)set('rc',rs[0].id);set('prq','');MAN={}}
  const r=i&&D.recipes.find(x=>x.id==v('rc'));
- ['fg','pl'].forEach((k,x)=>set(k,r?[i.fg,p.pl][x]:''));if(!t||t.id=='dpp'||t.id=='it'||t.id=='rc'||!v('bs'))set('bs',r?r.size:'');
- set('pq',r?i.n*r.size:'');$('#prq').placeholder=i?'Max '+bal(i)+' Kg':'';
+ ['fg','pl'].forEach((k,x)=>set(k,r?[i.fg,i.pl||p.pl][x]:''));if(!t||t.id=='dpp'||t.id=='it'||t.id=='rc'||!v('bs'))set('bs',r?(i.bs||r.size):'');
+ set('pq',r?rnd(i.n*isz(i)):'');$('#prq').placeholder=i?'Max '+bal(i)+' Kg':'';
  {const bs=+v('bs');set('run',bs>0&&+v('prq')?rnd(v('prq')/bs):'')};set('bno',r?(PS||nextNo(r,v('d'))):'');A.rmp()},
-saveProc(){const p=D.plans.find(x=>x.no==v('dpp')),i=p&&p.items.find(x=>x.fg==v('it')),qty=+v('prq');
+saveProc(){const p=D.plans.find(x=>x.no==v('dpp')),i=ifind(p,v('it')),qty=+v('prq');
  if(bad(['dpp','it','prq','rc','bs','sh','wh']))return toast('Please fill all required fields (marked red): DPP No., Plan Item, Production Qty, Recipe, Batch Size, Shift and RM-Warehouse',1);
  if(whNeed())return;
  if(WH.indexOf(v('wh'))<0){bad(['wh']);return toast('RM-Warehouse "'+v('wh')+'" is not in the Warehouse sheet',1)}
@@ -3344,39 +3410,40 @@ saveProc(){const p=D.plans.find(x=>x.no==v('dpp')),i=p&&p.items.find(x=>x.fg==v(
  if(!(qty>0))return toast('Production Qty (Kg) required',1);
  const bs=+v('bs');if(!(bs>0))return toast('Batch Size (Kg) required',1);
  const r=D.recipes.find(x=>x.id==v('rc'));if(!r||r.fg!=i.fg)return toast('Select a valid Recipe No.',1);
- const bal=rnd((i.n-i.done)*r.size-resv(p,i));if(qty>bal+1e-6)return toast(\`Production Qty exceeds plan balance (\${bal} Kg)\`,1);
+ const bal=rnd((i.n-i.done)*isz(i)-resv(p,i));if(qty>bal+1e-6)return toast(\`Production Qty exceeds plan balance (\${bal} Kg)\`,1);
  const act={};root.querySelectorAll('.act').forEach(x=>act[x.dataset.rm]=x.value===''?NaN:+x.value);
  const ln=r.lines.map(([n,q])=>[n,act[n]===undefined?rnd(q*qty/r.size):rnd(act[n])]);
  if(ln.some(l=>!(l[1]>=0)))return toast('Actual Consumption must be 0 or more',1);
- const o={date:v('d'),dpp:p.no,fg:i.fg,rc:r.id,pl:p.pl,bs,run:rnd(qty/bs),qty,sh:v('sh'),wg:v('wg'),wh:v('wh'),act:Object.fromEntries(ln),rem:v('rm')};
+ const o={date:v('d'),dpp:p.no,fg:i.fg,rc:r.id,pl:i.pl||p.pl,bs,run:rnd(qty/bs),qty,sh:v('sh'),wg:v('wg'),wh:v('wh'),act:Object.fromEntries(ln),rem:v('rm')};
  let no=PS;if(no)Object.assign(D.batches.find(x=>x.no==no),o);else{no=nextNo(r,o.date);D.batches.push({no,...o,st:'Draft',plc:null})}
  save();go('630');toast(\`Draft \${no} saved. Click Submit to post it to stock\`)},
 pnew(){PS=null;if(!WH.length)whLoad();go('630',1);A.np()},
 pedit(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Draft')return;PS=b.no;go('630',1);
  if(![...$('#dpp').options].some(o=>o.value==b.dpp))return toast('Plan item already fully produced, cannot edit',1);
- set('d',b.date);set('dpp',b.dpp);A.fill({id:'dpp'});set('it',b.fg);A.fill({id:'it'});set('rc',b.rc);set('bs',b.bs||(D.recipes.find(x=>x.id==b.rc)||{}).size||'');{const r=D.recipes.find(x=>x.id==b.rc);MAN=Object.fromEntries(Object.entries(b.act).filter(([n,q])=>{const l=r.lines.find(l=>l[0]==n);return l&&rnd(l[1]*b.qty/r.size)!=q}))}set('prq',b.qty);set('sh',b.sh);set('wg',b.wg);{const w=$('#wh');if(b.wh&&![...w.options].some(o=>o.value==b.wh))w.insertAdjacentHTML('beforeend','<option>'+b.wh+'</option>')}set('wh',b.wh);set('rm',b.rem||'');A.fill({id:'prq'});A.np()},
+ set('d',b.date);set('dpp',b.dpp);A.fill({id:'dpp'});set('it',b.fg+'|'+(b.pl||''));A.fill({id:'it'});set('rc',b.rc);set('bs',b.bs||(D.recipes.find(x=>x.id==b.rc)||{}).size||'');{const r=D.recipes.find(x=>x.id==b.rc);MAN=Object.fromEntries(Object.entries(b.act).filter(([n,q])=>{const l=r.lines.find(l=>l[0]==n);return l&&rnd(l[1]*b.qty/r.size)!=q}))}set('prq',b.qty);set('sh',b.sh);set('wg',b.wg);{const w=$('#wh');if(b.wh&&![...w.options].some(o=>o.value==b.wh))w.insertAdjacentHTML('beforeend','<option>'+b.wh+'</option>')}set('wh',b.wh);set('rm',b.rem||'');A.fill({id:'prq'});A.np()},
 pview(a){PV=a.dataset.id;go('630',1)},pvhide(){PV=null;RW=null;PWV=null;go(cur,1)},
 pprn(a){const b=D.batches.find(x=>x.no==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">Production Entry \${b.no}</h2>\`+bDoc(b);PRINT()},
 submit(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Draft')return;
- const p=D.plans.find(x=>x.no==b.dpp),i=p&&p.items.find(x=>x.fg==b.fg),r=D.recipes.find(x=>x.id==b.rc);if(!i||!r)return toast('Plan or recipe not found',1);
- if(b.qty>(i.n-i.done)*r.size+1e-6)return toast('Qty exceeds plan balance, edit this entry first',1);
+ const p=D.plans.find(x=>x.no==b.dpp),i=p&&p.items.find(x=>x.fg==b.fg&&(x.pl||p.pl)==b.pl),r=D.recipes.find(x=>x.id==b.rc);if(!i||!r)return toast('Plan or recipe not found',1);
+ if(b.qty>(i.n-i.done)*isz(i)+1e-6)return toast('Qty exceeds plan balance, edit this entry first',1);
  const st=D.stock[b.wh]=D.stock[b.wh]||{},sh=Object.entries(b.act).filter(([n,q])=>(st[n]||0)<q).map(x=>x[0]);if(sh.length)return toast('Insufficient RM stock: '+sh.join(', '),1);
  r.lines.forEach(([n,q])=>{const u=rnd(b.act[n]);st[n]=rnd(st[n]-u);D.cons.push({b:b.no,date:b.date,fg:b.fg,rm:n,req:rnd(q*b.qty/r.size),q:u})});
- i.done=Math.round((i.done+b.qty/r.size)*1e6)/1e6;p.st='In Progress';b.st='Processed';save();go('630');toast(\`Batch \${b.no} submitted, RM consumed from stock\`)},
+ i.done=Math.round((i.done+b.qty/isz(i))*1e6)/1e6;p.st='In Progress';b.st='Processed';save();go('630');toast(\`Batch \${b.no} submitted, RM consumed from stock\`)},
 plc(){let n=0;D.batches.forEach(b=>{if(b.st=='Processed'&&b.plc==null){b.plc=Math.round(b.qty*(1+(Math.random()-.5)*.01));n++}});save();go('631');toast(n+' batch(es) synced')},
 rf(t){const b=D.batches.find(x=>x.no==v('bn'));set('fg',b?b.fg:'');set('sq',b?b.qty:'');set('pq',b?b.plc??'':'');if(!t||t.id=='bn')set('rq',b?b.plc??b.qty:'');set('rno',RV||nextRn(v('d')))},
-rcnew(){RV=null;go('632',1);const o=availB();if(o.length==1){set('bn',o[0].no);A.rf({id:'bn'})}else A.rf();A.np()},
+rcnew(){RV=null;if(!WH.length)whLoad();go('632',1);const o=availB();if(o.length==1){set('bn',o[0].no);A.rf({id:'bn'})}else A.rf();A.np()},
 saveRcv(){const b=D.batches.find(x=>x.no==v('bn')),q=+v('rq');if(!b||!v('wh')||!(q>0)||!v('d'))return toast('Date, Batch, Received Qty and FG-Warehouse required',1);
+ if(whNeed())return;if(WH.indexOf(v('wh'))<0){bad(['wh']);return toast('FG-Warehouse "'+v('wh')+'" is not in the Warehouse sheet',1)}
  const o={date:v('d'),bn:b.no,fg:b.fg,wh:v('wh'),qty:q,sq:b.qty,pq:b.plc??null,last:$('#lp').checked,rem:v('rm')};let no=RV;
  if(no)Object.assign(D.rcv.find(x=>x.no==no),o);else{no=nextRn(o.date);D.rcv.push({no,...o,st:'Draft'})}
  save();go('632');toast(\`Draft \${no} saved. Click Submit to receive into stock\`)},
 rcedit(a){const r=D.rcv.find(x=>x.no==a.dataset.id);if(!r||r.st!='Draft')return;RV=r.no;go('632',1);
- set('d',r.date);set('bn',r.bn);A.rf({id:'bn'});set('rq',r.qty);set('wh',r.wh);$('#lp').checked=!!r.last;set('rm',r.rem||'');A.rf({id:'d'});A.np()},
+ set('d',r.date);set('bn',r.bn);A.rf({id:'bn'});set('rq',r.qty);{const w=$('#wh');if(r.wh&&![...w.options].some(o=>o.value==r.wh))w.insertAdjacentHTML('beforeend','<option>'+r.wh+'</option>')}set('wh',r.wh);$('#lp').checked=!!r.last;set('rm',r.rem||'');A.rf({id:'d'});A.np()},
 rcview(a){RW=a.dataset.id;go('632',1)},
 rcprn(a){const r=D.rcv.find(x=>x.no==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">Finished Goods Receive \${r.no}</h2>\`+rcDoc(r);PRINT()},
 rcsubmit(a){const r=D.rcv.find(x=>x.no==a.dataset.id);if(!r||r.st!='Draft')return;const b=D.batches.find(x=>x.no==r.bn);
  if(!b||b.st!='Processed')return toast('Batch is not available for receive',1);
- const s=D.stock[r.wh];s[r.fg]=rnd((s[r.fg]||0)+r.qty);Object.assign(b,{rq:r.qty,st:'Received',fgwh:r.wh,rdate:r.date});
+ const s=D.stock[r.wh]=D.stock[r.wh]||{};s[r.fg]=rnd((s[r.fg]||0)+r.qty);Object.assign(b,{rq:r.qty,st:'Received',fgwh:r.wh,rdate:r.date});
  if(r.last){const p=D.plans.find(x=>x.no==b.dpp);if(p)p.st='Completed'}r.st='Received';save();go('632');toast(\`\${r.no} submitted, \${r.qty} Kg added to \${r.wh}\`)},
 close(a){D.batches.find(b=>b.no==a.dataset.id).st='Closed';save();go('633');toast('Batch closed')}};
 $('#views').addEventListener('click',e=>{const a=e.target.closest('[data-act]');a&&A[a.dataset.act](a)});
@@ -3410,6 +3477,7 @@ go('home');
           <a href="#">🧑‍💼 Employee ▾</a>
           <div class="dropdown" data-parent="hr_employee">
             <a href="#" data-sub="hr_employee_master" onclick="event.preventDefault(); openEmpList(); return false;"><span class="arrow">▶</span> Employee Master</a>
+            <a href="#" data-sub="hr_employee_directory" onclick="event.preventDefault(); openEmpDirectory(); return false;"><span class="arrow">▶</span> Employee Directory</a>
             <a href="#" data-sub="hr_onboarding" onclick="event.preventDefault(); openOnboardList(); return false;"><span class="arrow">▶</span> Employee Onboarding</a>
             <a href="#" data-sub="hr_transfer" onclick="event.preventDefault(); openEtList(); return false;"><span class="arrow">▶</span> Employee Transfer</a>
             <a href="#" data-sub="hr_erp_setup" onclick="event.preventDefault(); openErpSetupList(); return false;"><span class="arrow">▶</span> Employee ERP Setup</a>
@@ -8695,6 +8763,85 @@ go('home');
     </div>
   </div>
 
+  <!-- Internal Messages (mail-style communication between ERP users) -->
+  <div class="msg-overlay" id="msgOverlay" onclick="if(event.target===this) closeMessagePanel()">
+    <div class="msg-box">
+      <div class="msg-head">
+        <h2>✉️ Messages</h2>
+        <button class="msg-x" onclick="closeMessagePanel()">✕</button>
+      </div>
+      <div class="msg-body">
+        <div class="msg-side">
+          <button class="msg-compose-btn" onclick="msgCompose()">✏️ Compose</button>
+          <div class="msg-folder active" id="msgFolderInbox" onclick="msgOpen('inbox')"><span>📥 Inbox</span><span id="msgInboxCount" style="font-weight:700; color:#2563eb;"></span></div>
+          <div class="msg-folder" id="msgFolderSent" onclick="msgOpen('sent')"><span>📤 Sent</span></div>
+        </div>
+        <div class="msg-listcol">
+          <div class="msg-listtop"><input type="text" id="msgSearch" placeholder="🔍 Search messages..." oninput="msgRenderList()"></div>
+          <div class="msg-list" id="msgList"></div>
+        </div>
+        <div class="msg-view" id="msgView"><div class="msg-empty">Select a message to read, or click Compose.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Directory (read-only, searchable) -->
+  <div class="pr-list-overlay" id="empDirOverlay" onclick="if(event.target===this) closeEmpDirectory()">
+    <div class="pr-list-outer" style="max-width:1450px;">
+      <div class="pr-list-header">
+        <h2>📇 Employee Directory</h2>
+        <div class="pr-list-actions">
+          <button class="pr-add-btn" style="background:#16a34a;" onclick="exportEmpDirectoryCSV()">📥 Export CSV</button>
+          <button class="pr-add-btn" style="background:#0ea5e9;" onclick="printEmpDirectory()">🖨 Print</button>
+          <button class="pr-close-list-btn" onclick="closeEmpDirectory()">X</button>
+        </div>
+      </div>
+      <div class="pr-search-row">
+        <input type="text" id="empDirSearch" placeholder="🔍 Search by Name, ID, Designation, Mobile No, Email, NID..." oninput="renderEmpDirectory()" onkeydown="if(event.key==='Enter'){event.preventDefault();renderEmpDirectory();}" style="flex:1; min-width:280px;">
+        <button class="pr-add-btn" onclick="renderEmpDirectory()">🔍 Search</button>
+        <select id="empDirStatus" onchange="renderEmpDirectory()">
+          <option value="">All Status</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+          <option value="Resigned">Resigned</option>
+          <option value="Terminated">Terminated</option>
+        </select>
+        <select id="empDirCompany" onchange="renderEmpDirectory()"><option value="">All Companies</option></select>
+        <select id="empDirDesig" onchange="renderEmpDirectory()"><option value="">All Designations</option></select>
+        <button class="pr-add-btn" style="background:#64748b;" onclick="clearEmpDirectory()">✖ Clear</button>
+        <span id="empDirCount" style="font-size:0.8rem; color:#475569; font-weight:600;"></span>
+      </div>
+      <div class="pr-table-wrap">
+        <table class="pr-table" style="white-space:nowrap;">
+          <thead>
+            <tr>
+              <th>SL#</th><th>Emp ID</th><th>Name</th><th>Designation</th><th>Mobile No</th><th>Email</th><th>Company</th><th>Business Unit</th><th>Profit Center</th><th>Cost Center</th><th>Reporting Manager</th><th>Type</th><th>Joining Date</th><th>Status</th><th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="empDirBody"></tbody>
+        </table>
+        <div class="pr-empty-msg" id="empDirEmpty">
+          <span>📇</span>
+          No employee found.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Directory: read-only details card -->
+  <div class="pr-list-overlay" id="empDirDetailOverlay" onclick="if(event.target===this) closeEmpDirDetails()">
+    <div class="pr-list-outer" style="max-width:760px;">
+      <div class="pr-list-header">
+        <h2 id="empDirDetailTitle">Employee Details</h2>
+        <div class="pr-list-actions">
+          <button class="pr-add-btn" style="background:#0ea5e9;" id="empDirDetailPrint">🖨 Print</button>
+          <button class="pr-close-list-btn" onclick="closeEmpDirDetails()">X</button>
+        </div>
+      </div>
+      <div id="empDirDetailBody" style="padding:18px 24px; display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px 24px;"></div>
+    </div>
+  </div>
+
   <!-- Single Employee Print Area -->
   <div id="empPrintArea"></div>
 
@@ -10497,6 +10644,7 @@ go('home');
 
     // ===== FIREBASE SYNC: LOAD from cloud =====
     function loadFromFirebase(callback) {
+      if (typeof startMessageSync === 'function') startMessageSync();
       if (!currentUser || !db) { if (callback) callback(); return; }
       db.ref('users/' + currentUser.id + '/data').once('value', function(snap) {
         var cloudData = snap.val();
@@ -10955,8 +11103,9 @@ go('home');
           plans.push({
             dpp_no: p.no, date: p.date, start_date: p.s, end_date: p.e,
             company: p.co || '', business_unit: p.bu || '', profit_center: p.pc || '',
-            plant: p.pl || '', remarks: p.rm || '', status: p.st || '',
-            product: it.fg || '', plan_batches: it.n || '', done_batches: it.done || 0
+            plant: it.pl || p.pl || '', remarks: p.rm || '', status: p.st || '',
+            product: it.fg || '', plan_qty_kg: (it.qty != null ? it.qty : ''), batch_size_kg: (it.bs || ''),
+            plan_batches: it.n || '', done_batches: it.done || 0
           });
         });
       });
@@ -16105,6 +16254,7 @@ return btns;
       // Final sync to cloud before logout
       syncAllToFirebase();
       stopRealtimeSync();
+      if (typeof stopMessageSync === 'function') stopMessageSync();
       currentUser = null;
       document.getElementById('loginWrapper').classList.remove('hidden');
       document.getElementById('dashboardWrapper').classList.remove('active');
@@ -29601,6 +29751,567 @@ return btns;
         return { id: rec.user_id, password: rec.password, name: rec.employee_name || rec.user_id, avatar: initials || 'U', employee_code: rec.employee_code || '', employee_name: rec.employee_name || '' };
       }
       return null;
+    }
+
+    // =====================================================================
+    // ===== Internal Messages: mail-style communication between ERP users =====
+    // Firebase layout (per user, so senders never overwrite each other):
+    //   users/<id>/messages/inbox/<msgId>  (received copy, has read:true/false)
+    //   users/<id>/messages/sent/<msgId>   (sender's copy)
+    // Without Firebase it falls back to localStorage (same browser only).
+    // =====================================================================
+    var _msg = { inbox: {}, sent: {}, folder: 'inbox', sel: null, to: [], dir: [], refs: [], seen: null, uid: '', local: false, ready: false };
+
+    function msgUid() { return currentUser ? String(currentUser.id) : ''; }
+    function msgEsc(v) {
+      return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function msgTime(ts) {
+      try { return new Date(ts).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; }
+    }
+    function msgPanelOpen() { var o = document.getElementById('msgOverlay'); return !!(o && o.classList.contains('active')); }
+
+    function msgToast(text) {
+      var t = document.createElement('div');
+      t.className = 'msg-toast';
+      t.textContent = text;
+      t.onclick = function() { if (t.parentNode) t.parentNode.removeChild(t); openMessagePanel('inbox'); };
+      document.body.appendChild(t);
+      setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 6000);
+    }
+
+    function msgUnreadCount() {
+      return Object.keys(_msg.inbox).filter(function(k) { return _msg.inbox[k] && !_msg.inbox[k].read; }).length;
+    }
+    function msgUpdateBadge() {
+      var n = msgUnreadCount(), b = document.getElementById('msgBadge');
+      if (b) { b.textContent = n > 99 ? '99+' : n; b.classList.toggle('zero', n === 0); }
+      var c = document.getElementById('msgInboxCount');
+      if (c) c.textContent = n ? '(' + n + ')' : '';
+    }
+
+    // ----- local (no Firebase) store -----
+    function msgLocalAll() { try { return JSON.parse(_origGetItem.call(localStorage, 'erp_msg_local') || '{}'); } catch (e) { return {}; } }
+    function msgLocalRead() { var a = msgLocalAll()[_msg.uid] || {}; _msg.inbox = a.inbox || {}; _msg.sent = a.sent || {}; }
+    function msgLocalWrite(mutator) {
+      var all = msgLocalAll();
+      mutator(all);
+      _origSetItem.call(localStorage, 'erp_msg_local', JSON.stringify(all));
+      msgLocalRead();
+      msgOnData();
+    }
+    function msgLocalBox(all, uid) { all[uid] = all[uid] || {}; all[uid].inbox = all[uid].inbox || {}; all[uid].sent = all[uid].sent || {}; return all[uid]; }
+    function msgStorageEvt(e) { if (e.key === 'erp_msg_local') { msgLocalRead(); msgNotifyNew(); msgOnData(); } }
+
+    // ----- sync lifecycle -----
+    function startMessageSync() {
+      stopMessageSync();
+      if (!currentUser) return;
+      _msg.uid = msgUid();
+      _msg.seen = null;
+      if (db) {
+        _msg.local = false;
+        var base = 'users/' + _msg.uid + '/messages/';
+        var rIn = db.ref(base + 'inbox'), rSent = db.ref(base + 'sent');
+        rIn.on('value', function(snap) { _msg.inbox = snap.val() || {}; msgNotifyNew(); msgOnData(); }, function(err) { console.warn('Messages inbox listen failed:', err); });
+        rSent.on('value', function(snap) { _msg.sent = snap.val() || {}; msgOnData(); }, function(err) { console.warn('Messages sent listen failed:', err); });
+        _msg.refs = [rIn, rSent];
+      } else {
+        _msg.local = true;
+        msgLocalRead(); msgNotifyNew(); msgOnData();
+        window.addEventListener('storage', msgStorageEvt);
+      }
+    }
+    function stopMessageSync() {
+      _msg.refs.forEach(function(r) { try { r.off(); } catch (e) {} });
+      _msg.refs = [];
+      window.removeEventListener('storage', msgStorageEvt);
+      _msg.inbox = {}; _msg.sent = {}; _msg.sel = null; _msg.to = [];
+      msgUpdateBadge();
+      closeMessagePanel();
+    }
+
+    // First load only records what already exists; later arrivals pop a small toast.
+    function msgNotifyNew() {
+      var ids = Object.keys(_msg.inbox);
+      if (_msg.seen === null) { _msg.seen = {}; ids.forEach(function(k) { _msg.seen[k] = 1; }); return; }
+      ids.forEach(function(k) {
+        if (_msg.seen[k]) return;
+        _msg.seen[k] = 1;
+        var m = _msg.inbox[k];
+        if (m && !m.read) msgToast('📩 New message from ' + (m.from_name || m.from_id) + ': ' + (m.subject || ''));
+      });
+    }
+
+    function msgOnData() {
+      msgUpdateBadge();
+      if (!msgPanelOpen()) return;
+      msgRenderSide();
+      msgRenderList();
+      if (_msg.sel && !msgGet(_msg.sel)) { _msg.sel = null; msgShowEmpty(); }
+    }
+
+    // ----- panel -----
+    function toggleMessagePanel() { if (msgPanelOpen()) closeMessagePanel(); else openMessagePanel('inbox'); }
+    function openMessagePanel(folder) {
+      if (!currentUser) return;
+      msgInitOnce();
+      document.getElementById('msgOverlay').classList.add('active');
+      document.getElementById('msgSearch').value = '';
+      msgOpen(folder || 'inbox');
+    }
+    function closeMessagePanel() {
+      var o = document.getElementById('msgOverlay');
+      if (o) o.classList.remove('active');
+    }
+    var _msgInit = false;
+    function msgInitOnce() {
+      if (_msgInit) return;
+      _msgInit = true;
+      document.getElementById('msgList').addEventListener('click', function(e) {
+        var it = e.target.closest('[data-id]');
+        if (it) msgShow(it.getAttribute('data-id'));
+      });
+    }
+    function msgOpen(folder) {
+      _msg.folder = folder === 'sent' ? 'sent' : 'inbox';
+      _msg.sel = null;
+      msgRenderSide();
+      msgRenderList();
+      msgShowEmpty();
+    }
+    function msgShowEmpty() {
+      document.getElementById('msgView').innerHTML = '<div class="msg-empty">Select a message to read, or click Compose.</div>';
+    }
+    function msgRenderSide() {
+      document.getElementById('msgFolderInbox').classList.toggle('active', _msg.folder === 'inbox');
+      document.getElementById('msgFolderSent').classList.toggle('active', _msg.folder === 'sent');
+      msgUpdateBadge();
+    }
+    function msgGet(id) { return (_msg.folder === 'sent' ? _msg.sent : _msg.inbox)[id]; }
+
+    function msgRenderList() {
+      var src = _msg.folder === 'sent' ? _msg.sent : _msg.inbox;
+      var q = (document.getElementById('msgSearch').value || '').trim().toLowerCase();
+      var arr = Object.keys(src).map(function(k) { var m = src[k] || {}; return { id: k, m: m }; }).filter(function(x) {
+        if (!q) return true;
+        var m = x.m;
+        var hay = [m.from_name, m.from_id, m.subject, m.body, (m.to || []).map(function(t) { return t.name + ' ' + t.id; }).join(' ')].join(' ').toLowerCase();
+        return hay.indexOf(q) !== -1;
+      }).sort(function(a, b) { return (b.m.ts || 0) - (a.m.ts || 0); });
+      var box = document.getElementById('msgList');
+      if (!arr.length) { box.innerHTML = '<div class="msg-empty" style="margin-top:40px;">No messages</div>'; return; }
+      box.innerHTML = arr.map(function(x) {
+        var m = x.m;
+        var who = _msg.folder === 'sent' ? 'To: ' + (m.to || []).map(function(t) { return t.name || t.id; }).join(', ') : (m.from_name || m.from_id || '');
+        var unread = _msg.folder === 'inbox' && !m.read;
+        return '<div class="msg-item' + (unread ? ' unread' : '') + (x.id === _msg.sel ? ' sel' : '') + '" data-id="' + msgEsc(x.id) + '">' +
+          '<div class="msg-item-top"><span class="msg-from">' + msgEsc(who) + '</span><span class="msg-time">' + msgEsc(msgTime(m.ts)) + '</span></div>' +
+          '<div class="msg-subj">' + msgEsc(m.subject || '(No Subject)') + '</div>' +
+          '<div class="msg-snip">' + msgEsc(String(m.body || '').replace(/\s+/g, ' ').substring(0, 90)) + '</div></div>';
+      }).join('');
+    }
+
+    function msgSetRead(id, val) {
+      var m = _msg.inbox[id];
+      if (!m) return;
+      m.read = val;
+      if (_msg.local) {
+        msgLocalWrite(function(all) { var b = msgLocalBox(all, _msg.uid); if (b.inbox[id]) b.inbox[id].read = val; });
+      } else if (db) {
+        db.ref('users/' + _msg.uid + '/messages/inbox/' + id + '/read').set(val);
+      }
+      msgUpdateBadge();
+    }
+
+    function msgShow(id) {
+      var m = msgGet(id);
+      if (!m) return;
+      _msg.sel = id;
+      if (_msg.folder === 'inbox' && !m.read) msgSetRead(id, true);
+      msgRenderList();
+      var toTxt = (m.to || []).map(function(t) { return msgEsc(t.name || t.id) + ' (' + msgEsc(t.id) + ')'; }).join(', ');
+      var btns = '<button class="primary" onclick="msgReply(false)">↩ Reply</button>' +
+        ((m.to || []).length > 1 || _msg.folder === 'sent' ? '<button onclick="msgReply(true)">↩↩ Reply All</button>' : '<button onclick="msgReply(true)">↩↩ Reply All</button>') +
+        '<button onclick="msgForward()">➡ Forward</button>' +
+        (_msg.folder === 'inbox' ? '<button onclick="msgMarkUnread()">✉ Mark unread</button>' : '') +
+        '<button class="danger" onclick="msgDelete()">🗑 Delete</button>';
+      document.getElementById('msgView').innerHTML =
+        '<div class="msg-read"><h3>' + msgEsc(m.subject || '(No Subject)') + '</h3>' +
+        '<div class="msg-meta"><b>From:</b> ' + msgEsc(m.from_name || '') + ' (' + msgEsc(m.from_id) + ')<br><b>To:</b> ' + toTxt + '<br><b>Date:</b> ' + msgEsc(msgTime(m.ts)) + '</div>' +
+        '<div class="msg-actions">' + btns + '</div>' +
+        '<div class="msg-text">' + msgEsc(m.body || '') + '</div></div>';
+    }
+
+    function msgMarkUnread() {
+      if (!_msg.sel) return;
+      msgSetRead(_msg.sel, false);
+      _msg.sel = null;
+      msgRenderList(); msgShowEmpty();
+    }
+
+    function msgDelete() {
+      var id = _msg.sel;
+      if (!id || !confirm('এই মেসেজ ডিলিট করতে চাও? (শুধু তোমার কপি ডিলিট হবে)')) return;
+      var folder = _msg.folder;
+      if (_msg.local) {
+        msgLocalWrite(function(all) { delete msgLocalBox(all, _msg.uid)[folder][id]; });
+      } else if (db) {
+        db.ref('users/' + _msg.uid + '/messages/' + folder + '/' + id).remove();
+        delete (folder === 'sent' ? _msg.sent : _msg.inbox)[id];
+      }
+      _msg.sel = null;
+      msgUpdateBadge(); msgRenderList(); msgShowEmpty();
+    }
+
+    // ----- recipients directory (everyone who has a login ID) -----
+    function msgBuildDir(userRecs, empRecs) {
+      var list = [], seen = {}, me = msgUid();
+      function add(id, name, desig) {
+        id = String(id || '');
+        if (!id || id === me || seen[id]) return;
+        seen[id] = 1;
+        list.push({ id: id, name: name || id, designation: desig || '' });
+      }
+      users.forEach(function(u) { add(u.id, u.name, ''); });
+      Object.keys(userRecs || {}).forEach(function(k) {
+        var r = userRecs[k] || {}, e = (empRecs || {})[r.employee_code] || {};
+        add(r.user_id || k, r.employee_name || e.name, e.designation);
+      });
+      return list.sort(function(a, b) { return a.name.localeCompare(b.name); });
+    }
+    function msgLoadDir(cb) {
+      var lu = {}, le = {};
+      try { lu = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}'); } catch (e) {}
+      try { le = JSON.parse(localStorage.getItem('erp_emp_records') || '{}'); } catch (e) {}
+      _msg.dir = msgBuildDir(lu, le);
+      if (cb) cb();
+      if (db) {
+        // User ID / Employee records are mirrored under the administrator's branch
+        var base = 'users/2422/data/';
+        Promise.all([db.ref(base + USERIDSETUP_STORAGE_KEY).once('value'), db.ref(base + 'erp_emp_records').once('value')]).then(function(s) {
+          var cu = {}, ce = {};
+          try { cu = JSON.parse(s[0].val() || '{}'); } catch (e) {}
+          try { ce = JSON.parse(s[1].val() || '{}'); } catch (e) {}
+          Object.keys(lu).forEach(function(k) { if (!cu[k]) cu[k] = lu[k]; });
+          Object.keys(le).forEach(function(k) { if (!ce[k]) ce[k] = le[k]; });
+          _msg.dir = msgBuildDir(cu, ce);
+          if (cb) cb();
+        }).catch(function() {});
+      }
+    }
+
+    // ----- compose -----
+    function msgCompose(pre) {
+      pre = pre || {};
+      _msg.sel = null;
+      _msg.to = (pre.to || []).slice();
+      msgRenderList();
+      document.getElementById('msgView').innerHTML =
+        '<div class="msg-read"><h3>✏️ New Message</h3>' +
+        '<div class="msg-row"><label>To</label><div class="msg-to" id="msgToBox"><span id="msgChips"></span><input type="text" id="msgToInput" placeholder="Type name / ID / designation..." autocomplete="off"></div>' +
+        '<button class="msg-small" onclick="msgAddAll()" title="Send to everyone">👥 All</button><div class="msg-sugg" id="msgSugg"></div></div>' +
+        '<div class="msg-row"><label>Subject</label><input type="text" class="msg-field" id="msgSubject" maxlength="200"></div>' +
+        '<div class="msg-row"><label>Message</label><textarea class="msg-field" id="msgBodyInput" rows="14"></textarea></div>' +
+        '<div class="msg-actions"><button class="primary" onclick="msgSendNow()">📨 Send</button><button onclick="msgDiscard()">Discard</button><span id="msgSendStatus" style="font-size:.82rem;"></span></div></div>';
+      document.getElementById('msgSubject').value = pre.subject || '';
+      document.getElementById('msgBodyInput').value = pre.body || '';
+      msgRenderChips();
+      var inp = document.getElementById('msgToInput');
+      inp.addEventListener('input', msgRenderSugg);
+      inp.addEventListener('focus', msgRenderSugg);
+      inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); var f = document.querySelector('#msgSugg [data-uid]'); if (f) msgAddTo(f.getAttribute('data-uid')); }
+        else if (e.key === 'Backspace' && !inp.value && _msg.to.length) { _msg.to.pop(); msgRenderChips(); }
+      });
+      document.getElementById('msgSugg').addEventListener('mousedown', function(e) {
+        var it = e.target.closest('[data-uid]');
+        if (it) { e.preventDefault(); msgAddTo(it.getAttribute('data-uid')); }
+      });
+      document.getElementById('msgChips').addEventListener('click', function(e) {
+        var x = e.target.closest('[data-rm]');
+        if (x) { _msg.to = _msg.to.filter(function(t) { return t.id !== x.getAttribute('data-rm'); }); msgRenderChips(); }
+      });
+      document.addEventListener('click', msgCloseSugg);
+      msgLoadDir(msgRenderSugg);
+      setTimeout(function() { (pre.to && pre.to.length ? document.getElementById('msgBodyInput') : inp).focus(); }, 30);
+    }
+    function msgCloseSugg(e) {
+      var s = document.getElementById('msgSugg');
+      if (!s) { document.removeEventListener('click', msgCloseSugg); return; }
+      if (!e.target.closest('#msgToBox') && !e.target.closest('#msgSugg')) s.style.display = 'none';
+    }
+    function msgRenderChips() {
+      var c = document.getElementById('msgChips');
+      if (!c) return;
+      c.innerHTML = _msg.to.map(function(t) {
+        return '<span class="msg-chip">' + msgEsc(t.name || t.id) + ' <small>(' + msgEsc(t.id) + ')</small><b data-rm="' + msgEsc(t.id) + '">✕</b></span>';
+      }).join(' ');
+    }
+    function msgRenderSugg() {
+      var inp = document.getElementById('msgToInput'), box = document.getElementById('msgSugg');
+      if (!inp || !box || document.activeElement !== inp) { if (box && document.activeElement !== inp) return; }
+      var q = (inp.value || '').trim().toLowerCase();
+      var chosen = {};
+      _msg.to.forEach(function(t) { chosen[t.id] = 1; });
+      var list = _msg.dir.filter(function(u) {
+        return !chosen[u.id] && (!q || (u.name + ' ' + u.id + ' ' + u.designation).toLowerCase().indexOf(q) !== -1);
+      }).slice(0, 8);
+      if (!list.length) { box.style.display = 'none'; return; }
+      box.innerHTML = list.map(function(u) {
+        return '<div data-uid="' + msgEsc(u.id) + '"><b>' + msgEsc(u.name) + '</b> <small>(' + msgEsc(u.id) + (u.designation ? ' · ' + msgEsc(u.designation) : '') + ')</small></div>';
+      }).join('');
+      box.style.display = 'block';
+    }
+    function msgAddTo(uid) {
+      var u = _msg.dir.filter(function(x) { return x.id === uid; })[0];
+      if (!u || _msg.to.some(function(t) { return t.id === uid; })) return;
+      _msg.to.push({ id: u.id, name: u.name });
+      var inp = document.getElementById('msgToInput');
+      inp.value = '';
+      msgRenderChips();
+      msgRenderSugg();
+      inp.focus();
+    }
+    function msgAddAll() {
+      msgLoadDir(function() {
+        _msg.dir.forEach(function(u) { if (!_msg.to.some(function(t) { return t.id === u.id; })) _msg.to.push({ id: u.id, name: u.name }); });
+        msgRenderChips();
+      });
+    }
+    function msgDiscard() {
+      if (document.getElementById('msgBodyInput').value && !confirm('মেসেজ বাদ দিতে চাও?')) return;
+      _msg.to = [];
+      msgShowEmpty();
+    }
+
+    function msgSendNow() {
+      var st = document.getElementById('msgSendStatus');
+      function fail(t) { st.style.color = '#dc2626'; st.textContent = t; }
+      if (!_msg.to.length) { fail('⚠ কমপক্ষে একজন প্রাপক (To) সিলেক্ট করুন।'); return; }
+      var subject = document.getElementById('msgSubject').value.trim();
+      var body = document.getElementById('msgBodyInput').value;
+      if (!subject && !body.trim()) { fail('⚠ Subject বা মেসেজ লিখুন।'); return; }
+      var me = msgUid();
+      var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      var rec = {
+        id: id, from_id: me, from_name: (currentUser && currentUser.name) || me,
+        to: _msg.to.map(function(t) { return { id: t.id, name: t.name }; }),
+        subject: subject || '(No Subject)', body: body, ts: Date.now()
+      };
+      st.style.color = '#475569'; st.textContent = 'Sending...';
+      function done() {
+        _msg.to = [];
+        _msg.folder = 'sent';
+        msgRenderSide();
+        _msg.sent[id] = rec;
+        msgRenderList();
+        msgShow(id);
+        msgToast('✅ Message sent to ' + rec.to.length + ' recipient(s)');
+      }
+      if (_msg.local) {
+        msgLocalWrite(function(all) {
+          rec.to.forEach(function(t) { msgLocalBox(all, t.id).inbox[id] = Object.assign({}, rec, { read: false }); });
+          msgLocalBox(all, me).sent[id] = rec;
+        });
+        done();
+      } else if (db) {
+        var upd = {};
+        rec.to.forEach(function(t) { upd['users/' + t.id + '/messages/inbox/' + id] = Object.assign({}, rec, { read: false }); });
+        upd['users/' + me + '/messages/sent/' + id] = rec;
+        db.ref().update(upd).then(done).catch(function(err) { fail('❌ Send failed: ' + (err && err.message ? err.message : err)); });
+      } else {
+        fail('❌ Offline: মেসেজ পাঠানো যায়নি।');
+      }
+    }
+
+    function msgQuote(m) {
+      return '\n\n--- ' + msgTime(m.ts) + ', ' + (m.from_name || m.from_id) + ' wrote ---\n' +
+        String(m.body || '').split('\n').map(function(l) { return '> ' + l; }).join('\n');
+    }
+    function msgReply(all) {
+      var m = msgGet(_msg.sel);
+      if (!m) return;
+      var me = msgUid(), to = [];
+      function add(id, name) { id = String(id); if (id && id !== me && !to.some(function(t) { return t.id === id; })) to.push({ id: id, name: name || id }); }
+      if (_msg.folder === 'sent') { (m.to || []).forEach(function(t) { add(t.id, t.name); }); }
+      else {
+        add(m.from_id, m.from_name);
+        if (all) (m.to || []).forEach(function(t) { add(t.id, t.name); });
+      }
+      msgCompose({ to: to, subject: /^re:/i.test(m.subject || '') ? m.subject : 'Re: ' + (m.subject || ''), body: msgQuote(m) });
+    }
+    function msgForward() {
+      var m = msgGet(_msg.sel);
+      if (!m) return;
+      msgCompose({
+        to: [], subject: /^fwd:/i.test(m.subject || '') ? m.subject : 'Fwd: ' + (m.subject || ''),
+        body: '\n\n--- Forwarded message ---\nFrom: ' + (m.from_name || '') + ' (' + m.from_id + ')\nDate: ' + msgTime(m.ts) +
+          '\nSubject: ' + (m.subject || '') + '\n\n' + (m.body || '')
+      });
+    }
+
+    // ===== HR > Employee > Employee Directory (read-only, searchable) =====
+    function empDirEsc(v) {
+      return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function empDirRows() {
+      var recs = getAllEmpRecords(), byCode = {};
+      recs.forEach(function(e) { byCode[e.code] = e; });
+      return recs.map(function(r) {
+        var o = {};
+        Object.keys(r).forEach(function(k) { o[k] = r[k]; });
+        var m = r.reporting_manager ? byCode[r.reporting_manager] : null;
+        o.manager = r.reporting_manager ? (m ? r.reporting_manager + ' - ' + (m.name || '') : r.reporting_manager) : '';
+        return o;
+      });
+    }
+
+    // Every word typed must match the employee's own details (ID, name, designation, mobile,
+    // email, NID, company, BU, PC, cost center, status, address); digit-only words also
+    // match a mobile number written with spaces/dashes/+. Manager/emergency contact are not searched.
+    function empDirMatch(r, tokens) {
+      if (!tokens.length) return true;
+      var keys = ['code', 'name', 'designation', 'emp_type', 'mobile', 'email', 'nid', 'company', 'bu', 'profit_center', 'cost_center', 'status', 'gender', 'join_date', 'address'];
+      var hay = keys.map(function(k) { return r[k] == null ? '' : r[k]; }).join(' ').toLowerCase();
+      var digits = String(r.mobile || '').replace(/[^0-9 ]/g, '');
+      return tokens.every(function(t) {
+        if (hay.indexOf(t) !== -1) return true;
+        var d = t.replace(/\D/g, '');
+        return /^[0-9+\-]+$/.test(t) && d !== '' && digits.replace(/ /g, '').indexOf(d) !== -1;
+      });
+    }
+
+    function empDirFiltered() {
+      var q = (document.getElementById('empDirSearch').value || '').trim().toLowerCase();
+      var tokens = q ? q.split(/\s+/) : [];
+      var st = document.getElementById('empDirStatus').value;
+      var co = document.getElementById('empDirCompany').value;
+      var ds = document.getElementById('empDirDesig').value;
+      return empDirRows().filter(function(r) {
+        return (!st || r.status === st) && (!co || r.company === co) && (!ds || r.designation === ds) && empDirMatch(r, tokens);
+      });
+    }
+
+    function empDirFillFilters() {
+      var rows = empDirRows();
+      function uniq(key) {
+        var seen = {}, out = [];
+        rows.forEach(function(r) { var v = r[key]; if (v && !seen[v]) { seen[v] = 1; out.push(v); } });
+        return out.sort();
+      }
+      document.getElementById('empDirCompany').innerHTML = '<option value="">All Companies</option>' +
+        uniq('company').map(function(v) { return '<option value="' + empDirEsc(v) + '">' + empDirEsc(v) + '</option>'; }).join('');
+      document.getElementById('empDirDesig').innerHTML = '<option value="">All Designations</option>' +
+        uniq('designation').map(function(v) { return '<option value="' + empDirEsc(v) + '">' + empDirEsc(v) + '</option>'; }).join('');
+    }
+
+    function openEmpDirectory() {
+      document.getElementById('empDirSearch').value = '';
+      document.getElementById('empDirStatus').value = '';
+      empDirFillFilters();
+      renderEmpDirectory();
+      document.getElementById('empDirOverlay').classList.add('active');
+      setTimeout(function() { document.getElementById('empDirSearch').focus(); }, 50);
+    }
+    function closeEmpDirectory() { document.getElementById('empDirOverlay').classList.remove('active'); }
+    function clearEmpDirectory() {
+      document.getElementById('empDirSearch').value = '';
+      document.getElementById('empDirStatus').value = '';
+      document.getElementById('empDirCompany').value = '';
+      document.getElementById('empDirDesig').value = '';
+      renderEmpDirectory();
+    }
+
+    function empDirStatusHtml(st) {
+      var color = st === 'Active' ? '#16a34a' : (st ? '#dc2626' : '#64748b');
+      return '<span style="color:' + color + '; font-weight:700;">' + empDirEsc(st || '') + '</span>';
+    }
+
+    function empDirMobileHtml(m) {
+      if (!m) return '';
+      return '<a href="tel:' + empDirEsc(String(m).replace(/[^0-9+]/g, '')) + '" style="color:#2563eb; text-decoration:none;">' + empDirEsc(m) + '</a>';
+    }
+
+    function renderEmpDirectory() {
+      var all = empDirRows();
+      var rows = empDirFiltered();
+      var tbody = document.getElementById('empDirBody');
+      var empty = document.getElementById('empDirEmpty');
+      document.getElementById('empDirCount').textContent = 'Showing ' + rows.length + ' of ' + all.length;
+      if (!rows.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      tbody.innerHTML = rows.map(function(r, i) {
+        return '<tr>' +
+          '<td>' + (i + 1) + '</td>' +
+          '<td><strong style="color:#2563eb;">' + empDirEsc(r.code) + '</strong></td>' +
+          '<td>' + empDirEsc(r.name) + '</td>' +
+          '<td>' + empDirEsc(r.designation) + '</td>' +
+          '<td>' + empDirMobileHtml(r.mobile) + '</td>' +
+          '<td>' + empDirEsc(r.email) + '</td>' +
+          '<td>' + empDirEsc(r.company) + '</td>' +
+          '<td>' + empDirEsc(r.bu) + '</td>' +
+          '<td>' + empDirEsc(r.profit_center) + '</td>' +
+          '<td>' + empDirEsc(r.cost_center) + '</td>' +
+          '<td>' + empDirEsc(r.manager) + '</td>' +
+          '<td>' + empDirEsc(r.emp_type) + '</td>' +
+          '<td>' + empDirEsc(r.join_date) + '</td>' +
+          '<td>' + empDirStatusHtml(r.status) + '</td>' +
+          '<td><button class="pr-action-btn pr-btn-view" onclick="empDirShowDetails(\'' + empDirEsc(String(r.code).replace(/\\/g, '\\\\').replace(/'/g, "\\'")) + '\')">👁 Details</button></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    var EMPDIR_DETAIL_FIELDS = [
+      ['code', 'Emp ID'], ['name', 'Name'], ['designation', 'Designation'], ['emp_type', 'Employee Type'],
+      ['join_date', 'Joining Date'], ['dob', 'Date of Birth'], ['gender', 'Gender'], ['mobile', 'Mobile No'],
+      ['email', 'Email'], ['nid', 'NID'], ['company', 'Company'], ['bu', 'Business Unit'],
+      ['profit_center', 'Profit Center'], ['cost_center', 'Cost Center'], ['manager', 'Reporting Manager'], ['status', 'Status'],
+      ['address', 'Address'], ['emergency_name', 'Emergency Contact'], ['emergency_phone', 'Emergency Phone'], ['remarks', 'Remarks']
+    ];
+
+    function empDirShowDetails(code) {
+      var r = empDirRows().filter(function(x) { return x.code === code; })[0];
+      if (!r) return;
+      document.getElementById('empDirDetailTitle').textContent = '📇 ' + (r.name || '') + ' (' + r.code + ')';
+      document.getElementById('empDirDetailPrint').onclick = function() { printEmp(r.code); };
+      document.getElementById('empDirDetailBody').innerHTML = EMPDIR_DETAIL_FIELDS.map(function(f) {
+        var v = r[f[0]];
+        var val = f[0] === 'mobile' ? empDirMobileHtml(v) : (f[0] === 'status' ? empDirStatusHtml(v) : empDirEsc(v));
+        return '<div><div style="font-size:0.72rem; color:#64748b;">' + f[1] + '</div><div style="font-weight:600; word-break:break-word;">' + (val || '—') + '</div></div>';
+      }).join('');
+      document.getElementById('empDirDetailOverlay').classList.add('active');
+    }
+    function closeEmpDirDetails() { document.getElementById('empDirDetailOverlay').classList.remove('active'); }
+
+    function exportEmpDirectoryCSV() {
+      var rows = empDirFiltered();
+      if (!rows.length) { alert('No employee to export.'); return; }
+      var header = EMPDIR_DETAIL_FIELDS.map(function(f) { return f[1]; });
+      var lines = [header].concat(rows.map(function(r) { return EMPDIR_DETAIL_FIELDS.map(function(f) { return r[f[0]] == null ? '' : r[f[0]]; }); }));
+      var csv = lines.map(function(row) {
+        return row.map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+      }).join('\n');
+      var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'employee_directory_' + getTimestamp() + '.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    function printEmpDirectory() {
+      var rows = empDirFiltered();
+      if (!rows.length) { alert('No employee to print.'); return; }
+      var cols = [['code', 'Emp ID'], ['name', 'Name'], ['designation', 'Designation'], ['mobile', 'Mobile No'], ['email', 'Email'], ['company', 'Company'], ['cost_center', 'Cost Center'], ['manager', 'Reporting Manager'], ['join_date', 'Joining Date'], ['status', 'Status']];
+      var html = '<h3>Employee Directory (' + rows.length + ')</h3><table><thead><tr><th>SL#</th>' +
+        cols.map(function(c) { return '<th>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        rows.map(function(r, i) { return '<tr><td>' + (i + 1) + '</td>' + cols.map(function(c) { return '<td>' + empDirEsc(r[c[0]]) + '</td>'; }).join('') + '</tr>'; }).join('') +
+        '</tbody></table>';
+      var w = window.open('', '_blank');
+      if (!w) return;
+      w.document.write('<html><head><title>Employee Directory</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Segoe UI,Arial;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:3px 5px;text-align:left}th{background:#2c3e50;color:#fff}</style></head><body>' + html + '</body></html>');
+      w.document.close(); w.focus(); w.print();
     }
 
     function openEmpList() {
