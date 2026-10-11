@@ -3314,7 +3314,24 @@ const fsel=(id,l,a,cur)=>fld(l,\`<select id="\${id}"><option value="">All</optio
 const fbar=o=>\`<div class="pn"><div class="ih">Filter</div><div class="fg">\${o.dt?inp('ff','From Date',F.from||'','date')+inp('ft','To Date',F.to||'','date'):''}\${fcombo('fp',o.pl||'Product',o.prods,F.fg)}\${o.bn?fcombo('fb','Batch No',live().map(b=>b.no),F.bn):''}\${fsel('fl',o.ll,o.locs,F.loc)}</div><div class="bt"><button class="btn sv" data-act="fshow">🔍 Show</button><button class="btn ex" data-act="freset">Reset</button></div></div>\`;
 const FP=()=>[...new Set(D.recipes.map(r=>r.fg))],cnt=(n,m)=>\`<div class="nd" style="text-align:left">Records: \${n}\${n<m?' of '+m+' (filtered)':''}</div>\`;
 R.rdaily=()=>{const L=live().filter(bOK),q=L.reduce((a,b)=>a+(b.rq||0),0);return \`<div class="ttl">Daily Production Report</div>\${fbar({dt:1,bn:1,prods:FP(),ll:'Location (Plant)',locs:PLs()})}<div class="pn">\${T(['Date','Production No','Batch No','Receive No','Product','Plant','Runs','Std Qty','Received','Variance','Status'],L.map(b=>[b.date,b.pro,b.no,rfpOf(b.no),b.fg,b.pl,b.run,b.qty,b.rq??'—',b.rq?b.rq-b.qty:'—',Bd(b.st)]).concat([['<b>Total</b>','','','','','','',rnd(L.reduce((a,b)=>a+b.qty,0)),'<b>'+rnd(q)+'</b>','','']]))}\${cnt(L.length,live().length)}</div>\`};
-R.rstock=()=>{const rows=Object.entries(D.stock).filter(([w])=>!F.loc||w==F.loc).flatMap(([w,o])=>Object.entries(o).filter(([i])=>mt(i,F.fg)).map(([i,q])=>[w,i,q])),all=[...new Set(Object.values(D.stock).flatMap(o=>Object.keys(o)))];return \`<div class="ttl">Warehouse Wise Stock</div>\${fbar({prods:all,pl:'Item',ll:'Location (Warehouse)',locs:Object.keys(D.stock)})}<div class="pn">\${T(['Warehouse','Item','Stock (Kg)'],rows)}\${cnt(rows.length,rows.length)}</div>\`};
+R.rstock=()=>{const S=SS;if(!S.rows&&!S.busy&&!S.err)A.ssload();
+ const esc=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+ const hd='<div class="ttl">Warehouse Wise Stock<span><button class="btn sv" data-act="ssload">⟳ Refresh from Sheet</button></span></div>';
+ if(S.busy&&!S.rows)return hd+'<div class="pn"><div class="nd">Loading stock from MM Google Sheet...</div></div>';
+ if(S.err&&!S.rows)return hd+'<div class="pn"><div class="nd" style="color:#d9342b">'+esc(S.err)+'</div></div>';
+ const q=String(F.sq||'').toLowerCase();let n=0,out='';
+ S.secs.forEach(sc=>{const h=sc.header.map(x=>String(x).trim().toLowerCase());
+  const ci=h.findIndex(x=>x=='material code'||x=='item code'),
+   ni=h.findIndex(x=>x.indexOf('description')>-1||x.indexOf('material name')>-1||x.indexOf('item name')>-1||x=='name'),
+   ai=(i=>i>-1?i:h.findIndex(x=>x.indexOf('closing')>-1))(h.findIndex(x=>x.indexOf('available')>-1));
+  if(ci<0||ni<0||ai<0){out+='<div class="nd" style="color:#d9342b;text-align:left">Cannot find Item Code / Item Name / Available Stock column in sheet. Columns: '+esc(sc.header.join(' | '))+'</div>';return}
+  const rows=[];sc.rows.forEach(r=>{const c=String(r[ci]||'').trim(),nm=String(r[ni]||'').trim();if(!c)return;
+   const raw=String(r[ai]==null?'':r[ai]).trim(),v=parseFloat(raw.replace(/,/g,''));if(!(v>0||v<0))return;
+   if(q&&(c+' '+nm).toLowerCase().indexOf(q)<0)return;rows.push([c,nm,raw])});
+  n+=rows.length;
+  const tt=sc.titles.map(t=>t.filter(x=>String(x).trim()).join('  ')).filter(Boolean).join(' · ');
+  out+=(tt?'<div style="padding:6px 12px;font-weight:700;background:#eef2f7">'+esc(tt)+'</div>':'')+T(['Item Code','Item Name','Available Stock'],rows)});
+ return hd+'<div class="pn"><div class="ih">Filter</div><div class="fg">'+inp('sq','Item Code / Name',F.sq||'')+'</div><div class="bt"><button class="btn sv" data-act="ssshow">🔍 Show</button><button class="btn ex" data-act="freset">Reset</button></div></div><div class="pn">'+out+'<div class="nd" style="text-align:left">Records: '+n+' (zero stock hidden)'+(S.at?' · Loaded: '+S.at:'')+'</div></div>'};
 const rmInfo=(bn,n)=>{const b=D.batches.find(x=>x.no==bn),r=b&&D.recipes.find(x=>x.id==b.rc),l=r&&r.lines.find(z=>z[0]==n),c=(l&&l[2])||itmCatOf(n)||'—';return [c,(l&&l[3])||itmCode(c=='—'?'':c,n)||'—']};
 R.rcons=()=>{const L=D.cons.filter(cOK);return \`<div class="ttl">Material Consumption (Production Issue)</div>\${fbar({dt:1,bn:1,prods:FP(),pl:'Finished Product',ll:'Location (Plant)',locs:PLs()})}<div class="pn">\${T(['Production No','Batch No','Date','Finished Product','Item Category','Raw Material','Item Code','Required (Kg)','Actual Consumption (Kg)'],L.map(c=>{const k=rmInfo(c.b,c.rm);return [proOf(c.b),c.b,c.date,c.fg,k[0],c.rm,k[1],c.req??c.q,c.q]}).concat([['<b>Total</b>','','','','','','','<b>'+rnd(L.reduce((a,c)=>a+(c.req??c.q),0))+'</b>','<b>'+rnd(L.reduce((a,c)=>a+c.q,0))+'</b>']]))}\${cnt(L.length,D.cons.length)}</div>\`};
 R.rfg=()=>{const m={},nf={},L=D.cons.filter(cOK);L.forEach(c=>{const k=c.fg+'|'+c.rm;m[k]=rnd((m[k]||0)+c.q);if(!nf[k])nf[k]=rmInfo(c.b,c.rm)});return \`<div class="ttl">FG Wise RM Consumption Report</div>\${fbar({dt:1,bn:1,prods:FP(),pl:'Finished Product',ll:'Location (Plant)',locs:PLs()})}<div class="pn">\${T(['Finished Product','Item Category','Raw Material','Item Code','Total Consumed (Kg)'],Object.entries(m).map(([k,q])=>{const f=k.split('|');return [f[0],nf[k][0],f[1],nf[k][1],q]}).concat([['<b>Total</b>','','','','<b>'+rnd(Object.values(m).reduce((a,q)=>a+q,0))+'</b>']]))}\${cnt(L.length,D.cons.length)}</div>\`};
@@ -3342,6 +3359,7 @@ const mmAvail=(n,cd)=>{let o={};try{o=JSON.parse(localStorage.getItem('erp_stock
 const avHtml=(n,cd)=>{if(!n)return '—';const a=mmAvail(n,cd),tip=a.parts.map(x=>x[0]+': '+x[1]).join(' | ').replace(/"/g,'&quot;');return '<b style="color:'+(a.total>0?'#2da44e':'#d9342b')+'" title="'+tip+'">'+a.total+'</b>'+(a.total>0&&a.parts.length>1?' <small style="color:#667">('+a.parts.length+' warehouse)</small>':'')+(a.total>0?'':' <small>no stock</small>')};
 const avUpd=tr=>{const c=tr.querySelector('.rav');if(c)c.innerHTML=avHtml(tr.querySelector('.rn').value,tr.querySelector('.rcd').value)};
 const iplOpts=c=>{const a=iplList();return '<option value="">[ Select Plant Name ]</option>'+a.concat(c&&a.indexOf(c)<0?[c]:[]).map(n=>'<option'+(n==c?' selected':'')+'>'+n+'</option>').join('')};
+let SS={rows:null,secs:[],busy:false,err:'',at:''};
 let MAN={},PS=null,PV=null,RV=null,RW=null,F={},PE=null,PWV=null;
 const live=()=>D.batches.filter(b=>b.st!='Draft');
 const resv=(p,i)=>D.batches.filter(x=>x.st=='Draft'&&x.dpp==p.no&&x.fg==i.fg&&x.pl==(i.pl||p.pl)&&x.no!=PS).reduce((a,x)=>a+x.qty,0);
@@ -3466,6 +3484,13 @@ prevert(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Processed
  if(i){i.done=Math.max(0,Math.round((i.done-b.qty/isz(i))*1e6)/1e6)}
  if(p&&p.st!='Completed')p.st=p.items.some(x=>x.done>1e-6)?'In Progress':'Open';
  b.st='Draft';b.plc=null;PV=null;save();go('630');toast(b.pro+' reverted to Draft, stock restored. You can edit it now')},
+ssshow(){F.sq=v('sq');go(cur,1)},
+ssload(){const U=window.MM_STOCK_SHEET_CSV_URL,P=window.parseStockSheetCsv,B=window.buildStockSheetSections;
+ if(!U||!P||!B){SS.err='MM Google Sheet stock loader not available';return}
+ SS.busy=true;SS.err='';
+ fetch(U+(U.indexOf('?')<0?'?':'&')+'_t='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text()}).then(t=>{
+  if(/^\\s*<(!doctype|html)/i.test(t))throw new Error('Sheet is not public');const rows=P(t);if(!rows.length)throw new Error('Sheet is empty');
+  SS.rows=rows;SS.secs=B(rows);SS.at=new Date().toLocaleString()}).catch(e=>{SS.err='Could not load MM Google Sheet ('+e.message+')'}).then(()=>{SS.busy=false;if(cur=='722')go('722',1)})},
 plc(){let n=0;D.batches.forEach(b=>{if(b.st=='Processed'&&b.plc==null){b.plc=Math.round(b.qty*(1+(Math.random()-.5)*.01));n++}});save();go('631');toast(n+' batch(es) synced')},
 rf(t){const b=D.batches.find(x=>x.no==v('bn'));set('fg',b?b.fg:'');set('sq',b?b.qty:'');set('pq',b?b.plc??'':'');if(!t||t.id=='bn')set('rq',b?b.plc??b.qty:'');set('rno',RV||nextRn(v('d')))},
 rcnew(){RV=null;if(!WH.length)whLoad();go('632',1);const o=availB();if(o.length==1){set('bn',o[0].no);A.rf({id:'bn'})}else A.rf();A.np()},
@@ -35441,4 +35466,63 @@ return btns;
     })();
   </script>
  
+
+<style id="mmInlinePagesCss">
+@media screen {
+  #mmPageHost { display:none; padding:14px 18px 24px; }
+  .mm-inline { position:static !important; inset:auto !important; background:transparent !important; padding:0 !important; z-index:auto !important; display:block !important; }
+  .mm-inline.mm-hidden { display:none !important; }
+  .mm-inline > * { max-width:none !important; width:100% !important; max-height:none !important; overflow-y:visible !important; overflow-x:auto !important; box-shadow:none !important; border-radius:6px !important; margin:0 !important; border:1px solid #d6dde6 !important; }
+  .mm-inline.weight-modal-overlay > * { max-width:1100px !important; margin:0 auto !important; }
+}
+</style>
+<script id="mmInlinePagesJs">
+(function () {
+  // MM module pages open inline (like the Production module) instead of as pop-up windows.
+  var IDS = ["w1ListOverlay", "w2ListOverlay", "weightFormOverlay", "qc1FormOverlay", "qc1ListOverlay", "qc2FormOverlay", "qc2ListOverlay", "reportOverlay", "prListOverlay", "strListOverlay", "strFormOverlay", "srListOverlay", "srFormOverlay", "miListOverlay", "miFormOverlay", "mrListOverlay", "mrFormOverlay", "stockReportOverlay", "toListOverlay", "toFormOverlay", "stnListOverlay", "stnFormOverlay", "grnListOverlay", "grnFormOverlay", "vuListOverlay", "vuFormOverlay", "prFormOverlay", "rfqFormOverlay", "csFormOverlay", "poFormOverlay", "gateInFormOverlay", "giListOverlay", "goListOverlay", "goFormOverlay"];
+  var stack = [];
+  function mmRoot() { return document.getElementById('module-mm'); }
+  function host() {
+    var h = document.getElementById('mmPageHost');
+    if (!h) {
+      var mm = mmRoot(), dash = mm.querySelector('.dashboard-container');
+      h = document.createElement('div'); h.id = 'mmPageHost';
+      mm.insertBefore(h, dash);
+      // clicking the empty area around a page must not close it (the old pop-up backdrop did)
+      h.addEventListener('click', function (e) { if (e.target.classList && e.target.classList.contains('mm-inline')) e.stopPropagation(); }, true);
+    }
+    return h;
+  }
+  function refresh() {
+    var mm = mmRoot(), dash = mm.querySelector('.dashboard-container'), h = host();
+    stack.forEach(function (o, i) { o.classList.toggle('mm-hidden', i !== stack.length - 1); });
+    if (dash) dash.style.display = stack.length ? 'none' : '';
+    h.style.display = stack.length ? 'block' : 'none';
+  }
+  function isForm(o) { return /Form/.test(o.id); }
+  var obs = new MutationObserver(function (muts) {
+    muts.forEach(function (m) {
+      var o = m.target, i = stack.indexOf(o);
+      if (o.classList.contains('active')) {
+        if (i < 0 && mmRoot() && mmRoot().classList.contains('active')) {
+          // a new list/report replaces whatever page is open; a form opens on top of its list
+          if (!isForm(o)) stack.slice().forEach(function (x) { x.classList.remove('active'); });
+          host().appendChild(o); o.classList.add('mm-inline'); stack.push(o);
+          window.scrollTo(0, 0);
+        }
+      } else if (i > -1) {
+        stack.splice(i, 1); o.classList.remove('mm-inline', 'mm-hidden'); document.body.appendChild(o);
+      }
+    });
+    refresh();
+  });
+  IDS.forEach(function (id) { var e = document.getElementById(id); if (e) obs.observe(e, { attributes: true, attributeFilter: ['class'] }); });
+  // switching to another ERP module closes any open MM page
+  var _sw = window.switchModule;
+  if (typeof _sw === 'function') window.switchModule = function (k) {
+    if (k !== 'mm') stack.slice().forEach(function (x) { x.classList.remove('active'); });
+    return _sw.apply(this, arguments);
+  };
+})();
+</script>
 </body></html>
