@@ -1061,6 +1061,10 @@
     .msg-sugg div:hover { background:#eff6ff; }
     .msg-sugg small { color:#64748b; }
     .msg-field { flex:1; padding:8px 10px; border:1px solid #c7cdd4; border-radius:4px; font-size:.9rem; outline:none; font-family:inherit; }
+    .msg-sigbox { border:1px dashed #cbd5e1; border-radius:6px; padding:8px 10px; margin:4px 0 10px; background:#f8fafc; }
+    .msg-sigbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:.82rem; }
+    .msg-sigbar label { display:flex; gap:6px; align-items:center; cursor:pointer; font-weight:600; }
+    .msg-sigprev { white-space:pre-wrap; font-size:.8rem; color:#475569; margin-top:6px; border-left:3px solid #94a3b8; padding-left:8px; }
     .msg-toast { position:fixed; top:80px; right:20px; background:#1e293b; color:#fff; padding:12px 18px; border-radius:8px; z-index:4000; font-size:.85rem; box-shadow:0 8px 24px rgba(0,0,0,.3); max-width:340px; cursor:pointer; }
     @media (max-width: 860px) {
       .msg-box { height:94vh; }
@@ -3326,7 +3330,7 @@ R.rstock=()=>{const S=SS;if(!S.rows&&!S.busy&&!S.err)A.ssload();
    ai=(i=>i>-1?i:h.findIndex(x=>x.indexOf('closing')>-1))(h.findIndex(x=>x.indexOf('available')>-1));
   if(ci<0||ni<0||ai<0){out+='<div class="nd" style="color:#d9342b;text-align:left">Cannot find Item Code / Item Name / Available Stock column in sheet. Columns: '+esc(sc.header.join(' | '))+'</div>';return}
   const rows=[];sc.rows.forEach(r=>{const c=String(r[ci]||'').trim(),nm=String(r[ni]||'').trim();if(!c)return;
-   const raw=String(r[ai]==null?'':r[ai]).trim(),v=parseFloat(raw.replace(/,/g,''));if(!(v>0||v<0))return;
+   const raw=String(r[ai]==null?'':r[ai]).trim(),v=(window.mmSheetNum?window.mmSheetNum(raw):parseFloat(raw.replace(/,/g,'')));if(!(v>0||v<0))return;
    if(q&&(c+' '+nm).toLowerCase().indexOf(q)<0)return;rows.push([c,nm,raw])});
   n+=rows.length;
   const tt=sc.titles.map(t=>t.filter(x=>String(x).trim()).join('  ')).filter(Boolean).join(' · ');
@@ -3351,13 +3355,19 @@ const nrm=x=>String(x==null?'':x).trim().toLowerCase();
 const mmRecs=wh=>{let o={};try{o=JSON.parse(localStorage.getItem('erp_stock_records')||'{}')}catch(e){}return Object.values(o).filter(r=>r&&nrm(r.warehouse)==nrm(wh))};
 const mmFindRec=(wh,n)=>mmRecs(wh).find(r=>nrm(r.item_name)==nrm(n)||(r.item_code&&nrm(r.item_code)==nrm(n)));
 const mmQty=(wh,n)=>{const r=mmFindRec(wh,n);return r?rnd(parseFloat(r.qty)||0):0};
-const mmIssue=(b,n,u)=>{const x=mmFindRec(b.wh,n);if(!x||!(u>0))return;
+const lineCode=(r,n)=>{const l=r&&r.lines.find(z=>z[0]==n);return (l&&l[3])||itmCode((l&&l[2])||itmCatOf(n),n)||''};
+const mmRes=(b,n)=>mmFindRec(b.wh,n)||{warehouse:b.wh,item_code:lineCode(D.recipes.find(z=>z.id==b.rc),n),item_name:n};
+const stQty=(wh,n,cd)=>{const q=typeof window.mmSheetQty=='function'?window.mmSheetQty(cd=='—'?'':cd||'',n,wh):null;return q===null?mmQty(wh,n):q};
+const mmIssue=(b,n,u)=>{const x=mmRes(b,n);if(!x||!(u>0))return;
  if(typeof adjustStock=='function')adjustStock(x.warehouse,x.item_code,x.item_name,-u);
  if(typeof logStockTransaction=='function'){let g='',m='';try{const t=JSON.parse(localStorage.getItem('erp_stock_transactions')||'[]').filter(z=>nrm(z.material_name)==nrm(x.item_name)||(x.item_code&&z.material_code==x.item_code)).pop();if(t){g=t.item_group||'';m=t.uom||''}}catch(e){}
   logStockTransaction('consumption',x.item_code,x.item_name,g,m,x.warehouse,u,b.date,b.no)}};
-const mmAvail=(n,cd)=>{let o={};try{o=JSON.parse(localStorage.getItem('erp_stock_records')||'{}')}catch(e){}const by={};Object.values(o).forEach(r=>{if(r&&(nrm(r.item_name)==nrm(n)||(cd&&r.item_code&&nrm(r.item_code)==nrm(cd)))){const w=r.warehouse||'-';by[w]=rnd((by[w]||0)+(parseFloat(r.qty)||0))}});const parts=Object.entries(by).filter(x=>x[1]!=0);return {total:rnd(parts.reduce((a,x)=>a+x[1],0)),parts}};
-const avHtml=(n,cd)=>{if(!n)return '—';const a=mmAvail(n,cd),tip=a.parts.map(x=>x[0]+': '+x[1]).join(' | ').replace(/"/g,'&quot;');return '<b style="color:'+(a.total>0?'#2da44e':'#d9342b')+'" title="'+tip+'">'+a.total+'</b>'+(a.total>0&&a.parts.length>1?' <small style="color:#667">('+a.parts.length+' warehouse)</small>':'')+(a.total>0?'':' <small>no stock</small>')};
+const avSrc=()=>window.mmSheetQty&&window._mmSS?(window._mmSS.items?'sheet':(window._mmSS.err?'rec':'wait')):'rec';
+const mmAvail=(n,cd)=>{if(avSrc()=='sheet')return {total:window.mmSheetQty(cd||'',n,''),parts:[],sheet:1};let o={};try{o=JSON.parse(localStorage.getItem('erp_stock_records')||'{}')}catch(e){}const by={};Object.values(o).forEach(r=>{if(r&&(nrm(r.item_name)==nrm(n)||(cd&&r.item_code&&nrm(r.item_code)==nrm(cd)))){const w=r.warehouse||'-';by[w]=rnd((by[w]||0)+(parseFloat(r.qty)||0))}});const parts=Object.entries(by).filter(x=>x[1]!=0);return {total:rnd(parts.reduce((a,x)=>a+x[1],0)),parts}};
+const avHtml=(n,cd)=>{if(!n)return '—';if(avSrc()=='wait'){if(window.mmSheetStockLoad)window.mmSheetStockLoad(false);return '<small style="color:#667">loading…</small>'}const a=mmAvail(n,cd),tip=(a.sheet?'MM Stock Sheet (Closing Stock)':a.parts.map(x=>x[0]+': '+x[1]).join(' | ')).replace(/"/g,'&quot;');return '<b style="color:'+(a.total>0?'#2da44e':'#d9342b')+'" title="'+tip+'">'+a.total+'</b>'+(a.total>0&&a.parts.length>1?' <small style="color:#667">('+a.parts.length+' warehouse)</small>':'')+(a.total>0?'':' <small>no stock</small>')};
 const avUpd=tr=>{const c=tr.querySelector('.rav');if(c)c.innerHTML=avHtml(tr.querySelector('.rn').value,tr.querySelector('.rcd').value)};
+if(window.__prodMmCb)window.removeEventListener('mmstock:loaded',window.__prodMmCb);
+window.__prodMmCb=()=>{try{root.querySelectorAll('.rr').forEach(avUpd);if($('#rmp'))A.rmp()}catch(e){}};window.addEventListener('mmstock:loaded',window.__prodMmCb);
 const iplOpts=c=>{const a=iplList();return '<option value="">[ Select Plant Name ]</option>'+a.concat(c&&a.indexOf(c)<0?[c]:[]).map(n=>'<option'+(n==c?' selected':'')+'>'+n+'</option>').join('')};
 let SS={rows:null,secs:[],busy:false,err:'',at:''};
 let MAN={},PS=null,PV=null,RV=null,RW=null,F={},PE=null,PWV=null;
@@ -3375,13 +3385,13 @@ pdef(){MAN={};set('sh',shiftNow());set('wg','Group A');const o=[...$('#dpp').opt
  if(o.length==1){set('dpp',o[0].value);A.fill({id:'dpp'});const it=[...$('#it').options].filter(x=>x.value);if(it.length==1){set('it',it[0].value);A.fill({id:'it'})}}A.rmp()},
 rmp(){const p=D.plans.find(x=>x.no==v('dpp')),i=ifind(p,v('it')),r=i&&D.recipes.find(x=>x.id==v('rc')),qty=+v('prq')||0;
  if(!r){$('#rmp').innerHTML='';return}
- const rows=r.lines.map(([n,q,c,cd])=>{const need=rnd(q*qty/r.size),a=MAN[n]!==undefined?MAN[n]:need,av=mmQty(v('wh'),n),cat=c||itmCatOf(n)||'—',code=cd||itmCode(c||itmCatOf(n),n)||'—';return {n,cat,code,need,a,av}}),sum=k=>rnd(rows.reduce((t,x)=>t+(+x[k]||0),0));
+ const rows=r.lines.map(([n,q,c,cd])=>{const need=rnd(q*qty/r.size),a=MAN[n]!==undefined?MAN[n]:need,cat=c||itmCatOf(n)||'—',code=cd||itmCode(c||itmCatOf(n),n)||'—',av=stQty(v('wh'),n,code);return {n,cat,code,need,a,av}}),sum=k=>rnd(rows.reduce((t,x)=>t+(+x[k]||0),0));
  $('#rmp').innerHTML=T(['Item Category','Raw Material','Item Code','Required (Kg)','Available (Kg)','Actual Consumption (Kg)','Status'],rows.map(x=>[x.cat,x.n,x.code,x.need,x.av,\`<input class="act" data-rm="\${x.n}" data-av="\${x.av}" data-chg="rmv" type="number" min="0" step="any" value="\${x.a}" style="width:110px">\`,+x.a<=x.av?'✔':'<span style="color:#d9342b">✘ short</span>']).concat([['','<b>Total</b>','',\`<b>\${sum('need')}</b>\`,'',\`<b id="tac">\${sum('a')}</b>\`,'']]))},
 rmv(t){if(t.value==='')delete MAN[t.dataset.rm];else MAN[t.dataset.rm]=t.value;t.closest('tr').lastElementChild.innerHTML=+t.value<=+t.dataset.av?'✔':'<span style="color:#d9342b">✘ short</span>';$('#tac').textContent=rnd([...root.querySelectorAll('.act')].reduce((a,x)=>a+(+x.value||0),0))},
-rnew(){RS={mode:'new'};if(!PM.length)pmLoad();if(!ITM.length)itmLoad();go('582',1)},
+rnew(){RS={mode:'new'};if(window.mmSheetStockLoad)window.mmSheetStockLoad(false);if(!PM.length)pmLoad();if(!ITM.length)itmLoad();go('582',1)},
 fshow(){if(v('ff')&&v('ft')&&v('ff')>v('ft'))return toast('From Date is after To Date',1);F={from:v('ff')||'',to:v('ft')||'',fg:(v('fp')||'').trim(),bn:(v('fb')||'').trim(),loc:v('fl')||''};go(cur,1)},
 freset(){F={};go(cur,1)},rcode(){if(!$('#code').dataset.man){const e=rec(v('fg').trim());set('code',e?e.code:mkCode(v('fg')))}},cman(){$('#code').dataset.man=v('code')?'1':''},rview(a){RS={mode:'view',id:a.dataset.id};go('582',1)},rtoggle(a){const r=D.recipes.find(x=>x.id==a.dataset.id);if(!r)return;r.act=r.act===false;save();go('582');toast('BOM '+r.id+(r.act===false?' inactivated':' activated'))},
-redit(a){if(!ITM.length)itmLoad();RS={mode:'edit',id:a.dataset.id};go('582',1)},rhide(){RS=null;go('582',1)},
+redit(a){if(window.mmSheetStockLoad)window.mmSheetStockLoad(false);if(!ITM.length)itmLoad();RS={mode:'edit',id:a.dataset.id};go('582',1)},rhide(){RS=null;go('582',1)},
 addR:()=>$('#rtb').insertAdjacentHTML('beforeend',rRow()),delR(a){if(root.querySelectorAll('.rr').length>1){a.closest('tr').remove();A.rt()}},
 rt(){const t=[...root.querySelectorAll('.rq2')].reduce((a,x)=>a+(+x.value||0),0),b=+v('size')||0,e=$('#rtot');e.innerHTML=\`Total RM: <b>\${t}</b> Kg / Batch size: <b>\${b}</b> Kg \${t==b?'✔':'✘ mismatch'}\`;e.style.color=t==b?'#2da44e':'#d9342b'},
 prn(a){const r=D.recipes.find(x=>x.id==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">BOM \${r.id}</h2>\`+recDoc(r);PRINT()},addItem:()=>$('#itb').insertAdjacentHTML('beforeend',itemRow()),delItem(a){if(root.querySelectorAll('.it').length>1)a.closest('tr').remove()},iq(){root.querySelectorAll('.it').forEach(r=>{const q=+r.querySelector('.iqty').value,b=+r.querySelector('.ibs').value;r.querySelector('.ib').textContent=q>0&&b>0?rnd(q/b):'—'})},
@@ -3461,8 +3471,8 @@ saveProc(){const p=D.plans.find(x=>x.no==v('dpp')),i=ifind(p,v('it')),qty=+v('pr
  const o={date:v('d'),dpp:p.no,fg:i.fg,rc:r.id,pl:i.pl||p.pl,bs,run:rnd(qty/bs),qty,sh:v('sh'),wg:v('wg'),wh:v('wh'),act:Object.fromEntries(ln),rem:v('rm')};
  let no=PS;if(no)Object.assign(D.batches.find(x=>x.no==no),o);else{no=nextNo(r,o.date);D.batches.push({no,pro:nextPro(),...o,st:'Draft',plc:null})}
  save();go('630');toast(\`Draft \${D.batches.find(x=>x.no==no).pro} saved. Click Submit to post it to stock\`)},
-pnew(){PS=null;if(!WH.length)whLoad();go('630',1);A.np()},
-pedit(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Draft')return;PS=b.no;go('630',1);
+pnew(){PS=null;if(window.mmSheetStockLoad)window.mmSheetStockLoad(false);if(!WH.length)whLoad();go('630',1);A.np()},
+pedit(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Draft')return;PS=b.no;if(window.mmSheetStockLoad)window.mmSheetStockLoad(false);go('630',1);
  if(![...$('#dpp').options].some(o=>o.value==b.dpp))return toast('Plan item already fully produced, cannot edit',1);
  set('d',b.date);set('dpp',b.dpp);A.fill({id:'dpp'});set('it',b.fg+'|'+(b.pl||''));A.fill({id:'it'});set('rc',b.rc);set('bs',b.bs||(D.recipes.find(x=>x.id==b.rc)||{}).size||'');{const r=D.recipes.find(x=>x.id==b.rc);MAN=Object.fromEntries(Object.entries(b.act).filter(([n,q])=>{const l=r.lines.find(l=>l[0]==n);return l&&rnd(l[1]*b.qty/r.size)!=q}))}set('prq',b.qty);set('sh',b.sh);set('wg',b.wg);{const w=$('#wh');if(b.wh&&![...w.options].some(o=>o.value==b.wh))w.insertAdjacentHTML('beforeend','<option>'+b.wh+'</option>')}set('wh',b.wh);set('rm',b.rem||'');A.fill({id:'prq'});A.np()},
 pview(a){PV=a.dataset.id;go('630',1)},pvhide(){PV=null;RW=null;PWV=null;go(cur,1)},
@@ -3470,15 +3480,15 @@ pprn(a){const b=D.batches.find(x=>x.no==a.dataset.id);let d=$('#pr');if(!d){d=do
 submit(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Draft')return;
  const p=D.plans.find(x=>x.no==b.dpp),i=p&&p.items.find(x=>x.fg==b.fg&&(x.pl||p.pl)==b.pl),r=D.recipes.find(x=>x.id==b.rc);if(!i||!r)return toast('Plan or BOM not found',1);
  if(b.qty>(i.n-i.done)*isz(i)+1e-6)return toast('Qty exceeds plan balance, edit this entry first',1);
- const sh=Object.entries(b.act).filter(([n,q])=>mmQty(b.wh,n)<q).map(x=>x[0]);if(sh.length)return toast('Insufficient RM stock in MM Inventory ('+b.wh+'): '+sh.join(', '),1);
+ const sh=Object.entries(b.act).filter(([n,q])=>stQty(b.wh,n,lineCode(r,n))<q).map(x=>x[0]);if(sh.length)return toast('Insufficient RM stock in MM Inventory ('+b.wh+'): '+sh.join(', '),1);
  r.lines.forEach(([n,q])=>{const u=rnd(b.act[n]);mmIssue(b,n,u);D.cons.push({b:b.no,date:b.date,fg:b.fg,rm:n,req:rnd(q*b.qty/r.size),q:u})});
  i.done=Math.round((i.done+b.qty/isz(i))*1e6)/1e6;p.st='In Progress';b.st='Processed';save();go('630');toast(\`Batch \${b.no} submitted, RM consumed from MM Inventory stock\`)},
 prevert(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Processed')return;
  const bl=revBlock(b);if(bl)return toast('Cannot revert: '+bl,1);
  if(!confirm('Revert '+b.pro+' to Draft? Consumed raw materials will be returned to '+b.wh+' stock.'))return;
- Object.entries(b.act||{}).forEach(([n,q])=>{const u=rnd(q);if(!(u>0))return;const x=mmFindRec(b.wh,n);if(!x)return;
+ Object.entries(b.act||{}).forEach(([n,q])=>{const u=rnd(q);if(!(u>0))return;const x=mmRes(b,n);if(!x)return;
   if(typeof adjustStock=='function')adjustStock(x.warehouse,x.item_code,x.item_name,u);
-  if(typeof logStockTransaction=='function')logStockTransaction('consumption',x.item_code,x.item_name,'','',x.warehouse,-u,td(),b.no)});
+  if(typeof logStockTransaction=='function')logStockTransaction('consumption_reversal',x.item_code,x.item_name,'','',x.warehouse,u,td(),b.no)});
  D.cons=D.cons.filter(c=>c.b!=b.no);D.rcv=D.rcv.filter(x=>!(x.bn==b.no&&x.st=='Draft'));
  const p=D.plans.find(x=>x.no==b.dpp),i=p&&p.items.find(x=>x.fg==b.fg&&(x.pl||p.pl)==b.pl);
  if(i){i.done=Math.max(0,Math.round((i.done-b.qty/isz(i))*1e6)/1e6)}
@@ -6459,7 +6469,10 @@ go('home');
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_supplier">Supplier</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_supplier" readonly=""></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_item_name">Item Name</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_item_name" readonly=""></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_item_code">Item Code</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_item_code" readonly=""></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_profit_center">Profit Center</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_profit_center" placeholder="Auto-filled from source"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_company">Company</label><span class="erp-info-icon">i</span></div><select id="grn_company" class="org-company-select" onchange="onGrnCompanyChange()"><option value="">-- Select Company --</option></select></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_bu">Business Unit</label><span class="erp-info-icon">i</span></div><select id="grn_bu" onchange="onGrnBuChange()"><option value="">-- Select BU --</option></select></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_profit_center">Profit Center</label><span class="erp-info-icon">i</span></div><select id="grn_profit_center"><option value="">-- Select Profit Center --</option></select></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_warehouse">Warehouse</label><span class="erp-info-icon">i</span></div><select id="grn_warehouse"><option value="">-- Select Warehouse --</option></select></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_description">Description</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_description" readonly=""></div>
             </div>
           </div>
@@ -15602,10 +15615,71 @@ return btns;
       }, 800);
     }
 
+    // ===== GRN: Company -> Business Unit -> Profit Center -> Warehouse =====
+    function onGrnCompanyChange() { onOrgCompanyChange('grn_company', 'grn_bu', 'grn_profit_center'); }
+    function onGrnBuChange() { onOrgBuChange('grn_company', 'grn_bu', 'grn_profit_center'); }
+
+    function grnAddOpt(sel, v) {
+      if (!sel || !v) return;
+      for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === v) return;
+      var o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o);
+    }
+    function grnFindOrgByPc(pc) {
+      var d = (typeof PR_ORG_DATA !== 'undefined' && PR_ORG_DATA && PR_ORG_DATA.hierarchy) || {}, hit = null;
+      Object.keys(d).forEach(function(c) {
+        var e = d[c];
+        Object.keys(e.buMap || {}).forEach(function(bu) { if (!hit && (e.buMap[bu] || []).indexOf(pc) !== -1) hit = { company: c, bu: bu }; });
+      });
+      return hit;
+    }
+    // Sets the three org selects (adds an option when the saved value is not in the list, e.g. org sheet not loaded yet)
+    function grnSetOrg(company, bu, pc) {
+      var cs = document.getElementById('grn_company'), bs = document.getElementById('grn_bu'), ps = document.getElementById('grn_profit_center');
+      if ((!company || !bu) && pc) { var f = grnFindOrgByPc(pc); if (f) { company = company || f.company; bu = bu || f.bu; } }
+      grnAddOpt(cs, company); cs.value = company || ''; onGrnCompanyChange();
+      grnAddOpt(bs, bu); bs.value = bu || ''; onGrnBuChange();
+      grnAddOpt(ps, pc); ps.value = pc || '';
+    }
+    var _grnWarehouses = null;
+    function grnFillWarehouse(values, keep) {
+      var sel = document.getElementById('grn_warehouse'); if (!sel) return;
+      var cur = keep !== undefined ? keep : sel.value;
+      sel.innerHTML = '<option value="">-- Select Warehouse --</option>';
+      (values || []).forEach(function(v) { var o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); });
+      if (cur) { grnAddOpt(sel, cur); sel.value = cur; }
+    }
+    function grnLoadWarehouses() {
+      var fb = (typeof PR_WAREHOUSE_FALLBACK !== 'undefined' && PR_WAREHOUSE_FALLBACK) || [];
+      if (_grnWarehouses) { grnFillWarehouse(_grnWarehouses); return; }
+      grnFillWarehouse(fb);
+      if (typeof PR_WAREHOUSE_SHEET_CSV_URL === 'undefined' || !PR_WAREHOUSE_SHEET_CSV_URL || PR_WAREHOUSE_SHEET_CSV_URL.indexOf('PASTE_') === 0) return;
+      fetch(PR_WAREHOUSE_SHEET_CSV_URL).then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }).then(function(text) {
+        var rows = prParseCsv(text), vals = [];
+        for (var i = 1; i < rows.length; i++) if (rows[i][0] && vals.indexOf(rows[i][0]) === -1) vals.push(rows[i][0]);
+        _grnWarehouses = vals.length ? vals : fb;
+        grnFillWarehouse(_grnWarehouses);
+      }).catch(function(err) { console.warn('GRN warehouse list: using fallback', err); });
+    }
+    function grnPrepareOrgFields() {
+      try { loadPrOrgData(); } catch (e) {}
+      try { onGrnCompanyChange(); } catch (e) {}
+      grnLoadWarehouses();
+    }
+    function grnPrefillOrg(o) {
+      grnSetOrg(o.company, o.bu, o.pc);
+      grnFillWarehouse(_grnWarehouses || (typeof PR_WAREHOUSE_FALLBACK !== 'undefined' ? PR_WAREHOUSE_FALLBACK : []), o.wh || '');
+      // the organization sheet may still be loading: try once more so Company / BU can be derived from the Profit Center
+      if (o.pc && !(o.company && o.bu)) setTimeout(function() {
+        var cs = document.getElementById('grn_company');
+        if (cs && !cs.value) grnSetOrg(o.company, o.bu, o.pc);
+      }, 1500);
+    }
+
     function openGrnFromQc2(scaleId, qc2Record, weightRecord) {
       // Open GRN form
       var form = document.getElementById('grnForm');
       form.reset();
+      grnPrepareOrgFields();
       document.getElementById('grnFormError').classList.remove('show');
       document.getElementById('grnFormSuccess').classList.remove('show');
 
@@ -15626,18 +15700,20 @@ return btns;
 
       // Auto-fill PO No from gate entry
       var poNo = '';
+      var giRec = {};
       if (weightRecord.gate_entry_no) {
         var giRecords = JSON.parse(localStorage.getItem('erp_gi_records') || '{}');
         var giRecord = giRecords[weightRecord.gate_entry_no];
         if (giRecord) {
           poNo = giRecord.po_no || giRecord.gi_po_no || '';
+          giRec = giRecord;
         }
       }
       document.getElementById('grn_po_no').value = poNo;
 
       // Auto-fill from weight/QC source records
       document.getElementById('grn_supplier').value = weightRecord.supplier || '';
-      document.getElementById('grn_profit_center').value = weightRecord.profit_center || qc2Record.profit_center || '';
+      grnPrefillOrg({ company: weightRecord.company || qc2Record.company || giRec.company || '', bu: weightRecord.bu || qc2Record.bu || giRec.bu || '', pc: weightRecord.profit_center || qc2Record.profit_center || giRec.profit_center || '', wh: weightRecord.warehouse || qc2Record.warehouse || giRec.warehouse || '' });
       document.getElementById('grn_batch_no').value = '';
       document.getElementById('grn_item_name').value = weightRecord.item_name || '';
       document.getElementById('grn_item_code').value = weightRecord.item_code || '';
@@ -19390,8 +19466,13 @@ return btns;
         document.getElementById('pr_item_lastqty_' + rowId).value = '';
         return;
       }
-      var stockQty = getStockQty(warehouse, itemCode, itemName);
-      document.getElementById('pr_item_stock_' + rowId).value = stockQty;
+      var sq = (typeof mmSheetQty === 'function') ? mmSheetQty(itemCode, itemName, warehouse) : null;
+      if (typeof mmSheetStockLoad === 'function') mmSheetStockLoad(false);
+      var stockQty = (sq === null) ? getStockQty(warehouse, itemCode, itemName) : sq;
+      var stockEl = document.getElementById('pr_item_stock_' + rowId);
+      stockEl.value = stockQty;
+      stockEl.title = sq !== null ? 'Source: MM Stock Sheet (Warehouse Wise Stock report)'
+        : (typeof _mmSS !== 'undefined' && _mmSS.err ? 'MM stock sheet could not be loaded (' + _mmSS.err + ') - showing MM inventory records' : 'Loading MM stock sheet...');
 
       var currentRef = document.getElementById('pr_ref') ? document.getElementById('pr_ref').value : '';
       var last = getLastPrRequisitionInfo(itemCode, itemName, currentRef);
@@ -23272,6 +23353,86 @@ return btns;
       w.document.close(); w.focus(); w.print();
     }
 
+    // =====================================================================
+    // ===== Shared MM stock = the MM Google Sheet ("Warehouse Wise Stock" report) =====
+    // PR "Stock on Hand", BOM "Available Stock" and Production Process "Available (Kg)"
+    // all read the same item-wise Closing Stock from the sheet.
+    // If the sheet has a "Warehouse" column the selected warehouse is applied automatically.
+    // =====================================================================
+    var _mmSS = { items: null, at: 0, busy: false, err: '', failAt: 0, waiters: [] };
+
+    function mmSheetNum(raw) {
+      var t = String(raw == null ? '' : raw).replace(/[,\s]/g, '');
+      if (!t || t === '-') return NaN;
+      var neg = /^\(.*\)$/.test(t) || t.charAt(0) === '-';
+      var v = parseFloat(t.replace(/[()\-]/g, ''));
+      return isNaN(v) ? NaN : (neg ? -v : v);
+    }
+    function mmSheetStockParse(rows) {
+      var items = [];
+      buildStockSheetSections(rows).forEach(function(sc) {
+        var h = sc.header.map(function(x) { return String(x).trim().toLowerCase(); });
+        var ci = h.findIndex(function(x) { return x === 'material code' || x === 'item code'; });
+        var ni = h.findIndex(function(x) { return x.indexOf('description') > -1 || x.indexOf('material name') > -1 || x.indexOf('item name') > -1 || x === 'name'; });
+        var ai = (function(i) { return i > -1 ? i : h.findIndex(function(x) { return x.indexOf('closing') > -1; }); })(h.findIndex(function(x) { return x.indexOf('available') > -1; }));
+        var wi = h.findIndex(function(x) { return x === 'warehouse' || x === 'warehouse name' || x === 'store'; });
+        if (ci < 0 || ni < 0 || ai < 0) return;
+        sc.rows.forEach(function(r) {
+          var code = String(r[ci] || '').trim(), name = String(r[ni] || '').trim();
+          if ((!code && !name) || name === '0') return;
+          var v = mmSheetNum(r[ai]);
+          items.push({ code: code, name: name, qty: isNaN(v) ? 0 : v, wh: wi >= 0 ? String(r[wi] || '').trim() : '' });
+        });
+      });
+      return items;
+    }
+    // Item-wise stock; null while the sheet is not loaded (callers fall back), 0 if the item is not on the sheet.
+    function mmNz(x) { return String(x == null ? '' : x).toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+    function mmSheetQty(code, name, wh) {
+      if (!_mmSS.items) return null;
+      var c = String(code || '').trim().toLowerCase(), n = String(name || '').trim().toLowerCase(), w = String(wh || '').trim().toLowerCase();
+      var items = _mmSS.items.filter(function(x) { return !w || !x.wh || x.wh.toLowerCase() === w; });
+      var hit = [], realCode = c && /[1-9]/.test(c);   // codes like "0" / "RM--000" are placeholders, never matched
+      function uniqueByCode(fn) {
+        var byc = items.filter(fn), names = {};
+        byc.forEach(function(x) { names[mmNz(x.name)] = 1; });
+        return Object.keys(names).length === 1 ? byc : [];
+      }
+      if (c && n) hit = items.filter(function(x) { return x.code.toLowerCase() === c && x.name.toLowerCase() === n; });
+      if (!hit.length && n) hit = items.filter(function(x) { return x.name.toLowerCase() === n; });
+      if (!hit.length && mmNz(n)) { var nn = mmNz(n); hit = items.filter(function(x) { return mmNz(x.name) === nn; }); }   // ignores spaces, dashes, case
+      if (!hit.length && realCode) hit = uniqueByCode(function(x) { return x.code.toLowerCase() === c; });
+      if (!hit.length && realCode) { var cn = mmNz(c); hit = uniqueByCode(function(x) { return mmNz(x.code) === cn; }); }
+      return Math.round(hit.reduce(function(a, x) { return a + x.qty; }, 0) * 1000) / 1000;
+    }
+    function mmSheetStockLoad(force, cb) {
+      var fresh = _mmSS.items && (Date.now() - _mmSS.at < 60000) && !force;
+      if (fresh) { if (cb) cb(true); return; }
+      // after a failed attempt do not hammer the network: wait 30 s unless the user forces a refresh
+      if (!force && _mmSS.err && (Date.now() - _mmSS.failAt < 30000)) { if (cb) cb(false); return; }
+      if (cb) _mmSS.waiters.push(cb);
+      if (_mmSS.busy) return;
+      _mmSS.busy = true;
+      function finish(ok) {
+        _mmSS.busy = false;
+        _mmSS.waiters.splice(0).forEach(function(f) { try { f(ok); } catch (e) {} });
+        try { window.dispatchEvent(new CustomEvent('mmstock:loaded', { detail: { ok: ok } })); } catch (e) {}
+      }
+      fetch(MM_STOCK_SHEET_CSV_URL + (MM_STOCK_SHEET_CSV_URL.indexOf('?') === -1 ? '?' : '&') + '_t=' + Date.now(), { cache: 'no-store' }).then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      }).then(function(text) {
+        if (/^\s*<(!doctype|html)/i.test(text)) throw new Error('Sheet is not public');
+        _mmSS.items = mmSheetStockParse(parseStockSheetCsv(text));
+        _mmSS.at = Date.now(); _mmSS.err = '';
+        finish(true);
+      }).catch(function(e) { _mmSS.err = (e && e.message) || 'load failed'; _mmSS.failAt = Date.now(); finish(false); });
+    }
+    // when fresh sheet data arrives, refresh any open Purchase Requisition lines
+    window.addEventListener('mmstock:loaded', function() {
+      try { if (document.getElementById('prItemsBody') && typeof onPrHeaderWarehouseChange === 'function') onPrHeaderWarehouseChange(); } catch (e) {}
+    });
+
     function closeStockReport() {
       document.getElementById('stockReportOverlay').classList.remove('active');
     }
@@ -23479,6 +23640,7 @@ return btns;
           case 'goods_exchange_receive': m.goods_exchange_receive += qty; break;
           case 'positive_adjustment': m.positive_adjustment += qty; break;
           case 'consumption': m.consumption += qty; break;
+          case 'consumption_reversal': m.consumption -= qty; break;
           case 'transfer_issue': m.transfer_issue += qty; break;
           case 'sale': m.sale += qty; break;
           case 'purchase_return': m.purchase_return += qty; break;
@@ -24550,6 +24712,7 @@ return btns;
         var form = document.getElementById('grnForm');
         if (!form) { alert('GRN form element not found!'); return; }
         form.reset();
+        grnPrepareOrgFields();
         document.getElementById('grnFormError').classList.remove('show');
         document.getElementById('grnFormSuccess').classList.remove('show');
 
@@ -24741,6 +24904,14 @@ return btns;
         return false;
       }
 
+      var grnCompany = document.getElementById('grn_company').value, grnBu = document.getElementById('grn_bu').value,
+          grnPc = document.getElementById('grn_profit_center').value, grnWh = document.getElementById('grn_warehouse').value;
+      if (!grnCompany || !grnBu || !grnPc || !grnWh) {
+        errEl.textContent = '❌ Company, Business Unit, Profit Center and Warehouse are required.';
+        errEl.classList.add('show');
+        return false;
+      }
+
       var grnData = {
         grn_no: grnNo,
         date: document.getElementById('grn_date').value,
@@ -24749,7 +24920,10 @@ return btns;
         supplier: document.getElementById('grn_supplier').value,
         item_name: document.getElementById('grn_item_name').value,
         item_code: document.getElementById('grn_item_code').value,
-        profit_center: document.getElementById('grn_profit_center').value.trim(),
+        company: grnCompany,
+        bu: grnBu,
+        profit_center: grnPc.trim(),
+        warehouse: grnWh,
         description: document.getElementById('grn_description').value,
         batch_no: document.getElementById('grn_batch_no').value.trim(),
         no_of_bag: document.getElementById('grn_no_of_bag').value,
@@ -24860,7 +25034,8 @@ return btns;
         document.getElementById('grn_supplier').value = r.supplier || '';
         document.getElementById('grn_item_name').value = r.item_name || '';
         document.getElementById('grn_item_code').value = r.item_code || '';
-        document.getElementById('grn_profit_center').value = r.profit_center || '';
+        grnSetOrg(r.company || '', r.bu || '', r.profit_center || '');
+        grnFillWarehouse(_grnWarehouses || [], r.warehouse || '');
         document.getElementById('grn_batch_no').value = r.batch_no || '';
         document.getElementById('grn_description').value = r.description || '';
         document.getElementById('grn_no_of_bag').value = r.no_of_bag || '';
@@ -29947,7 +30122,7 @@ return btns;
     //   users/<id>/messages/sent/<msgId>   (sender's copy)
     // Without Firebase it falls back to localStorage (same browser only).
     // =====================================================================
-    var _msg = { inbox: {}, sent: {}, folder: 'inbox', sel: null, to: [], dir: [], refs: [], seen: null, uid: '', local: false, ready: false };
+    var _msg = { inbox: {}, sent: {}, folder: 'inbox', sel: null, rcp: { to: [], cc: [], bcc: [] }, sig: '', dir: [], refs: [], seen: null, uid: '', local: false, ready: false };
 
     function msgUid() { return currentUser ? String(currentUser.id) : ''; }
     function msgEsc(v) {
@@ -29996,13 +30171,20 @@ return btns;
       if (!currentUser) return;
       _msg.uid = msgUid();
       _msg.seen = null;
+      try { _msg.sig = _origGetItem.call(localStorage, 'erp_msg_sig_' + _msg.uid) || ''; } catch (e) { _msg.sig = ''; }
       if (db) {
         _msg.local = false;
         var base = 'users/' + _msg.uid + '/messages/';
         var rIn = db.ref(base + 'inbox'), rSent = db.ref(base + 'sent');
         rIn.on('value', function(snap) { _msg.inbox = snap.val() || {}; msgNotifyNew(); msgOnData(); }, function(err) { console.warn('Messages inbox listen failed:', err); });
         rSent.on('value', function(snap) { _msg.sent = snap.val() || {}; msgOnData(); }, function(err) { console.warn('Messages sent listen failed:', err); });
-        _msg.refs = [rIn, rSent];
+        var rSig = db.ref(base + 'signature');
+        rSig.on('value', function(snap) {
+          var v = snap.val();
+          if (v && typeof v.text === 'string') { _msg.sig = v.text; try { _origSetItem.call(localStorage, 'erp_msg_sig_' + _msg.uid, v.text); } catch (e) {} }
+          msgSigRefresh();
+        }, function(err) { console.warn('Messages signature listen failed:', err); });
+        _msg.refs = [rIn, rSent, rSig];
       } else {
         _msg.local = true;
         msgLocalRead(); msgNotifyNew(); msgOnData();
@@ -30013,7 +30195,7 @@ return btns;
       _msg.refs.forEach(function(r) { try { r.off(); } catch (e) {} });
       _msg.refs = [];
       window.removeEventListener('storage', msgStorageEvt);
-      _msg.inbox = {}; _msg.sent = {}; _msg.sel = null; _msg.to = [];
+      _msg.inbox = {}; _msg.sent = {}; _msg.sel = null; _msg.rcp = { to: [], cc: [], bcc: [] }; _msg.sig = '';
       msgUpdateBadge();
       closeMessagePanel();
     }
@@ -30083,14 +30265,15 @@ return btns;
       var arr = Object.keys(src).map(function(k) { var m = src[k] || {}; return { id: k, m: m }; }).filter(function(x) {
         if (!q) return true;
         var m = x.m;
-        var hay = [m.from_name, m.from_id, m.subject, m.body, (m.to || []).map(function(t) { return t.name + ' ' + t.id; }).join(' ')].join(' ').toLowerCase();
+        var hay = [m.from_name, m.from_id, m.subject, m.body, (m.to || []).concat(m.cc || [], m.bcc || []).map(function(t) { return t.name + ' ' + t.id; }).join(' ')].join(' ').toLowerCase();
         return hay.indexOf(q) !== -1;
       }).sort(function(a, b) { return (b.m.ts || 0) - (a.m.ts || 0); });
       var box = document.getElementById('msgList');
       if (!arr.length) { box.innerHTML = '<div class="msg-empty" style="margin-top:40px;">No messages</div>'; return; }
       box.innerHTML = arr.map(function(x) {
         var m = x.m;
-        var who = _msg.folder === 'sent' ? 'To: ' + (m.to || []).map(function(t) { return t.name || t.id; }).join(', ') : (m.from_name || m.from_id || '');
+        var nm = function(a) { return (a || []).map(function(t) { return t.name || t.id; }).join(', '); };
+        var who = _msg.folder === 'sent' ? 'To: ' + nm(m.to) + (m.cc && m.cc.length ? ' · Cc: ' + nm(m.cc) : '') + (m.bcc && m.bcc.length ? ' · Bcc: ' + nm(m.bcc) : '') : (m.from_name || m.from_id || '');
         var unread = _msg.folder === 'inbox' && !m.read;
         return '<div class="msg-item' + (unread ? ' unread' : '') + (x.id === _msg.sel ? ' sel' : '') + '" data-id="' + msgEsc(x.id) + '">' +
           '<div class="msg-item-top"><span class="msg-from">' + msgEsc(who) + '</span><span class="msg-time">' + msgEsc(msgTime(m.ts)) + '</span></div>' +
@@ -30117,7 +30300,9 @@ return btns;
       _msg.sel = id;
       if (_msg.folder === 'inbox' && !m.read) msgSetRead(id, true);
       msgRenderList();
-      var toTxt = (m.to || []).map(function(t) { return msgEsc(t.name || t.id) + ' (' + msgEsc(t.id) + ')'; }).join(', ');
+      var nmId = function(a) { return (a || []).map(function(t) { return msgEsc(t.name || t.id) + ' (' + msgEsc(t.id) + ')'; }).join(', '); };
+      var toTxt = nmId(m.to) + (m.cc && m.cc.length ? '<br><b>Cc:</b> ' + nmId(m.cc) : '') + (m.bcc && m.bcc.length ? '<br><b>Bcc:</b> ' + nmId(m.bcc) : '') +
+        (m.bcc_me ? '<br><i>You received this message as Bcc.</i>' : '');
       var btns = '<button class="primary" onclick="msgReply(false)">↩ Reply</button>' +
         ((m.to || []).length > 1 || _msg.folder === 'sent' ? '<button onclick="msgReply(true)">↩↩ Reply All</button>' : '<button onclick="msgReply(true)">↩↩ Reply All</button>') +
         '<button onclick="msgForward()">➡ Forward</button>' +
@@ -30188,59 +30373,148 @@ return btns;
       }
     }
 
-    // ----- compose -----
+    // ----- signature (per user) -----
+    function msgSigRefresh() {
+      var pv = document.getElementById('msgSigPreview');
+      if (!pv) return;
+      pv.innerHTML = _msg.sig ? msgEsc(_msg.sig) : '<i>No signature yet. Click "Edit signature" to create one.</i>';
+      var cb = document.getElementById('msgSigUse');
+      if (cb && !cb.dataset.touched) cb.checked = !!_msg.sig;
+    }
+    function msgSigSave(text) {
+      text = String(text || '').replace(/\s+$/, '');
+      _msg.sig = text;
+      try { _origSetItem.call(localStorage, 'erp_msg_sig_' + _msg.uid, text); } catch (e) {}
+      if (db && !_msg.local) db.ref('users/' + _msg.uid + '/messages/signature').set({ text: text, updated: Date.now() });
+    }
+    function msgSigEdit() {
+      document.getElementById('msgSigText').value = _msg.sig || '';
+      document.getElementById('msgSigEditor').style.display = 'block';
+      document.getElementById('msgSigText').focus();
+    }
+    function msgSigCancel() { document.getElementById('msgSigEditor').style.display = 'none'; }
+    function msgSigSaveClick() {
+      msgSigSave(document.getElementById('msgSigText').value);
+      document.getElementById('msgSigEditor').style.display = 'none';
+      var cb = document.getElementById('msgSigUse'); if (cb) { cb.dataset.touched = ''; }
+      msgSigRefresh();
+    }
+    // builds "Name / Designation / Company / Mobile | Email" from the employee linked to the logged-in user
+    function msgProfileSig(userRecs, empRecs) {
+      var me = msgUid(), ur = (userRecs || {})[me] || Object.keys(userRecs || {}).map(function(k) { return userRecs[k]; }).filter(function(r) { return r && String(r.user_id) === me; })[0] || {};
+      var e = (empRecs || {})[ur.employee_code] || {};
+      var lines = [ur.employee_name || e.name || (currentUser && currentUser.name) || me];
+      if (e.designation) lines.push(e.designation);
+      if (e.company) lines.push(e.company);
+      var c = [];
+      if (e.mobile) c.push('Mobile: ' + e.mobile);
+      if (e.email) c.push('Email: ' + e.email);
+      if (c.length) lines.push(c.join(' | '));
+      return lines.join('\n');
+    }
+    function msgSigAuto() {
+      var ta = document.getElementById('msgSigText'), last = '';
+      function put(txt) { if (!ta.value || ta.value === last) { ta.value = txt; last = txt; } }
+      var lu = {}, le = {};
+      try { lu = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}'); } catch (e) {}
+      try { le = JSON.parse(localStorage.getItem('erp_emp_records') || '{}'); } catch (e) {}
+      put(msgProfileSig(lu, le));
+      if (db) {   // User ID / Employee records are mirrored under the administrator's branch
+        var base = 'users/2422/data/';
+        Promise.all([db.ref(base + USERIDSETUP_STORAGE_KEY).once('value'), db.ref(base + 'erp_emp_records').once('value')]).then(function(r) {
+          var cu = {}, ce = {};
+          try { cu = JSON.parse(r[0].val() || '{}'); } catch (e) {}
+          try { ce = JSON.parse(r[1].val() || '{}'); } catch (e) {}
+          Object.keys(lu).forEach(function(k) { if (!cu[k]) cu[k] = lu[k]; });
+          Object.keys(le).forEach(function(k) { if (!ce[k]) ce[k] = le[k]; });
+          put(msgProfileSig(cu, ce));
+        }).catch(function() {});
+      }
+    }
+    // The signature goes above any quoted / forwarded text, otherwise at the end
+    function msgWithSig(body, sig) {
+      var block = '\n\n-- \n' + sig, m = String(body).match(/\n\n--- (?:.* wrote ---|Forwarded message ---)/);
+      if (m) return body.slice(0, m.index).replace(/\s+$/, '') + block + body.slice(m.index);
+      return String(body).replace(/\s+$/, '') + block;
+    }
+
+    // ----- compose (To / Cc / Bcc) -----
+    var MSG_FIELDS = ['to', 'cc', 'bcc'];
+    function msgAllRcp() { return _msg.rcp.to.concat(_msg.rcp.cc, _msg.rcp.bcc); }
+    function msgRowHtml(f, label, extra) {
+      return '<div class="msg-row" id="msgRow_' + f + '" style="' + (f === 'to' ? '' : 'display:none;') + '"><label>' + label + '</label>' +
+        '<div class="msg-to" id="msgBox_' + f + '"><span id="msgChips_' + f + '"></span><input type="text" id="msgIn_' + f + '" placeholder="Type name / ID / designation..." autocomplete="off"></div>' +
+        (extra || '') + '<div class="msg-sugg" id="msgSugg_' + f + '"></div></div>';
+    }
     function msgCompose(pre) {
       pre = pre || {};
       _msg.sel = null;
-      _msg.to = (pre.to || []).slice();
+      _msg.rcp = { to: (pre.to || []).slice(), cc: (pre.cc || []).slice(), bcc: (pre.bcc || []).slice() };
       msgRenderList();
       document.getElementById('msgView').innerHTML =
         '<div class="msg-read"><h3>✏️ New Message</h3>' +
-        '<div class="msg-row"><label>To</label><div class="msg-to" id="msgToBox"><span id="msgChips"></span><input type="text" id="msgToInput" placeholder="Type name / ID / designation..." autocomplete="off"></div>' +
-        '<button class="msg-small" onclick="msgAddAll()" title="Send to everyone">👥 All</button><div class="msg-sugg" id="msgSugg"></div></div>' +
+        msgRowHtml('to', 'To', '<button class="msg-small" onclick="msgAddAll()" title="Send to everyone">👥 All</button>' +
+          '<button class="msg-small" id="msgBtn_cc" onclick="msgShowRow(\'cc\')">Cc</button><button class="msg-small" id="msgBtn_bcc" onclick="msgShowRow(\'bcc\')">Bcc</button>') +
+        msgRowHtml('cc', 'Cc') + msgRowHtml('bcc', 'Bcc') +
         '<div class="msg-row"><label>Subject</label><input type="text" class="msg-field" id="msgSubject" maxlength="200"></div>' +
-        '<div class="msg-row"><label>Message</label><textarea class="msg-field" id="msgBodyInput" rows="14"></textarea></div>' +
+        '<div class="msg-row"><label>Message</label><textarea class="msg-field" id="msgBodyInput" rows="12"></textarea></div>' +
+        '<div class="msg-row"><label></label><div class="msg-sigbox" style="flex:1;">' +
+          '<div class="msg-sigbar"><label><input type="checkbox" id="msgSigUse"> Include signature</label><button class="msg-small" onclick="msgSigEdit()">✍ Edit signature</button></div>' +
+          '<div class="msg-sigprev" id="msgSigPreview"></div>' +
+          '<div id="msgSigEditor" style="display:none; margin-top:8px;"><textarea class="msg-field" id="msgSigText" rows="5" style="width:100%; box-sizing:border-box;" placeholder="Name&#10;Designation&#10;Mobile / Email"></textarea>' +
+            '<div class="msg-actions"><button class="primary" onclick="msgSigSaveClick()">Save signature</button><button onclick="msgSigAuto()">Use my details</button><button onclick="msgSigCancel()">Cancel</button></div></div>' +
+        '</div></div>' +
         '<div class="msg-actions"><button class="primary" onclick="msgSendNow()">📨 Send</button><button onclick="msgDiscard()">Discard</button><span id="msgSendStatus" style="font-size:.82rem;"></span></div></div>';
       document.getElementById('msgSubject').value = pre.subject || '';
       document.getElementById('msgBodyInput').value = pre.body || '';
-      msgRenderChips();
-      var inp = document.getElementById('msgToInput');
-      inp.addEventListener('input', msgRenderSugg);
-      inp.addEventListener('focus', msgRenderSugg);
-      inp.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') { e.preventDefault(); var f = document.querySelector('#msgSugg [data-uid]'); if (f) msgAddTo(f.getAttribute('data-uid')); }
-        else if (e.key === 'Backspace' && !inp.value && _msg.to.length) { _msg.to.pop(); msgRenderChips(); }
-      });
-      document.getElementById('msgSugg').addEventListener('mousedown', function(e) {
-        var it = e.target.closest('[data-uid]');
-        if (it) { e.preventDefault(); msgAddTo(it.getAttribute('data-uid')); }
-      });
-      document.getElementById('msgChips').addEventListener('click', function(e) {
-        var x = e.target.closest('[data-rm]');
-        if (x) { _msg.to = _msg.to.filter(function(t) { return t.id !== x.getAttribute('data-rm'); }); msgRenderChips(); }
+      document.getElementById('msgSigUse').addEventListener('change', function() { this.dataset.touched = '1'; });
+      msgSigRefresh();
+      MSG_FIELDS.forEach(function(f) {
+        msgRenderChips(f);
+        if (f !== 'to' && _msg.rcp[f].length) msgShowRow(f, true);
+        var inp = document.getElementById('msgIn_' + f);
+        inp.addEventListener('input', function() { msgRenderSugg(f); });
+        inp.addEventListener('focus', function() { msgRenderSugg(f); });
+        inp.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') { e.preventDefault(); var first = document.querySelector('#msgSugg_' + f + ' [data-uid]'); if (first) msgAddTo(f, first.getAttribute('data-uid')); }
+          else if (e.key === 'Backspace' && !inp.value && _msg.rcp[f].length) { _msg.rcp[f].pop(); msgRenderChips(f); }
+        });
+        document.getElementById('msgSugg_' + f).addEventListener('mousedown', function(e) {
+          var it = e.target.closest('[data-uid]');
+          if (it) { e.preventDefault(); msgAddTo(f, it.getAttribute('data-uid')); }
+        });
+        document.getElementById('msgChips_' + f).addEventListener('click', function(e) {
+          var x = e.target.closest('[data-rm]');
+          if (x) { _msg.rcp[f] = _msg.rcp[f].filter(function(t) { return t.id !== x.getAttribute('data-rm'); }); msgRenderChips(f); }
+        });
       });
       document.addEventListener('click', msgCloseSugg);
-      msgLoadDir(msgRenderSugg);
-      setTimeout(function() { (pre.to && pre.to.length ? document.getElementById('msgBodyInput') : inp).focus(); }, 30);
+      msgLoadDir(function() { MSG_FIELDS.forEach(msgRenderSugg); });
+      setTimeout(function() { var el = pre.to && pre.to.length ? document.getElementById('msgBodyInput') : document.getElementById('msgIn_to'); if (el) el.focus(); }, 30);
+    }
+    function msgShowRow(f, quiet) {
+      var row = document.getElementById('msgRow_' + f), btn = document.getElementById('msgBtn_' + f);
+      if (row) row.style.display = 'flex';
+      if (btn) btn.style.display = 'none';
+      if (!quiet) { var inp = document.getElementById('msgIn_' + f); if (inp) inp.focus(); }
     }
     function msgCloseSugg(e) {
-      var s = document.getElementById('msgSugg');
-      if (!s) { document.removeEventListener('click', msgCloseSugg); return; }
-      if (!e.target.closest('#msgToBox') && !e.target.closest('#msgSugg')) s.style.display = 'none';
+      if (!document.getElementById('msgSugg_to')) { document.removeEventListener('click', msgCloseSugg); return; }
+      if (e.target.closest('.msg-to') || e.target.closest('.msg-sugg')) return;
+      MSG_FIELDS.forEach(function(f) { var s = document.getElementById('msgSugg_' + f); if (s) s.style.display = 'none'; });
     }
-    function msgRenderChips() {
-      var c = document.getElementById('msgChips');
+    function msgRenderChips(f) {
+      var c = document.getElementById('msgChips_' + f);
       if (!c) return;
-      c.innerHTML = _msg.to.map(function(t) {
+      c.innerHTML = _msg.rcp[f].map(function(t) {
         return '<span class="msg-chip">' + msgEsc(t.name || t.id) + ' <small>(' + msgEsc(t.id) + ')</small><b data-rm="' + msgEsc(t.id) + '">✕</b></span>';
       }).join(' ');
     }
-    function msgRenderSugg() {
-      var inp = document.getElementById('msgToInput'), box = document.getElementById('msgSugg');
-      if (!inp || !box || document.activeElement !== inp) { if (box && document.activeElement !== inp) return; }
-      var q = (inp.value || '').trim().toLowerCase();
-      var chosen = {};
-      _msg.to.forEach(function(t) { chosen[t.id] = 1; });
+    function msgRenderSugg(f) {
+      var inp = document.getElementById('msgIn_' + f), box = document.getElementById('msgSugg_' + f);
+      if (!inp || !box || document.activeElement !== inp) return;
+      var q = (inp.value || '').trim().toLowerCase(), chosen = {};
+      msgAllRcp().forEach(function(t) { chosen[t.id] = 1; });
       var list = _msg.dir.filter(function(u) {
         return !chosen[u.id] && (!q || (u.name + ' ' + u.id + ' ' + u.designation).toLowerCase().indexOf(q) !== -1);
       }).slice(0, 8);
@@ -30250,62 +30524,72 @@ return btns;
       }).join('');
       box.style.display = 'block';
     }
-    function msgAddTo(uid) {
+    // a person sits in only one of To / Cc / Bcc: adding moves them
+    function msgAddTo(f, uid) {
       var u = _msg.dir.filter(function(x) { return x.id === uid; })[0];
-      if (!u || _msg.to.some(function(t) { return t.id === uid; })) return;
-      _msg.to.push({ id: u.id, name: u.name });
-      var inp = document.getElementById('msgToInput');
+      if (!u) return;
+      MSG_FIELDS.forEach(function(k) { _msg.rcp[k] = _msg.rcp[k].filter(function(t) { return t.id !== uid; }); msgRenderChips(k); });
+      _msg.rcp[f].push({ id: u.id, name: u.name });
+      msgRenderChips(f);
+      var inp = document.getElementById('msgIn_' + f);
       inp.value = '';
-      msgRenderChips();
-      msgRenderSugg();
+      msgRenderSugg(f);
       inp.focus();
     }
     function msgAddAll() {
       msgLoadDir(function() {
-        _msg.dir.forEach(function(u) { if (!_msg.to.some(function(t) { return t.id === u.id; })) _msg.to.push({ id: u.id, name: u.name }); });
-        msgRenderChips();
+        var have = {};
+        msgAllRcp().forEach(function(t) { have[t.id] = 1; });
+        _msg.dir.forEach(function(u) { if (!have[u.id]) _msg.rcp.to.push({ id: u.id, name: u.name }); });
+        msgRenderChips('to');
       });
     }
     function msgDiscard() {
       if (document.getElementById('msgBodyInput').value && !confirm('মেসেজ বাদ দিতে চাও?')) return;
-      _msg.to = [];
+      _msg.rcp = { to: [], cc: [], bcc: [] };
       msgShowEmpty();
     }
 
     function msgSendNow() {
       var st = document.getElementById('msgSendStatus');
       function fail(t) { st.style.color = '#dc2626'; st.textContent = t; }
-      if (!_msg.to.length) { fail('⚠ কমপক্ষে একজন প্রাপক (To) সিলেক্ট করুন।'); return; }
+      if (!msgAllRcp().length) { fail('⚠ কমপক্ষে একজন প্রাপক (To / Cc / Bcc) সিলেক্ট করুন।'); return; }
       var subject = document.getElementById('msgSubject').value.trim();
       var body = document.getElementById('msgBodyInput').value;
       if (!subject && !body.trim()) { fail('⚠ Subject বা মেসেজ লিখুন।'); return; }
+      var useSig = document.getElementById('msgSigUse').checked;
+      if (useSig && _msg.sig) body = msgWithSig(body, _msg.sig);
       var me = msgUid();
       var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-      var rec = {
-        id: id, from_id: me, from_name: (currentUser && currentUser.name) || me,
-        to: _msg.to.map(function(t) { return { id: t.id, name: t.name }; }),
-        subject: subject || '(No Subject)', body: body, ts: Date.now()
-      };
+      var clean = function(a) { return a.map(function(t) { return { id: t.id, name: t.name }; }); };
+      var rec = { id: id, from_id: me, from_name: (currentUser && currentUser.name) || me, to: clean(_msg.rcp.to), subject: subject || '(No Subject)', body: body, ts: Date.now() };
+      if (_msg.rcp.cc.length) rec.cc = clean(_msg.rcp.cc);
+      var sentRec = Object.assign({}, rec);                       // only the sender's copy lists the Bcc people
+      if (_msg.rcp.bcc.length) sentRec.bcc = clean(_msg.rcp.bcc);
+      var inboxCopies = {};                                        // id -> copy; To/Cc people never see who is on Bcc
+      clean(_msg.rcp.bcc).forEach(function(t) { inboxCopies[t.id] = Object.assign({}, rec, { read: false, bcc_me: true }); });
+      clean(_msg.rcp.to).concat(clean(_msg.rcp.cc)).forEach(function(t) { inboxCopies[t.id] = Object.assign({}, rec, { read: false }); });
+      var count = Object.keys(inboxCopies).length;
       st.style.color = '#475569'; st.textContent = 'Sending...';
       function done() {
-        _msg.to = [];
+        _msg.rcp = { to: [], cc: [], bcc: [] };
         _msg.folder = 'sent';
         msgRenderSide();
-        _msg.sent[id] = rec;
+        _msg.sent[id] = sentRec;
         msgRenderList();
         msgShow(id);
-        msgToast('✅ Message sent to ' + rec.to.length + ' recipient(s)');
+        msgToast('✅ Message sent to ' + count + ' recipient(s)');
       }
       if (_msg.local) {
         msgLocalWrite(function(all) {
-          rec.to.forEach(function(t) { msgLocalBox(all, t.id).inbox[id] = Object.assign({}, rec, { read: false }); });
-          msgLocalBox(all, me).sent[id] = rec;
+          Object.keys(inboxCopies).forEach(function(uid) { msgLocalBox(all, uid).inbox[id] = inboxCopies[uid]; });
+          msgLocalBox(all, me).sent[id] = sentRec;
         });
         done();
       } else if (db) {
         var upd = {};
-        rec.to.forEach(function(t) { upd['users/' + t.id + '/messages/inbox/' + id] = Object.assign({}, rec, { read: false }); });
-        upd['users/' + me + '/messages/sent/' + id] = rec;
+        Object.keys(inboxCopies).forEach(function(uid) { upd['users/' + uid + '/messages/inbox/' + id] = inboxCopies[uid]; });
+        upd['users/' + me + '/messages/sent/' + id] = sentRec;
         db.ref().update(upd).then(done).catch(function(err) { fail('❌ Send failed: ' + (err && err.message ? err.message : err)); });
       } else {
         fail('❌ Offline: মেসেজ পাঠানো যায়নি।');
@@ -30319,14 +30603,19 @@ return btns;
     function msgReply(all) {
       var m = msgGet(_msg.sel);
       if (!m) return;
-      var me = msgUid(), to = [];
-      function add(id, name) { id = String(id); if (id && id !== me && !to.some(function(t) { return t.id === id; })) to.push({ id: id, name: name || id }); }
-      if (_msg.folder === 'sent') { (m.to || []).forEach(function(t) { add(t.id, t.name); }); }
-      else {
-        add(m.from_id, m.from_name);
-        if (all) (m.to || []).forEach(function(t) { add(t.id, t.name); });
+      var me = msgUid(), to = [], cc = [];
+      function add(list, id, name) {
+        id = String(id);
+        if (id && id !== me && !to.concat(cc).some(function(t) { return t.id === id; })) list.push({ id: id, name: name || id });
       }
-      msgCompose({ to: to, subject: /^re:/i.test(m.subject || '') ? m.subject : 'Re: ' + (m.subject || ''), body: msgQuote(m) });
+      if (_msg.folder === 'sent') {
+        (m.to || []).forEach(function(t) { add(to, t.id, t.name); });
+        if (all) (m.cc || []).forEach(function(t) { add(cc, t.id, t.name); });
+      } else {
+        add(to, m.from_id, m.from_name);
+        if (all) { (m.to || []).forEach(function(t) { add(to, t.id, t.name); }); (m.cc || []).forEach(function(t) { add(cc, t.id, t.name); }); }
+      }
+      msgCompose({ to: to, cc: cc, subject: /^re:/i.test(m.subject || '') ? m.subject : 'Re: ' + (m.subject || ''), body: msgQuote(m) });
     }
     function msgForward() {
       var m = msgGet(_msg.sel);
