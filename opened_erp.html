@@ -3178,7 +3178,7 @@ footer{background:#fff;border-top:1px solid #e2e8f0}
  <div class="m"><a>⚙️ Setup</a><div class="dd">
   <a data-ws="582"><span class="arrow">▶</span> BOM (Finished Product)</a></div></div>
  <div class="m"><a>🏭 Production</a><div class="dd">
-  <a data-ws="630"><span class="arrow">▶</span> Production Process</a><a data-ws="631"><span class="arrow">▶</span> Production From PLC</a><a data-ws="632"><span class="arrow">▶</span> Finished Goods Receive From Production</a><a data-ws="633"><span class="arrow">▶</span> Batch Close</a></div></div>
+  <a data-ws="630"><span class="arrow">▶</span> Production Process</a><a data-ws="631"><span class="arrow">▶</span> Actual Consumption</a><a data-ws="632"><span class="arrow">▶</span> Finished Goods Receive From Production</a><a data-ws="633"><span class="arrow">▶</span> Batch Close</a></div></div>
  <div class="m"><a>🧪 QC</a><div class="dd">
   <a data-ws="640"><span class="arrow">▶</span> QC Standard Setup</a><a data-ws="641"><span class="arrow">▶</span> QC Clearence</a><a data-ws="642"><span class="arrow">▶</span> Reprocess</a></div></div>
  <div class="m"><a>📈 Report</a><div class="dd">
@@ -3190,7 +3190,7 @@ footer{background:#fff;border-top:1px solid #e2e8f0}
 <div class="grid">
  <div class="tile" data-ws="581"><span class="ci">📝</span><div class="ct">Daily Production Plan</div><div class="cd">View / New Plan</div><span class="bg b1">PLAN</span></div>
  <div class="tile" data-ws="630"><span class="ci">🏭</span><div class="ct">Production Process</div><div class="cd">Production Entry</div><span class="bg b2">PROD</span></div>
- <div class="tile" data-ws="631"><span class="ci">📡</span><div class="ct">Production from PLC</div><div class="cd">Sync PLC Quantity</div><span class="bg b3">PLC</span></div>
+ <div class="tile" data-ws="631"><span class="ci">📡</span><div class="ct">Actual Consumption</div><div class="cd">Sync PLC Quantity</div><span class="bg b3">PLC</span></div>
  <div class="tile" data-ws="633"><span class="ci">✅</span><div class="ct">Batch Close</div><div class="cd">Close Received Batch</div><span class="bg b4">CLOSE</span></div>
  <div class="tile" data-ws="720"><span class="ci">📊</span><div class="ct">Daily Production Report</div><div class="cd">Batch &amp; Received Qty</div><span class="bg b5">REPORT</span></div>
  <div class="tile" data-ws="723"><span class="ci">📦</span><div class="ct">Material Consumption</div><div class="cd">Production Issue Report</div><span class="bg b5">REPORT</span></div>
@@ -3282,8 +3282,8 @@ const pacts2=p=>\`<button class="btn sv" data-act="planview" data-id="\${p.no}">
 const planDoc=p=>{const L=p.items.map(i=>{const sz=isz(i),pq=rnd(i.n*sz),dn=rnd(i.done*sz);return [i.pl||p.pl,i.fg,pq,sz,rnd(i.n),dn,rnd(pq-dn)]}),t=k=>'<b>'+rnd(L.reduce((a,x)=>a+x[k],0))+'</b>';
  return \`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['DPP No.',p.no],['Status',p.st],['Plan Date',p.date],['Company',p.co||'—'],['Business Unit',p.bu||'—'],['Profit Center',p.pc||'—'],['Start Time',p.s],['End Time',p.e],['Remarks',p.rm||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\${T(['Plant','Product','Qty (Kg)','Batch Size (Kg)','Batches','Produced (Kg)','Balance (Kg)'],L.concat([['','<b>Total</b>',t(2),'',t(4),t(5),t(6)]]))}\`};
 const planView=no=>{const p=D.plans.find(x=>x.no==no);return p?\`<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Daily Production Plan \${p.no} [View]<span>\${planRevOK(p)?\`<button class="btn ex" data-act="planrevert" data-id="\${p.no}">↩ Revert</button> \`:''}<button class="btn pr" data-act="planprn" data-id="\${p.no}">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>\${planDoc(p)}</div></div>\`:''};
-R.plan=()=>\`<div class="ttl">Daily Production Planning<button class="btn sv" data-act="plannew">＋ New Plan</button></div>
-<div class="pn"><div class="ph"><span class="mn">−</span>Daily Production Plan (\${D.plans.length})</div>\${T(['DPP Ref. No','Plan Date','Start','End','Company','BU','Profit Center','Plant','Items (Product × Batches)','Total Batches','Total Qty (Kg)','Status','Action'],D.plans.map(p=>[p.no,p.date,p.s,p.e,p.co||'—',p.bu||'—',p.pc||'—',p.pl,p.items.map(i=>(i.pl||p.pl)+' · '+i.fg+' × '+rnd(i.n)).join('<br>'),rnd(p.items.reduce((a,i)=>a+i.n,0)),rnd(p.items.reduce((a,i)=>a+i.n*isz(i),0)),Bd(p.st),pacts2(p)]))}</div>
+R.plan=()=>\`<div class="ttl" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><span>Daily Production Planning</span><select id="plmode" data-chg="plmode" style="margin:0 auto;min-width:150px;font-weight:700"><option value="draft"\${PLV2=='complete'?'':' selected'}>Draft</option><option value="complete"\${PLV2=='complete'?' selected':''}>Complete</option></select><button class="btn sv" data-act="plannew">＋ New Plan</button></div>
+<div class="pn"><div class="ph"><span class="mn">−</span>Daily Production Plan – \${PLV2=='complete'?'Complete':'Draft'} (\${D.plans.filter(p=>(p.st=='Draft')==(PLV2!='complete')).length})</div>\${T(['DPP Ref. No','Plan Date','Start','End','Company','BU','Profit Center','Plant','Items (Product × Batches)','Total Batches','Total Qty (Kg)','Status','Action'],D.plans.filter(p=>(p.st=='Draft')==(PLV2!='complete')).map(p=>[p.no,p.date,p.s,p.e,p.co||'—',p.bu||'—',p.pc||'—',p.pl,p.items.map(i=>(i.pl||p.pl)+' · '+i.fg+' × '+rnd(i.n)).join('<br>'),rnd(p.items.reduce((a,i)=>a+i.n,0)),rnd(p.items.reduce((a,i)=>a+i.n*isz(i),0)),Bd(p.st),pacts2(p)]))}</div>
 <div class="modal" id="ins"><div class="pn"><div class="ih">Daily Production Plan [\${PE?'Edit '+PE:'Insert'} mode]<span class="x" data-act="hide">✕</span></div><div class="fg">\${inp('d','Plan Date',td(),'date')}\${inp('s','Start Time','08:00','time')}\${inp('e','End Time','17:00','time')}\${sel('co','Company',orgCo(),'data-chg="org"')}\${sel('bu','Business Unit',[],'data-chg="org"')}\${sel('pc','Profit Center',[],'data-chg="org"')}\${inp('rm','Remarks')}</div>
 <div class="wrap" style="padding:0 12px"><table id="itb"><tr><th>Plant Name</th><th>Product Name</th><th>Qty (Kg)</th><th>Batch Size (Kg)</th><th>Batches</th><th></th></tr>\${itemRow()}</table><button class="btn sv" data-act="addItem" style="margin:6px 0">＋ Add Item</button></div>\${BT('savePlan','hide')}</div></div>\${PWV?planView(PWV):''}\`;
 let RS=null;
@@ -3295,7 +3295,7 @@ return \`<div class="ttl">BOM (Finished Product)<button class="btn sv" data-act=
 \${m=='view'&&r?\`<div class="pn"><div class="ih">BOM \${r.id} [View]<span><button class="btn pr" data-act="prn" data-id="\${r.id}">🖶 Print</button> <span class="x" data-act="rhide">✕</span></span></div>\${recDoc(r)}</div>\`:''}
 \${f?\`<div class="modal" id="ins" style="display:flex"><div class="pn"><div class="ih">BOM [\${m=='edit'?'Edit '+r.id:'Insert'} mode]<span class="x" data-act="rhide">✕</span></div><div class="fg">\${m=='edit'?inp('fg','Finished Product',r?r.fg:'','text','disabled'):sel('fg','Finished Product',PM,'data-chg="rcode"')}\${inp('code','Short Code (Batch No.)',r?r.code:'','text','maxlength=5 data-chg="cman" style="text-transform:uppercase"')}\${fld('Category',\`<select id="cat">\${['Cattle Feed','Poultry Feed','Fish Feed'].map(o=>\`<option\${r&&r.cat==o?' selected':''}>\${o}</option>\`).join('')}</select>\`)}\${inp('size','Batch Size (Kg)',r?r.size:500,'number','data-chg="rt"')}\${inp('fd','Formula Date',r&&r.fd?r.fd:td(),'date')}</div>
 <div class="wrap" style="padding:0 12px"><table id="rtb"><tr><th>Item Category</th><th>Raw Material</th><th>Item Code</th><th>Available Stock (Kg)</th><th>Qty (Kg)</th><th></th></tr>\${(r?r.lines:[['','']]).map(l=>rRow(l[0],l[1],l[2]||itmCatOf(l[0]),l[3])).join('')}</table><button class="btn sv" data-act="addR" style="margin:6px 0">＋ Add Item</button> <span id="rtot" style="font-size:12px;margin-left:10px"></span></div>\${BT('saveRecipe','rhide')}</div></div>\`:''}\`};
-R.process=()=>\`<div class="ttl">Production Process<span><button class="btn sv" data-act="pnew">＋ Production Entry</button></span></div><div class="pn">\${T(['Production No','Batch No','Date','Product','Runs','Qty (Kg)','Plant','Status','Action'],D.batches.map(b=>[b.pro,b.no,b.date,b.fg,b.run,b.qty,b.pl,Bd(b.st),pacts(b)]))}</div>
+R.process=()=>\`<div class="ttl" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><span>Production Process</span><select id="pqmode" data-chg="pqmode" style="margin:0 auto;min-width:150px;font-weight:700"><option value="draft"\${PQV=='complete'?'':' selected'}>Draft</option><option value="complete"\${PQV=='complete'?' selected':''}>Complete</option></select><span><button class="btn sv" data-act="pnew">＋ Production Entry</button></span></div><div class="pn"><div class="ph"><span class="mn">−</span>Production Process – \${PQV=='complete'?'Complete':'Draft'} (\${D.batches.filter(b=>(b.st=='Draft')==(PQV!='complete')).length})</div>\${T(['Production No','Batch No','Date','Product','Runs','Qty (Kg)','Plant','Status','Action'],D.batches.filter(b=>(b.st=='Draft')==(PQV!='complete')).map(b=>[b.pro,b.no,b.date,b.fg,b.run,b.qty,b.pl,Bd(b.st),pacts(b)]))}</div>
 <div class="modal" id="ins"><div class="pn"><div class="ih">Production Process-Feed [\${PS?'Edit '+((D.batches.find(x=>x.no==PS)||{}).pro||PS):'Insert'} mode]<span class="x" data-act="hide">✕</span></div><div class="fg">\${inp('pro','Production No.',PS?((D.batches.find(x=>x.no==PS)||{}).pro||''):nextPro(),'text','disabled')}\${inp('d','Process Date',td(),'date','data-chg="fill"')}\${sel('dpp','DPP No.',D.plans.filter(p=>p.st!='Draft'&&p.items.some(i=>i.n-i.done>1e-6)).map(p=>p.no),'data-chg="fill"')}\${sel('it','Plan Item',[],'data-chg="fill"')}\${inp('pq','Plan Qty (Kg)','','text','disabled')}\${inp('prq','Production Qty (Kg)','','number','min=0 step="any" data-chg="fill"')}\${inp('fg','Product Name','','text','disabled')}\${sel('rc','BOM No.',[],'data-chg="fill"')}\${inp('rfd','BOM Formula Date','','text','disabled')}\${inp('bno','Batch No.','','text','disabled')}\${inp('pl','Plant Name','','text','disabled')}\${inp('bs','Batch Size (Kg)','','number','min=1 step="any" data-chg="fill"')}\${inp('run','No. of Batch Run','','text','disabled')}\${sel('sh','Shift Name',['Day','Night'])}\${sel('wg','Worker Group',['Group A','Group B'])}\${sel('wh','RM-Warehouse',WH,'data-chg="rmp"')}\${inp('rm','Remarks')}</div><div id="rmp" class="wrap" style="padding:0 12px 4px"></div>\${BT('saveProc','hide')}</div></div>\${PV?pView(PV):''}\`;
 const plcRows=b=>D.cons.filter(c=>c.b==b.no);
 const plcBatches=()=>D.batches.filter(b=>b.st=='Processed'&&!b.plcl);
@@ -3308,16 +3308,16 @@ const plcActs=b=>b.plcl?'<button class="btn sv" data-act="plcview" data-id="'+b.
 const plcDoc=b=>{const L=b.plcl||[],sr=rnd(L.reduce((a,l)=>a+(+l.req||0),0)),si=rnd(L.reduce((a,l)=>a+(+l.iss||0),0)),sa=rnd(L.reduce((a,l)=>a+(+l.act||0),0));
  return '<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">'+[['Production No',b.pro],['Batch No',b.no],['PLC Date',b.plcd||'—'],['Product',b.fg],['Plant',b.pl||'—'],['RM-Warehouse',b.wh||'—'],['Std Qty (Kg)',b.qty],['PLC Actual (Kg)',b.plc],['Variance (Kg)',rnd(b.plc-b.qty)],['Remarks',b.plcrem||'—']].map(([k,x])=>'<div><span style="color:var(--mut);font-size:11px">'+k+'</span><br><b>'+x+'</b></div>').join('')+'</div>'+
  T(['Item Category','Raw Material','Item Code','Required (Kg)','Issued in Process (Kg)','PLC Actual (Kg)','Difference vs Required (Kg)'],L.map(l=>{const k=rmInfo(b.no,l.rm);return [k[0],l.rm,k[1],l.req,l.iss,l.act,rnd(l.act-l.req)]}).concat([['','<b>Total</b>','','<b>'+sr+'</b>','<b>'+si+'</b>','<b>'+sa+'</b>','<b>'+rnd(sa-sr)+'</b>']]))};
-const plcView=no=>{const b=D.batches.find(x=>x.no==no);return b&&b.plcl?'<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Production From PLC '+b.pro+' [View]<span>'+(b.st=='Processed'?'<button class="btn ex" data-act="plcrevert" data-id="'+b.no+'">↩ Revert</button> ':'')+'<button class="btn pr" data-act="plcprn" data-id="'+b.no+'">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>'+plcDoc(b)+'</div></div>':''};
-const plcForm=()=>'<div class="modal" id="ins"><div class="pn"><div class="ih">Production From PLC [Insert mode]<span class="x" data-act="hide">✕</span></div><div class="fg">'+inp('pd','PLC Date',td(),'date')+sel('ppn','Production No.',plcBatches().map(b=>b.pro),'data-chg="plcfill"')+inp('pbn','Batch No.','','text','disabled')+inp('pfg','Product Name','','text','disabled')+inp('ppl','Plant Name','','text','disabled')+inp('pwh','RM-Warehouse','','text','disabled')+inp('psq','Std Qty (Kg)','','text','disabled')+inp('prm','Remarks')+'</div><div id="plcrm" class="wrap" style="padding:0 12px 4px"></div><div class="bt"><button class="btn sv" data-act="plcsubmit">Submit</button><button class="btn ex" data-act="hide">Exit</button></div></div></div>';
-R.plc=()=>'<div class="ttl">Production From PLC<button class="btn sv" data-act="plcnew">＋ PLC Entry</button></div><div class="pn">'+T(['Production No','Batch No','Date','Product','Std Qty (Kg)','PLC Actual (Kg)','Variance (Kg)','Variance %','Status','Action'],live().map(b=>{const h=b.plc!=null;return [b.pro,b.no,b.plcd||b.date,b.fg,b.qty,h?b.plc:'—',h?rnd(b.plc-b.qty):'—',h&&b.qty?((b.plc-b.qty)/b.qty*100).toFixed(2):'—',Bd(plcSt(b)),plcActs(b)]}))+'</div>'+plcForm()+(PLV?plcView(PLV):'');
+const plcView=no=>{const b=D.batches.find(x=>x.no==no);return b&&b.plcl?'<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Actual Consumption '+b.pro+' [View]<span>'+(b.st=='Processed'?'<button class="btn ex" data-act="plcrevert" data-id="'+b.no+'">↩ Revert</button> ':'')+'<button class="btn pr" data-act="plcprn" data-id="'+b.no+'">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>'+plcDoc(b)+'</div></div>':''};
+const plcForm=()=>'<div class="modal" id="ins"><div class="pn"><div class="ih">Actual Consumption [Insert mode]<span class="x" data-act="hide">✕</span></div><div class="fg">'+inp('pd','PLC Date',td(),'date')+sel('ppn','Production No.',plcBatches().map(b=>b.pro),'data-chg="plcfill"')+inp('pbn','Batch No.','','text','disabled')+inp('pfg','Product Name','','text','disabled')+inp('ppl','Plant Name','','text','disabled')+inp('pwh','RM-Warehouse','','text','disabled')+inp('psq','Std Qty (Kg)','','text','disabled')+inp('prm','Remarks')+'</div><div id="plcrm" class="wrap" style="padding:0 12px 4px"></div><div class="bt"><button class="btn sv" data-act="plcsubmit">Submit</button><button class="btn ex" data-act="hide">Exit</button></div></div></div>';
+R.plc=()=>{const AQ=PAV=='complete',AL=live().filter(b=>((b.st=='Processed'&&!b.plcl))!=AQ);return '<div class="ttl" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><span>Actual Consumption</span><select id="pamode" data-chg="pamode" style="margin:0 auto;min-width:150px;font-weight:700"><option value="draft"'+(AQ?'':' selected')+'>Draft</option><option value="complete"'+(AQ?' selected':'')+'>Complete</option></select><button class="btn sv" data-act="plcnew">＋ PLC Entry</button></div><div class="pn"><div class="ph"><span class="mn">−</span>Actual Consumption – '+(AQ?'Complete':'Draft')+' ('+AL.length+')</div>'+T(['Production No','Batch No','Date','Product','Std Qty (Kg)','PLC Actual (Kg)','Variance (Kg)','Variance %','Status','Action'],AL.map(b=>{const h=b.plc!=null;return [b.pro,b.no,b.plcd||b.date,b.fg,b.qty,h?b.plc:'—',h?rnd(b.plc-b.qty):'—',h&&b.qty?((b.plc-b.qty)/b.qty*100).toFixed(2):'—',Bd(plcSt(b)),plcActs(b)]}))+'</div>'+plcForm()+(PLV?plcView(PLV):'')};
 const nextRn=()=>nextRfp();
 const availB=()=>D.batches.filter(b=>b.st=='Processed'&&!D.rcv.some(r=>r.st=='Draft'&&r.bn==b.no&&r.no!=RV));
 const racts=r=>\`<button class="btn sv" data-act="rcview" data-id="\${r.no}">View</button> \`+(r.st=='Draft'?\`<button class="btn ex" data-act="rcedit" data-id="\${r.no}">Edit</button> \`:'')+\`<button class="btn pr" data-act="rcprn" data-id="\${r.no}">🖶 Print</button>\`+(r.st=='Received'&&(D.batches.find(b=>b.no==r.bn)||{}).st=='Received'?\` <button class="btn ex" style="background:#f59e0b;color:#fff" data-act="rcrevert" data-id="\${r.no}">↩ Revert</button>\`:'')+(r.st=='Draft'?\` <button class="btn sv" style="background:#16a34a" data-act="rcsubmit" data-id="\${r.no}">Submit</button>\`:'');
 const rcDoc=r=>\`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['Receive No',r.no],['Status',r.st],['Receive Date',r.date],['Batch No',r.bn],['Product',r.fg],['Std Production (Kg)',r.sq],['PLC Qty (Kg)',r.pq??'—'],['Received Qty (Kg)',r.qty],['Variance (Kg)',rnd(r.qty-r.sq)],['FG-Warehouse',r.wh],['Last Process',r.last?'Yes':'No'],['Remarks',r.rem||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\`;
 const rcView=no=>{const r=D.rcv.find(x=>x.no==no);return r?\`<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Finished Goods Receive \${r.no} [View]<span>\${r.st=='Received'&&(D.batches.find(b=>b.no==r.bn)||{}).st=='Received'?\`<button class="btn ex" data-act="rcrevert" data-id="\${r.no}">↩ Revert</button> \`:''}<button class="btn pr" data-act="rcprn" data-id="\${r.no}">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>\${rcDoc(r)}</div></div>\`:''};
-R.receive=()=>\`<div class="ttl">Finished Goods Receive From Production<button class="btn sv" data-act="rcnew">＋ Receive Entry</button></div>
-<div class="pn">\${T(['Receive No','Date','Batch No','Product','Std Qty (Kg)','Received Qty (Kg)','FG-Warehouse','Status','Action'],D.rcv.map(r=>[r.no,r.date,r.bn,r.fg,r.sq,r.qty,r.wh,Bd(r.st),racts(r)]))}</div>
+R.receive=()=>\`<div class="ttl" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><span>Finished Goods Receive From Production</span><select id="rcmode" data-chg="rcmode" style="margin:0 auto;min-width:150px;font-weight:700"><option value="draft"\${PRV=='complete'?'':' selected'}>Draft</option><option value="complete"\${PRV=='complete'?' selected':''}>Complete</option></select><button class="btn sv" data-act="rcnew">＋ Receive Entry</button></div>
+<div class="pn"><div class="ph"><span class="mn">−</span>Finished Goods Receive – \${PRV=='complete'?'Complete':'Draft'} (\${D.rcv.filter(r=>(r.st=='Draft')==(PRV!='complete')).length})</div>\${T(['Receive No','Date','Batch No','Product','Std Qty (Kg)','Received Qty (Kg)','FG-Warehouse','Status','Action'],D.rcv.filter(r=>(r.st=='Draft')==(PRV!='complete')).map(r=>[r.no,r.date,r.bn,r.fg,r.sq,r.qty,r.wh,Bd(r.st),racts(r)]))}</div>
 <div class="modal" id="ins"><div class="pn"><div class="ih">Finished Goods Receive [\${RV?'Edit '+RV:'Insert'} mode]<span class="x" data-act="hide">✕</span></div><div class="fg">\${inp('rno','Receive No.','','text','disabled')}\${inp('d','Receive Date',td(),'date','data-chg="rf"')}\${sel('bn','Batch No',availB().map(b=>b.no),'data-chg="rf"')}\${inp('fg','Product Name','','text','disabled')}\${inp('sq','Std Production (Kg)','','text','disabled')}\${inp('pq','PLC Qty (Kg)','','text','disabled')}\${inp('rq','Received Qty (Kg)','','number','min=0 step="any"')}\${sel('wh','FG-Warehouse',WH)}\${fld('Last Process ?','<input id="lp" type="checkbox">')}\${inp('rm','Remarks')}</div>\${BT('saveRcv','hide')}</div></div>\${RW?rcView(RW):''}\`;
 R.close=()=>\`<div class="ttl">Batch Close</div><div class="pn">\${T(['Production No','Batch No','Receive No','Product','Received Qty','Status',''],D.batches.filter(b=>b.st=='Received'||b.st=='Closed').map(b=>[b.pro,b.no,rfpOf(b.no),b.fg,b.rq,Bd(b.st),b.st=='Closed'?\`<button class="btn ex" style="background:#f59e0b;color:#fff" data-act="reopen" data-id="\${b.no}">↩ Revert</button>\`:b.st=='Received'?\`<button class="btn sv" data-act="close" data-id="\${b.no}">Close Batch</button>\`:'']))}</div>\`;
 const mt=(x,f)=>!f||String(x).toLowerCase().includes(f.trim().toLowerCase());
@@ -3376,14 +3376,14 @@ const avHtml=(n,cd)=>{if(!n)return '—';const a=mmAvail(n,cd),tip=a.parts.map(x
 const avUpd=tr=>{const c=tr.querySelector('.rav');if(c)c.innerHTML=avHtml(tr.querySelector('.rn').value,tr.querySelector('.rcd').value)};
 const iplOpts=c=>{const a=iplList();return '<option value="">[ Select Plant Name ]</option>'+a.concat(c&&a.indexOf(c)<0?[c]:[]).map(n=>'<option'+(n==c?' selected':'')+'>'+n+'</option>').join('')};
 let SS={rows:null,secs:[],busy:false,err:'',at:''};
-let QSE=null,QCE=null,QCW=null,RPE=null,RPW=null;let MAN={},PS=null,PV=null,RV=null,RW=null,F={},PE=null,PWV=null,PLV=null;
+let PLV2='draft',PRV='draft',PAV='draft',PQV='draft',QCV='draft',QSE=null,QCE=null,QCW=null,RPE=null,RPW=null;let MAN={},PS=null,PV=null,RV=null,RW=null,F={},PE=null,PWV=null,PLV=null;
 const live=()=>D.batches.filter(b=>b.st!='Draft');
 const resv=(p,i)=>D.batches.filter(x=>x.st=='Draft'&&x.dpp==p.no&&x.fg==i.fg&&x.pl==(i.pl||p.pl)&&x.no!=PS).reduce((a,x)=>a+x.qty,0);
 const bLines=b=>{const r=D.recipes.find(x=>x.id==b.rc),ci=n=>{const l=r&&r.lines.find(z=>z[0]==n),c=(l&&l[2])||itmCatOf(n)||'—';return [c,(l&&l[3])||itmCode(c=='—'?'':c,n)||'—']};if(b.st=='Draft'){return r.lines.map(([n,q])=>{const k=ci(n);return [k[0],n,k[1],rnd(q*b.qty/r.size),b.act[n]]})}return D.cons.filter(c=>c.b==b.no).map(c=>{const k=ci(c.rm);return [k[0],c.rm,k[1],c.req??c.q,c.q]})};
 const bDoc=b=>\`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['Production No',b.pro],['Batch No',b.no],['Status',b.st],['Process Date',b.date],['DPP No.',b.dpp],['Product',b.fg],['BOM No.',b.rc||'—'],['Plant',b.pl],['Shift',b.sh||'—'],['Worker Group',b.wg||'—'],['RM-Warehouse',b.wh||'—'],['Production Qty (Kg)',b.qty],['Batch Size (Kg)',b.bs||'—'],['No. of Batch Run',b.run],['Remarks',b.rem||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\${T(['Item Category','Raw Material','Item Code','Required (Kg)','Actual Consumption (Kg)'],bLines(b).concat([['','<b>Total</b>','','<b>'+rnd(bLines(b).reduce((a,l)=>a+(+l[3]||0),0))+'</b>','<b>'+rnd(bLines(b).reduce((a,l)=>a+(+l[4]||0),0))+'</b>']]))}\`;
 const pView=no=>{const b=D.batches.find(x=>x.no==no);return b?\`<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Production Entry \${b.pro} [View]<span>\${b.st=='Processed'&&!revBlock(b)?\`<button class="btn ex" data-act="prevert" data-id="\${b.no}">↩ Revert</button> \`:''}<button class="btn pr" data-act="pprn" data-id="\${b.no}">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>\${bDoc(b)}</div></div>\`:''};
 const proOf=n=>(D.batches.find(b=>b.no==n)||{}).pro||'—',rfpOf=n=>(D.rcv.find(r=>r.bn==n&&r.st=='Received')||{}).no||'—';
-const revBlock=b=>{if(b.plcl)return 'Production From PLC entry exists, revert it first';const r=D.rcv.find(x=>x.bn==b.no);return r&&r.st=='Received'?'FG already received ('+r.no+'), revert the FG Receive first':b.rq?'FG already received':''};
+const revBlock=b=>{if(b.plcl)return 'Actual Consumption entry exists, revert it first';const r=D.rcv.find(x=>x.bn==b.no);return r&&r.st=='Received'?'FG already received ('+r.no+'), revert the FG Receive first':b.rq?'FG already received':''};
 const pacts=b=>\`<button class="btn sv" data-act="pview" data-id="\${b.no}">View</button> \`+(b.st=='Draft'?\`<button class="btn ex" data-act="pedit" data-id="\${b.no}">Edit</button> \`:'')+\`<button class="btn pr" data-act="pprn" data-id="\${b.no}">🖶 Print</button>\`+(b.st=='Processed'?\` <button class="btn ex" style="background:#f59e0b;color:#fff" data-act="prevert" data-id="\${b.no}">↩ Revert</button>\`:'')+(b.st=='Draft'?\` <button class="btn sv" style="background:#16a34a" data-act="submit" data-id="\${b.no}">Submit</button>\`:'');
 const shiftNow=()=>{const h=new Date().getHours();return h>=6&&h<18?'Day':'Night'};
 const A={np:()=>{const e=$('#ins');e.style.display=e.classList.contains('modal')?'flex':'block';e.scrollIntoView({behavior:'smooth'})},hide:()=>$('#ins').style.display='none',home:()=>go('home'),
@@ -3409,7 +3409,7 @@ savePlan(){const it=[...root.querySelectorAll('.it')].map(r=>({pl:r.querySelecto
  if(new Set(it.map(i=>i.fg+'|'+i.pl)).size<it.length)return toast('Duplicate Plant + Product in items',1);
  const o={date:v('d'),s:v('s'),e:v('e'),co:v('co')||'',bu:v('bu')||'',pc:v('pc')||'',pl:[...new Set(it.map(i=>i.pl))].join(', '),rm:v('rm'),items:it};let no=PE;
  if(no)Object.assign(D.plans.find(x=>x.no==no),o);else{no='DPP-'+pad(++D.seq.dpp);D.plans.push({no,...o,st:'Draft'})}
- save();go('581');toast(\`Draft \${no} saved with \${it.length} item(s). Click Submit to release it for production\`)},
+ save();PLV2='draft';go('581');toast(\`Draft \${no} saved with \${it.length} item(s). Click Submit to release it for production\`)},
 org(t){const g=i=>$('#'+i),fill=(i,a,l)=>{const e=g(i);if(!e)return;e.innerHTML='<option value="">[ Select '+l+' ]</option>'+a.map(o=>'<option>'+o+'</option>').join('')};
  if(!ORG.rows.length)return;
  if(t.id=='co'){fill('bu',orgBu(v('co')),'Business Unit');fill('pc',[],'Profit Center');fill('pl',[],'Plant Name')}
@@ -3431,11 +3431,11 @@ planedit(a){const p=D.plans.find(x=>x.no==a.dataset.id);if(!p||p.st!='Draft')ret
 planview(a){PWV=a.dataset.id;go('581',1)},
 planrevert(a){const p=D.plans.find(x=>x.no==a.dataset.id);if(!p||p.st!='Open')return;
  if(D.batches.some(b=>b.dpp==p.no))return toast('Cannot revert: Production Process entries exist for this plan',1);
- if(!confirm('Revert '+p.no+' to Draft?'))return;p.st='Draft';PWV=null;save();go('581');toast(p.no+' reverted to Draft. You can edit it now')},
+ if(!confirm('Revert '+p.no+' to Draft?'))return;p.st='Draft';PWV=null;save();PLV2='draft';go('581');toast(p.no+' reverted to Draft. You can edit it now')},
 planprn(a){const p=D.plans.find(x=>x.no==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML=\`<h2 style="margin:10px 14px">Daily Production Plan \${p.no}</h2>\`+planDoc(p);PRINT()},
 plansubmit(a){const p=D.plans.find(x=>x.no==a.dataset.id);if(!p||p.st!='Draft')return;
  {const x=p.items.find(i=>!rec(i.fg));if(x)return toast('A product in this plan has no BOM',1);const y=p.items.find(i=>rec(i.fg).act===false);if(y)return toast('BOM for "'+y.fg+'" is Inactive. Activate it first',1)}
- p.st='Open';save();go('581');toast(\`\${p.no} submitted, now available in Production Process\`)},
+ p.st='Open';save();PLV2='complete';go('581');toast(\`\${p.no} submitted, now available in Production Process\`)},
 saveRecipe(){const L=[...root.querySelectorAll('.rr')].map(x=>[x.querySelector('.rn').value.trim(),+x.querySelector('.rq2').value,x.querySelector('.rc2').value,itmCode(x.querySelector('.rc2').value,x.querySelector('.rn').value.trim())]).filter(l=>l[0]||l[1]),ed=RS&&RS.mode=='edit',size=+v('size'),code=v('code').trim().toUpperCase();
  const rr=[...root.querySelectorAll('.rr')].filter(x=>x.querySelector('.rn').value.trim()||x.querySelector('.rq2').value),rin=[];rr.forEach(x=>rin.push(x.querySelector('.rc2'),x.querySelector('.rn'),x.querySelector('.rq2')));
  if(bad(['fg','code','size','fd'].concat(rin))||!L.length)return toast('Please fill all required fields (marked red): Finished Product, Short Code, Batch Size, Formula Date and at least one RM item with Item Category, Raw Material and Qty',1);
@@ -3476,7 +3476,7 @@ saveProc(){const p=D.plans.find(x=>x.no==v('dpp')),i=ifind(p,v('it')),qty=+v('pr
  if(ln.some(l=>!(l[1]>=0)))return toast('Actual Consumption must be 0 or more',1);
  const o={date:v('d'),dpp:p.no,fg:i.fg,rc:r.id,pl:i.pl||p.pl,bs,run:rnd(qty/bs),qty,sh:v('sh'),wg:v('wg'),wh:v('wh'),act:Object.fromEntries(ln),rem:v('rm')};
  let no=PS;if(no)Object.assign(D.batches.find(x=>x.no==no),o);else{no=nextNo(r,o.date);D.batches.push({no,pro:nextPro(),...o,st:'Draft',plc:null})}
- save();go('630');toast(\`Draft \${D.batches.find(x=>x.no==no).pro} saved. Click Submit to post it to stock\`)},
+ save();PQV='draft';go('630');toast(\`Draft \${D.batches.find(x=>x.no==no).pro} saved. Click Submit to post it to stock\`)},
 pnew(){PS=null;if(!WH.length)whLoad();go('630',1);A.np()},
 pedit(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Draft')return;PS=b.no;go('630',1);
  if(![...$('#dpp').options].some(o=>o.value==b.dpp))return toast('Plan item already fully produced, cannot edit',1);
@@ -3488,7 +3488,7 @@ submit(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Draft')ret
  if(b.qty>(i.n-i.done)*isz(i)+1e-6)return toast('Qty exceeds plan balance, edit this entry first',1);
  const sh=Object.entries(b.act).filter(([n,q])=>mmQty(b.wh,n)<q).map(x=>x[0]);if(sh.length)return toast('Insufficient RM stock in MM Inventory ('+b.wh+'): '+sh.join(', '),1);
  r.lines.forEach(([n,q])=>{const u=rnd(b.act[n]);mmIssue(b,n,u);D.cons.push({b:b.no,date:b.date,fg:b.fg,rm:n,req:rnd(q*b.qty/r.size),q:u})});
- i.done=Math.round((i.done+b.qty/isz(i))*1e6)/1e6;p.st='In Progress';b.st='Processed';save();go('630');toast(\`Batch \${b.no} submitted, RM consumed from MM Inventory stock\`)},
+ i.done=Math.round((i.done+b.qty/isz(i))*1e6)/1e6;p.st='In Progress';b.st='Processed';save();PQV='complete';go('630');toast(\`Batch \${b.no} submitted, RM consumed from MM Inventory stock\`)},
 prevert(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Processed')return;
  const bl=revBlock(b);if(bl)return toast('Cannot revert: '+bl,1);
  if(!confirm('Revert '+b.pro+' to Draft? Consumed raw materials will be returned to '+b.wh+' stock.'))return;
@@ -3499,7 +3499,7 @@ prevert(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Processed
  const p=D.plans.find(x=>x.no==b.dpp),i=p&&p.items.find(x=>x.fg==b.fg&&(x.pl||p.pl)==b.pl);
  if(i){i.done=Math.max(0,Math.round((i.done-b.qty/isz(i))*1e6)/1e6)}
  if(p&&p.st!='Completed')p.st=p.items.some(x=>x.done>1e-6)?'In Progress':'Open';
- b.st='Draft';b.plc=null;PV=null;save();go('630');toast(b.pro+' reverted to Draft, stock restored. You can edit it now')},
+ b.st='Draft';b.plc=null;PV=null;save();PQV='draft';go('630');toast(b.pro+' reverted to Draft, stock restored. You can edit it now')},
 ssshow(){F.sq=v('sq');go(cur,1)},
 ssload(){const U=window.MM_STOCK_SHEET_CSV_URL,P=window.parseStockSheetCsv,B=window.buildStockSheetSections;
  if(!U||!P||!B){SS.err='MM Google Sheet stock loader not available';return}
@@ -3533,23 +3533,23 @@ plcsubmit(){const b=D.batches.find(x=>x.pro==v('ppn'));if(!b||!v('pd'))return to
  b.plcl=L.map(o=>({rm:o.c.rm,req:o.c.req??o.c.q,iss:o.c.q,act:o.n}));
  L.forEach(o=>{if(o.d!=0)plcMove(b,o.c.rm,o.d,v('pd'));o.c.q=o.n;b.act[o.c.rm]=o.n});
  b.plc=rnd(L.reduce((a,o)=>a+o.n,0));b.plcd=v('pd');b.plcrem=v('prm');
- save();go('631');toast('PLC submitted for '+b.pro+': '+b.plc+' Kg actual, RM stock adjusted')},
+ save();PAV='complete';go('631');toast('PLC submitted for '+b.pro+': '+b.plc+' Kg actual, RM stock adjusted')},
 plcview(a){PLV=a.dataset.id;go('631',1)},
-plcprn(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||!b.plcl)return;let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML='<h2 style="margin:10px 14px">Production From PLC '+b.pro+'</h2>'+plcDoc(b);PRINT()},
+plcprn(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||!b.plcl)return;let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML='<h2 style="margin:10px 14px">Actual Consumption '+b.pro+'</h2>'+plcDoc(b);PRINT()},
 plcrevert(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||!b.plcl)return;if(b.st!='Processed')return toast('Cannot revert: FG already received, revert FG Receive first',1);
  for(let k=0;k<b.plcl.length;k++){const l=b.plcl[k],d=rnd(l.act-l.iss);
   if(d!=0&&!mmFindRec(b.wh,l.rm))return toast('Stock record not found for '+l.rm+' in '+b.wh,1);
   if(d<0&&mmQty(b.wh,l.rm)<-d-1e-9)return toast('Cannot revert: only '+mmQty(b.wh,l.rm)+' Kg of '+l.rm+' in stock, '+(-d)+' Kg needed',1)}
- if(!confirm('Revert Production From PLC for '+b.pro+'? RM consumption goes back to the Production Process quantity.'))return;
+ if(!confirm('Revert Actual Consumption for '+b.pro+'? RM consumption goes back to the Production Process quantity.'))return;
  b.plcl.forEach(l=>{const d=rnd(l.act-l.iss);if(d!=0)plcMove(b,l.rm,-d,td());const c=D.cons.find(z=>z.b==b.no&&z.rm==l.rm);if(c)c.q=l.iss;b.act[l.rm]=l.iss});
- b.plc=null;delete b.plcl;delete b.plcd;delete b.plcrem;delete b.act0;PLV=null;save();go('631');toast(b.pro+' PLC reverted, RM stock restored')},
+ b.plc=null;delete b.plcl;delete b.plcd;delete b.plcrem;delete b.act0;PLV=null;save();PAV='draft';go('631');toast(b.pro+' PLC reverted, RM stock restored')},
 rf(t){const b=D.batches.find(x=>x.no==v('bn'));set('fg',b?b.fg:'');set('sq',b?b.qty:'');set('pq',b?b.plc??'':'');if(!t||t.id=='bn')set('rq',b?b.plc??b.qty:'');set('rno',RV||nextRn(v('d')))},
 rcnew(){RV=null;if(!WH.length)whLoad();go('632',1);const o=availB();if(o.length==1){set('bn',o[0].no);A.rf({id:'bn'})}else A.rf();A.np()},
 saveRcv(){const b=D.batches.find(x=>x.no==v('bn')),q=+v('rq');if(!b||!v('wh')||!(q>0)||!v('d'))return toast('Date, Batch, Received Qty and FG-Warehouse required',1);
  if(whNeed())return;if(WH.indexOf(v('wh'))<0){bad(['wh']);return toast('FG-Warehouse "'+v('wh')+'" is not in the Warehouse sheet',1)}
  const o={date:v('d'),bn:b.no,fg:b.fg,wh:v('wh'),qty:q,sq:b.qty,pq:b.plc??null,last:$('#lp').checked,rem:v('rm')};let no=RV;
  if(no)Object.assign(D.rcv.find(x=>x.no==no),o);else{no=nextRn(o.date);D.rcv.push({no,...o,st:'Draft'})}
- save();go('632');toast(\`Draft \${no} saved. Click Submit to receive into stock\`)},
+ save();PRV='draft';go('632');toast(\`Draft \${no} saved. Click Submit to receive into stock\`)},
 rcedit(a){const r=D.rcv.find(x=>x.no==a.dataset.id);if(!r||r.st!='Draft')return;RV=r.no;go('632',1);
  set('d',r.date);set('bn',r.bn);A.rf({id:'bn'});set('rq',r.qty);{const w=$('#wh');if(r.wh&&![...w.options].some(o=>o.value==r.wh))w.insertAdjacentHTML('beforeend','<option>'+r.wh+'</option>')}set('wh',r.wh);$('#lp').checked=!!r.last;set('rm',r.rem||'');A.rf({id:'d'});A.np()},
 rcview(a){RW=a.dataset.id;go('632',1)},
@@ -3557,14 +3557,14 @@ rcprn(a){const r=D.rcv.find(x=>x.no==a.dataset.id);let d=$('#pr');if(!d){d=docum
 rcsubmit(a){const r=D.rcv.find(x=>x.no==a.dataset.id);if(!r||r.st!='Draft')return;const b=D.batches.find(x=>x.no==r.bn);
  if(!b||b.st!='Processed')return toast('Batch is not available for receive',1);
  const s=D.stock[r.wh]=D.stock[r.wh]||{};s[r.fg]=rnd((s[r.fg]||0)+r.qty);Object.assign(b,{rq:r.qty,st:'Received',fgwh:r.wh,rdate:r.date});
- if(r.last){const p=D.plans.find(x=>x.no==b.dpp);if(p)p.st='Completed'}r.st='Received';save();go('632');toast(\`\${r.no} submitted, \${r.qty} Kg added to \${r.wh}\`)},
+ if(r.last){const p=D.plans.find(x=>x.no==b.dpp);if(p)p.st='Completed'}r.st='Received';save();PRV='complete';go('632');toast(\`\${r.no} submitted, \${r.qty} Kg added to \${r.wh}\`)},
 rcrevert(a){const r=D.rcv.find(x=>x.no==a.dataset.id);if(!r||r.st!='Received')return;const b=D.batches.find(x=>x.no==r.bn);
  if(!b||b.st!='Received')return toast('Cannot revert: batch is '+(b?b.st:'missing')+' (reopen not possible)',1);
  const s=D.stock[r.wh]=D.stock[r.wh]||{};if((s[r.fg]||0)<r.qty-1e-6)return toast('Cannot revert: only '+rnd(s[r.fg]||0)+' Kg of '+r.fg+' left in '+r.wh+' (needs '+r.qty+' Kg)',1);
  if(!confirm('Revert '+r.no+' to Draft? '+r.qty+' Kg will be removed from '+r.wh+' stock.'))return;
  s[r.fg]=rnd(s[r.fg]-r.qty);delete b.rq;delete b.fgwh;delete b.rdate;b.st='Processed';
  if(r.last){const p=D.plans.find(x=>x.no==b.dpp);if(p&&p.st=='Completed')p.st='In Progress'}
- r.st='Draft';RW=null;save();go('632');toast(r.no+' reverted to Draft, FG stock removed. You can edit it now')},
+ r.st='Draft';RW=null;save();PRV='draft';go('632');toast(r.no+' reverted to Draft, FG stock removed. You can edit it now')},
 reopen(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Closed')return;if(D.qcc.some(q=>q.bn==b.no))return toast('Cannot revert: QC Clearance exists for this batch. Revert the QC Clearance first',1);if(!confirm('Revert batch '+b.no+' to Received?'))return;b.st='Received';save();go('633');toast(b.no+' reopened (Received)')},
 close(a){D.batches.find(b=>b.no==a.dataset.id).st='Closed';save();go('633');toast('Batch closed')}};
 
@@ -3589,7 +3589,8 @@ R.qcfg=()=>{const pend=qcPend();
  const pt=T(['Production No','Batch No','Receive No','Product','Received Qty (Kg)','FG-Warehouse','Action'],pend.map(b=>[b.pro,b.no,rfpOf(b.no),qEsc(b.fg),b.rq,b.fgwh||'—','<button class="btn sv" data-act="qcnew" data-id="'+b.no+'">QC Clearance</button>']));
  const lt=T(['QC Clearance No','Date','Production No','Batch No','Product','FG-Warehouse','Received (Kg)','Deliverable Qty','Reprocessable','Action'],D.qcc.map(r=>[r.no,r.date,r.pro,r.bn,qEsc(r.fg),r.wh,r.rq,r.pass,r.hold,'<button class="btn sv" data-act="qcview" data-id="'+r.no+'">View</button> <button class="btn pr" data-act="qcprn" data-id="'+r.no+'">🖶 Print</button> <button class="btn ex" style="background:#f59e0b;color:#fff" data-act="qcrev" data-id="'+r.no+'">↩ Revert</button>']));
  const form=QCE?'<div class="modal" id="ins" style="display:flex"><div class="pn"><div class="ih">QC Clearance [Insert mode]<span class="x" data-act="hide">✕</span></div><div class="fg">'+inp('qcno','QC Clearance No.',nextQcc(),'text','disabled')+inp('qcd','QC Date',td(),'date')+sel('qcbn','Batch No',pend.map(b=>b.no),'data-chg="qcf"')+inp('qcpro','Production No.','','text','disabled')+inp('qcrfp','Receive No.','','text','disabled')+inp('qcfgn','Product Name','','text','disabled')+inp('qcwh','FG-Warehouse','','text','disabled')+inp('qcrq','Received Qty (Kg)','','text','disabled')+'</div><div class="ih" style="font-size:12px">QC Standard vs Physical Result</div><div id="qcres"><div class="nd">Select a Batch No</div></div><div class="fg">'+inp('qcpass','Deliverable Qty','','number','min=0 step="any" data-chg="qcp"')+inp('qchold','Reprocessable Qty','','number','min=0 step="any" data-chg="qch"')+inp('qcrem','Remarks')+'</div><div class="bt"><button class="btn sv" data-act="qcsave">Submit</button><button class="btn ex" data-act="hide">Exit</button></div></div></div>':'';
- return '<div class="ttl">QC Clearance<button class="btn sv" data-act="qcnew">＋ QC Clearance</button></div><div class="pn"><div class="ph"><span class="mn">−</span>Pending QC — Closed Batches ('+pend.length+')</div>'+pt+'</div><div class="pn"><div class="ph"><span class="mn">−</span>QC Clearance ('+D.qcc.length+')</div>'+lt+'</div>'+form+(QCW?qcView(QCW):'')};
+ const md=QCV=='complete';
+ return '<div class="ttl" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><span>QC Clearance</span><select id="qcmode" data-chg="qcmode" style="margin:0 auto;min-width:150px;font-weight:700"><option value="draft"'+(md?'':' selected')+'>Draft</option><option value="complete"'+(md?' selected':'')+'>Complete</option></select><button class="btn sv" data-act="qcnew">＋ QC Clearance</button></div>'+(md?'<div class="pn"><div class="ph"><span class="mn">−</span>QC Clearance – Complete ('+D.qcc.length+')</div>'+lt+'</div>':'<div class="pn"><div class="ph"><span class="mn">−</span>QC Clearance – Draft (Pending QC) ('+pend.length+')</div>'+pt+'</div>')+form+(QCW?qcView(QCW):'')};
 Object.assign(A,{
 qsnew(){QSE={edit:false,fg:'',rows:[{n:'',u:'',min:'',max:''}]};go('640',1)},
 qsedit(a){const s=qcStd(a.dataset.id);if(!s)return;QSE={edit:true,fg:s.fg,rows:s.p.map(x=>({n:x.n,u:x.u,min:x.min,max:x.max}))};go('640',1)},
@@ -3603,6 +3604,11 @@ qssave(){qsSync();const fg=QSE.fg;if(!fg)return toast('Select Finished Product',
  const i=D.qcstd.findIndex(x=>nrm(x.fg)==nrm(fg));if(i>=0)D.qcstd[i]=o;else D.qcstd.push(o);
  save();go('640');toast('QC standard saved for '+fg)},
 qsdel(a){const fg=a.dataset.id;if(!confirm('Delete QC standard for '+fg+'?'))return;D.qcstd=D.qcstd.filter(x=>nrm(x.fg)!=nrm(fg));save();go('640');toast('QC standard deleted')},
+qcmode(el){QCV=el.value;go('641',1)},
+pqmode(el){PQV=el.value;go('630',1)},
+pamode(el){PAV=el.value;go('631',1)},
+rcmode(el){PRV=el.value;go('632',1)},
+plmode(el){PLV2=el.value;go('581',1)},
 qcnew(a){QCE=1;go('641',1);const id=a&&a.dataset&&a.dataset.id;if(id)set('qcbn',id);A.qcf()},
 qcf(){const b=D.batches.find(x=>x.no==v('qcbn')),box=$('#qcres');
  ['qcpro','qcrfp','qcfgn','qcwh','qcrq','qcpass','qchold'].forEach(i=>set(i,''));
@@ -3625,7 +3631,7 @@ qcsave(){const b=D.batches.find(x=>x.no==v('qcbn'));if(!b)return toast('Select B
  const res=ins.map(i=>{const mn=i.dataset.min,mx=i.dataset.max,x=+i.value;return {n:i.dataset.n,u:i.dataset.u,min:mn,max:mx,val:x,ok:(mn===''||x>=+mn)&&(mx===''||x<=+mx)}});
  const no=nextQcc(),wh=b.fgwh;
  D.qcc.push({no,date:v('qcd')||td(),bn:b.no,pro:b.pro,rfp:rfpOf(b.no),fg:b.fg,wh,rq:b.rq,pass:rnd(pass),hold:rnd(hold),rem:v('qcrem')||'',res});
- qcAdd(wh,b.fg,'ok',rnd(pass));qcAdd(wh,b.fg,'hold',rnd(hold));save();go('641');toast(no+' submitted: Deliverable '+rnd(pass)+', Reprocessable '+rnd(hold))},
+ qcAdd(wh,b.fg,'ok',rnd(pass));qcAdd(wh,b.fg,'hold',rnd(hold));save();QCV='complete';go('641');toast(no+' submitted: Deliverable '+rnd(pass)+', Reprocessable '+rnd(hold))},
 qcview(a){QCW=a.dataset.id;go('641',1)},
 qcprn(a){const r=D.qcc.find(x=>x.no==a.dataset.id);let d=$('#pr');if(!d){d=document.createElement('div');d.id='pr';root.querySelector('.production-shell').appendChild(d)}d.innerHTML='<h2 style="margin:10px 14px">QC Clearance '+r.no+'</h2>'+qcDoc(r);PRINT()},
 qcrev(a){const r=D.qcc.find(x=>x.no==a.dataset.id);if(!r)return;const e=(D.qcs[r.wh]||{})[r.fg]||{ok:0,hold:0};
@@ -5451,6 +5457,7 @@ go('home');
     <div class="pr-list-outer">
       <div class="pr-list-header">
         <h2>📋 Purchase Requisition List</h2>
+        <select id="prModeSel" onchange="setPrMode(this.value)" style="margin:0 auto;min-width:150px;padding:6px 10px;font-weight:700;border-radius:4px;border:1px solid #cbd5e1;"><option value="draft">Draft</option><option value="complete">Complete</option></select>
         <div class="pr-list-actions">
           <button class="pr-add-btn" onclick="openPrFormFromList()">➕ Add Purchase Requisition</button>
           <button class="pr-add-btn" style="background:#0ea5e9;" onclick="printPrList()">🖨 Print List</button>
@@ -5515,13 +5522,8 @@ go('home');
       <!-- Title Bar -->
       <div style="background:linear-gradient(135deg, #1a5276, #2980b9); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
         <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">📑 Stock Transfer Requisition</h2>
+        <select id="strModeFilter" onchange="setStrMode(this.value)" style="margin:0 auto;min-width:150px;padding:6px 14px;border-radius:4px;font-size:0.82rem;font-weight:700;border:1px solid #ccc;background:#fff;"><option value="draft">Draft</option><option value="complete">Complete</option></select>
         <div style="display:flex; align-items:center; gap:15px;">
-          <select style="padding:6px 14px; border-radius:4px; font-size:0.82rem; font-weight:600; border:1px solid #ccc; background:#fff;" id="strModeFilter" onchange="filterStrList()">
-            <option value="all">All Mode</option>
-            <option value="Draft">Draft Mode</option>
-            <option value="Pending">Pending Mode</option>
-            <option value="Approved">Approved Mode</option>
-          </select>
           <button class="str-close-list-btn" onclick="closeStrList()" style="font-size:1rem; width:28px; height:28px;">X</button>
         </div>
       </div>
@@ -5750,6 +5752,7 @@ go('home');
     <div class="str-list-outer" style="max-width:1300px; border-radius:8px; border:2px solid #27ae60; overflow:auto;">
       <div style="background:linear-gradient(135deg, #1e8449, #27ae60); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
         <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">📋 Store Requisition</h2>
+        <select id="srModeFilter" onchange="setSrMode(this.value)" style="margin:0 auto;min-width:150px;padding:6px 14px;border-radius:4px;font-size:0.82rem;font-weight:700;border:1px solid #ccc;background:#fff;"><option value="draft">Draft</option><option value="complete">Complete</option></select>
         <div style="display:flex; align-items:center; gap:15px;">
           <select style="padding:6px 14px; border-radius:4px; font-size:0.82rem; font-weight:600; border:1px solid #ccc; background:#fff;" id="srStatusFilter" onchange="filterSrList()">
             <option value="">All Status</option>
@@ -5757,6 +5760,7 @@ go('home');
             <option value="Pending">Pending</option>
             <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
+            <option value="Reverted">Reverted</option>
           </select>
           <button class="str-close-list-btn" onclick="closeSrList()" style="font-size:1rem; width:28px; height:28px;">X</button>
         </div>
@@ -13774,7 +13778,12 @@ go('home');
       });
     }
 
+    var prListMode = 'draft';
+    function setPrMode(m) { prListMode = m; document.getElementById('prStatusFilter').value = ''; renderPrTable(); }
+    function prInMode(status) { var isDraft = ['Draft', 'Rejected', 'Reverted'].indexOf(status) !== -1; return (prListMode === 'draft') === isDraft; }
     function openPrList() {
+      prListMode = 'draft';
+      document.getElementById('prModeSel').value = 'draft';
       document.getElementById('prSearchInput').value = '';
       document.getElementById('prStatusFilter').value = '';
       renderPrTable();
@@ -13824,7 +13833,7 @@ go('home');
           r.item_code.toLowerCase().indexOf(search) !== -1 ||
           r.raised_by.toLowerCase().indexOf(search) !== -1;
         var matchStatus = !statusFilter || r.status === statusFilter;
-        return matchSearch && matchStatus;
+        return matchSearch && matchStatus && prInMode(r.status);
       });
 
       var tbody = document.getElementById('prTableBody');
@@ -21188,7 +21197,12 @@ return btns;
     }
 
     // ===== Open STR List =====
+    var strListMode = 'draft';
+    function setStrMode(m) { strListMode = m; document.getElementById('strStatusFilter').value = ''; renderStrTable(); }
+    function strInMode(status) { var isDraft = ['Draft', 'Rejected', 'Reverted'].indexOf(status) !== -1; return (strListMode === 'draft') === isDraft; }
     function openStrList() {
+      strListMode = 'draft';
+      document.getElementById('strModeFilter').value = 'draft';
       document.getElementById('strSearchInput').value = '';
       document.getElementById('strStatusFilter').value = '';
       renderStrTable();
@@ -21374,7 +21388,7 @@ return btns;
           (r.to_warehouse || '').toLowerCase().indexOf(search) !== -1 ||
           (r.from_company || '').toLowerCase().indexOf(search) !== -1;
         var matchStatus = !statusFilter || r.status === statusFilter;
-        return matchSearch && matchStatus;
+        return matchSearch && matchStatus && strInMode(r.status || 'Draft');
       });
 
       var tbody = document.getElementById('strTableBody');
@@ -22352,7 +22366,12 @@ return btns;
     }
 
     // ===== SR List =====
+    var srListMode = 'draft';
+    function setSrMode(m) { srListMode = m; document.getElementById('srStatusFilter').value = ''; renderSrTable(); }
+    function srInMode(status) { var isDraft = ['Draft', 'Rejected', 'Reverted'].indexOf(status) !== -1; return (srListMode === 'draft') === isDraft; }
     function openSrList() {
+      srListMode = 'draft';
+      document.getElementById('srModeFilter').value = 'draft';
       document.getElementById('srSearchInput').value = '';
       document.getElementById('srStatusFilter').value = '';
       renderSrTable();
@@ -22555,7 +22574,7 @@ return btns;
           (r.warehouse || '').toLowerCase().indexOf(search) !== -1 ||
           itemsMatch;
         var matchStatus = !statusFilter || r.status === statusFilter;
-        return matchSearch && matchStatus;
+        return matchSearch && matchStatus && srInMode(r.status || 'Draft');
       });
 
       var tbody = document.getElementById('srTableBody');
