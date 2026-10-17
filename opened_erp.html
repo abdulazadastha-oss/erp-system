@@ -4789,6 +4789,7 @@ go('home');
           <span style="background:#e74c3c; color:#fff; width:20px; height:20px; display:flex; align-items:center; justify-content:center; border-radius:3px; font-size:0.8rem; font-weight:700;">−</span>
           <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">1st Weight Records (<span id="w1Count">0</span>)</span>
         </div>
+        <select id="w1ModeSel" onchange="setW1Mode(this.value)" style="margin:0 auto;min-width:150px;padding:6px 10px;font-weight:700;border-radius:4px;border:1px solid #cbd5e1;"><option value="draft">Draft</option><option value="complete">Complete</option></select>
         <div style="display:flex; align-items:center; gap:6px;">
           <input type="text" id="w1SearchInput" placeholder="🔍 Search by Scale ID, Vehicle, Item..." oninput="filterW1List()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:220px;">
           <button onclick="openW1FormFromList()" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">➕</button>
@@ -5076,8 +5077,9 @@ go('home');
 
           <div class="erp-form-actions">
             <button type="button" class="erp-btn erp-btn-show-message" onclick="showWeightFormMessage()">Show Message</button>
-            <button type="submit" class="erp-btn erp-btn-update">Update</button>
-            <button type="button" class="erp-btn" style="background:#8b5cf6;" id="btnForwardTo2nd" onclick="forwardTo2ndWeight()">➡️ Forward to 2nd Weight</button>
+            <button type="submit" class="erp-btn erp-btn-update" id="btnWfSave">Update</button>
+            <button type="button" class="erp-btn" style="background:#16a34a;" id="btnWfSubmit" onclick="window.__w1SubmitNext=true;document.getElementById('weightSlipForm').requestSubmit();setTimeout(function(){window.__w1SubmitNext=false;},50)">✅ Submit</button>
+            <button type="button" class="erp-btn" style="background:#8b5cf6;display:none;" id="btnForwardTo2nd" onclick="forwardTo2ndWeight()">➡️ Forward to 2nd Weight</button>
             <button type="button" class="erp-btn" style="background:#22b6a2; display:none;" id="btnForwardToQC" onclick="forwardTo2ndQC()">✅ Forward to 2nd QC</button>
             <button type="button" class="erp-btn" style="background:#e67e22; display:none;" id="btnForwardToGateOut" onclick="forwardToGateOut()">🚪 Forward to Gate Out</button>
             <button type="button" class="erp-btn erp-btn-exit" onclick="closeWeightForm()">Exit</button>
@@ -5186,7 +5188,8 @@ go('home');
           </div>
           <div class="erp-form-actions">
             <button type="button" class="erp-btn erp-btn-show-message" onclick="showGenericMessage(&#39;qc1FormError&#39;,&#39;qc1FormSuccess&#39;)">Show Message</button>
-            <button type="submit" class="erp-btn erp-btn-update">💾 Save QC</button>
+            <button type="submit" class="erp-btn erp-btn-update">💾 Save (Draft)</button>
+            <button type="button" class="erp-btn" style="background:#16a34a;" onclick="window.__qc1SubmitNext=true;document.getElementById('qc1Form').requestSubmit();setTimeout(function(){window.__qc1SubmitNext=false;},50)">✅ Submit</button>
             <button type="button" class="erp-btn erp-btn-exit" onclick="closeGenericForm(&#39;qc1FormOverlay&#39;)">Exit</button>
           </div>
         </form>
@@ -5199,6 +5202,7 @@ go('home');
     <div class="pr-list-outer">
       <div class="pr-list-header">
         <h2>✅ 1st Quality Control List</h2>
+        <select id="qc1ModeSel" onchange="setQc1Mode(this.value)" style="margin:0 auto;min-width:150px;padding:6px 10px;font-weight:700;border-radius:4px;border:1px solid #cbd5e1;"><option value="draft">Draft</option><option value="complete">Complete</option></select>
         <div class="pr-list-actions">
           <button class="pr-add-btn" onclick="openQc1FormFromList()">➕ Add 1st QC</button>
           <button class="pr-add-btn" style="background:#0ea5e9;" onclick="printQc1List()">🖨 Print List</button>
@@ -8064,8 +8068,9 @@ go('home');
           </div>
           <div class="erp-form-actions">
             <button type="button" class="erp-btn erp-btn-show-message" onclick="showGenericMessage(&#39;gateInFormError&#39;,&#39;gateInFormSuccess&#39;)">Show Message</button>
-            <button type="submit" class="erp-btn erp-btn-update">Save</button>
-            <button type="button" class="erp-btn" style="background:#8b5cf6;" onclick="forwardGateInTo1stWeight()">➡️ Forward to 1st Weight</button>
+            <button type="submit" class="erp-btn erp-btn-update">💾 Save (Draft)</button>
+            <button type="button" class="erp-btn" style="background:#16a34a;" onclick="window.__giSubmitNext=true;document.getElementById('gateInForm').requestSubmit();setTimeout(function(){window.__giSubmitNext=false;},50)">✅ Submit</button>
+            
             <button type="button" class="erp-btn erp-btn-exit" onclick="closeGenericForm(&#39;gateInFormOverlay&#39;)">Exit</button>
           </div>
         </form>
@@ -8078,6 +8083,7 @@ go('home');
     <div class="pr-list-outer">
       <div class="pr-list-header">
         <h2>🚪 Challan Entry List</h2>
+        <select id="giModeSel" onchange="setGiMode(this.value)" style="margin:0 auto;min-width:150px;padding:6px 10px;font-weight:700;border-radius:4px;border:1px solid #cbd5e1;"><option value="draft">Draft</option><option value="complete">Complete</option></select>
         <div class="pr-list-actions">
           <button class="pr-add-btn" onclick="openGiFormFromList()">➕ Add Challan Entry</button>
           <button class="pr-add-btn" style="background:#0ea5e9;" onclick="printGiList()">🖨 Print List</button>
@@ -13586,6 +13592,15 @@ go('home');
         return false;
       }
 
+      // Challan Entry: Save keeps/creates a Draft; the Submit button makes it complete.
+      var giSubmitted = false;
+      if (key === 'GATE_IN') {
+        var giPrev = (JSON.parse(localStorage.getItem(cfg.storageKey) || '{}'))[data[cfg.refField]];
+        if (window.__giSubmitNext) { data.status = 'Pending'; giSubmitted = true; }
+        else if (!giPrev || giPrev.status === 'Draft') data.status = 'Draft';
+        else if (giPrev.status) data.status = giPrev.status;
+        window.__giSubmitNext = false;
+      }
       // Save this record locally (keyed by its own Ref#) so the next form in the chain can hang off it
       if (cfg.refField && cfg.storageKey) {
         // PR Save always creates/updates a Draft. Approval starts only when
@@ -13646,6 +13661,10 @@ go('home');
         ? '✅ Purchase Requisition saved as Draft. Open the PR list and click Forward to Approval.' + (data[cfg.refField] ? ' (' + data[cfg.refField] + ')' : '')
         : cfg.successMsg + (data[cfg.refField] ? ' (' + data[cfg.refField] + ')' : '');
       successEl.classList.add('show');
+      if (key === 'GATE_IN') {
+        successEl.textContent = (giSubmitted ? '✅ Challan Entry submitted (Complete)' : '✅ Challan Entry saved as Draft') + (data[cfg.refField] ? ' (' + data[cfg.refField] + ')' : '');
+        if (giSubmitted) { giListMode = 'complete'; }
+      }
       setTimeout(function() { closeGenericForm(cfg.overlay); }, 1400);
       return false;
     }
@@ -14262,7 +14281,12 @@ return btns;
     // ===== GATE IN LIST FUNCTIONS =====
     // =====================================================================
 
+    var giListMode = 'draft';
+    function setGiMode(m) { giListMode = m; document.getElementById('giStatusFilter').value = ''; renderGiTable(); }
+    function giInMode(status) { return (giListMode === 'draft') === (status === 'Draft'); }
     function openGiList() {
+      giListMode = 'draft';
+      document.getElementById('giModeSel').value = 'draft';
       document.getElementById('giSearchInput').value = '';
       document.getElementById('giStatusFilter').value = '';
       renderGiTable();
@@ -14306,6 +14330,56 @@ return btns;
       });
     }
 
+    // Approved Purchase Orders that still need a Challan Entry (shown in Draft mode)
+    function getGiPendingPos() {
+      var pos = {}, gis = {};
+      try { pos = JSON.parse(localStorage.getItem('erp_po_records') || '{}'); } catch (e) {}
+      try { gis = JSON.parse(localStorage.getItem('erp_gi_records') || '{}'); } catch (e) {}
+      var recv = {};
+      Object.keys(gis).forEach(function(k) {
+        var g = gis[k] || {}, po = g.gi_po_no || g.po_no || '';
+        if (!po) return;
+        if (g.status === 'Rejected' || g.status === 'Reverted') return;
+        var sum = 0;
+        if (g.items && g.items.length) { g.items.forEach(function(it) { sum += parseFloat(it.challan_qty) || 0; }); }
+        else { sum = parseFloat(g.gi_received_qty || g.received_qty) || 0; }
+        recv[po] = (recv[po] || 0) + sum;
+      });
+      var out = [];
+      Object.keys(pos).sort().forEach(function(ref) {
+        var r = pos[ref] || {};
+        if (r.status !== 'Approved') return;
+        var qty = parseFloat(r.qty || r.po_qty) || 0, left = qty - (recv[ref] || 0);
+        if (qty > 0 && left <= 0.000001) return;
+        out.push({ ref: ref, date: r.date || r.po_date || '', company: r.company || r.po_company || '', supplier: r.supplier || r.po_supplier || '',
+                   item_name: r.item_name || r.po_item_name || '', item_code: r.item_code || r.po_item_code || '', left: qty > 0 ? Math.round(left * 1000) / 1000 : '' });
+      });
+      return out;
+    }
+
+    function startGiFromPo(poRef) {
+      closeGiList();
+      setTimeout(function() {
+        openGenericForm('GATE_IN');
+        setTimeout(function() {
+          var sel = document.getElementById('gi_po_no');
+          if (!sel) return;
+          if (![].some.call(sel.options, function(o) { return o.value === poRef; })) {
+            var op = document.createElement('option'); op.value = poRef; op.textContent = poRef; sel.appendChild(op);
+          }
+          sel.value = poRef;
+          autofillGateInFromPo(poRef);
+          // Prefill the item line's remaining qty with what is still left on this PO
+          var po = getGiPendingPos().filter(function(x) { return x.ref === poRef; })[0];
+          var row = document.querySelector('#giItemsBody tr');
+          if (po && po.left !== '' && row) {
+            var q = document.getElementById('gi_remaining_qty_' + row.id.replace('gi_item_row_', ''));
+            if (q) q.value = po.left;
+          }
+        }, 150);
+      }, 200);
+    }
+
     function renderGiTable() {
       var records = getAllGiRecords();
       var search = document.getElementById('giSearchInput').value.toLowerCase();
@@ -14322,23 +14396,52 @@ return btns;
           r.vehicle_no.toLowerCase().indexOf(search) !== -1 ||
           r.challan_no.toLowerCase().indexOf(search) !== -1;
         var matchStatus = !statusFilter || r.status === statusFilter;
-        return matchSearch && matchStatus;
+        return matchSearch && matchStatus && giInMode(r.status);
       });
 
       var tbody = document.getElementById('giTableBody');
       var emptyMsg = document.getElementById('giEmptyMsg');
 
-      if (filtered.length === 0) {
+      var poRows = [];
+      if (giListMode === 'draft' && (!statusFilter || statusFilter === 'Draft')) {
+        poRows = getGiPendingPos().filter(function(po) {
+          return !search || [po.ref, po.company, po.supplier, po.item_name, po.item_code].join(' ').toLowerCase().indexOf(search) !== -1;
+        });
+      }
+      var poHtml = poRows.map(function(po, i) {
+        return '<tr style="background:#f0fdf4;">' +
+          '<td>' + (i + 1) + '</td>' +
+          '<td><span style="color:#64748b;">New</span></td>' +
+          '<td>' + po.date + '</td>' +
+          '<td><strong>' + po.ref + '</strong></td>' +
+          '<td>' + po.company + '</td>' +
+          '<td>' + po.supplier + '</td>' +
+          '<td>' + po.item_name + '</td>' +
+          '<td>' + po.item_code + '</td>' +
+          '<td>-</td><td>-</td>' +
+          '<td>' + po.left + '</td>' +
+          '<td></td>' +
+          '<td><span class="pr-status-badge pr-status-approved">PO Approved</span></td>' +
+          '<td></td>' +
+          '<td><button class="pr-action-btn pr-btn-view" style="background:#16a34a;color:#fff;" onclick="startGiFromPo(\'' + po.ref + '\')" title="Create Challan Entry for this PO">➕ Challan Entry</button></td>' +
+          '</tr>';
+      }).join('');
+
+      if (filtered.length === 0 && !poHtml) {
         tbody.innerHTML = '';
         emptyMsg.style.display = 'block';
         return;
       }
 
       emptyMsg.style.display = 'none';
-      tbody.innerHTML = filtered.map(function(r, i) {
+      var secStyle = 'background:#e2e8f0;font-weight:700;color:#0f172a;padding:8px 12px;text-align:left;';
+      var poHead = poRows.length ? '<tr><td colspan="15" style="' + secStyle + '">📋 Approved Purchase Orders (Challan Entry pending) · ' + poRows.length + '</td></tr>' : '';
+      var chHead = (giListMode === 'draft' && (poRows.length || filtered.length)) ? '<tr><td colspan="15" style="' + secStyle + '">📝 Challan Entry Draft · ' + filtered.length + '</td></tr>' : '';
+      tbody.innerHTML = chHead + filtered.map(function(r, i) {
         var statusClass = 'pr-status-' + r.status.toLowerCase();
         var actions = '<button class="pr-action-btn pr-btn-view" onclick="viewGi(\'' + r.ref + '\')" title="View">👁 View</button>';
         actions += '<button class="pr-action-btn pr-btn-print" onclick="printGi(\'' + r.ref + '\')" title="Print">🖨</button>';
+        if (r.status === 'Draft') actions += '<button class="pr-action-btn pr-btn-view" style="background:#16a34a;color:#fff;" onclick="submitGiRecord(\'' + r.ref + '\')" title="Submit">✅ Submit</button>';
         return '<tr>' +
           '<td>' + (i + 1) + '</td>' +
           '<td><strong>' + r.ref + '</strong></td>' +
@@ -14356,9 +14459,18 @@ return btns;
           '<td>' + r.entry_by + '</td>' +
           '<td>' + actions + '</td>' +
           '</tr>';
-      }).join('');
+      }).join('') + poHead + poHtml;
     }
 
+    function submitGiRecord(ref) {
+      var recs = JSON.parse(localStorage.getItem('erp_gi_records') || '{}');
+      if (!recs[ref]) return;
+      recs[ref].status = 'Pending';
+      localStorage.setItem('erp_gi_records', JSON.stringify(recs));
+      giListMode = 'complete';
+      document.getElementById('giModeSel').value = 'complete';
+      renderGiTable();
+    }
     function filterGiList() { renderGiTable(); }
 
     function viewGi(ref) {
@@ -15037,7 +15149,64 @@ return btns;
     // ===== 1ST WEIGHT LIST FUNCTIONS =====
     // =====================================================================
 
+    var w1ListMode = 'draft';
+    function setW1Mode(m) { w1ListMode = m; renderW1Table(); }
+    // Submitted Challan Entries that still need a 1st Weight (a CE stays here until every item line is weighed)
+    function getW1PendingCes() {
+      var gis = JSON.parse(localStorage.getItem('erp_gi_records') || '{}');
+      var wr = JSON.parse(localStorage.getItem('erp_weight_records') || '{}');
+      var weighed = {};
+      Object.keys(wr).forEach(function(k) {
+        var r = wr[k];
+        if (r.form === 'WEIGHT_1ST' || r.form === 'WEIGHT_2ND') {
+          if (r.status === 'Draft' || !r.gate_entry_no) return;
+          var m = weighed[r.gate_entry_no] = weighed[r.gate_entry_no] || {};
+          if (r.weighed_item_line_no) String(r.weighed_item_line_no).split(',').forEach(function(ln) { if (ln) m[ln.trim()] = true; });
+          else m._any = true;
+        }
+      });
+      var out = [];
+      Object.keys(gis).sort().forEach(function(ref) {
+        var g = gis[ref] || {};
+        if (g.status === 'Draft' || g.status === 'Rejected') return;
+        var items = g.items || [], w = weighed[ref];
+        if (w) {
+          if (items.length > 1) { if (items.every(function(it) { return w[String(it.line_no)]; })) return; }
+          else return;
+        }
+        var q = 0; items.forEach(function(it) { q += parseFloat(it.challan_qty) || 0; });
+        out.push({ ref: ref, date: g.gi_basis_date || g.date || '', po: g.gi_po_no || g.po_no || '', supplier: g.gi_supplier || g.supplier || '',
+          item_name: g.gi_item_name || g.item_name || (items[0] && items[0].item_name) || '', item_code: g.gi_item_code || g.item_code || (items[0] && items[0].item_code) || '',
+          vehicle_no: g.gi_vehicle_no || g.vehicle_no || '', challan_no: g.gi_challan_no || g.challan_no || '', challan_qty: q || g.gi_received_qty || g.received_qty || '' });
+      });
+      return out;
+    }
+    function startW1FromCe(ref) {
+      closeW1List();
+      setTimeout(function() {
+        openWeightForm('first');
+        var sel = document.getElementById('wf_gate_entry_no');
+        if (!sel) return;
+        if (![].some.call(sel.options, function(o) { return o.value === ref; })) {
+          var op = document.createElement('option'); op.value = ref; op.textContent = ref; sel.appendChild(op);
+        }
+        sel.value = ref;
+        try { autofillWeightFromGateIn(ref); } catch (e) { console.warn(e); }
+      }, 250);
+    }
+    function submitW1Record(id) {
+      var recs = JSON.parse(localStorage.getItem('erp_weight_records') || '{}');
+      if (!recs[id]) return;
+      if (!recs[id].gross) { alert('1st Wt. Qty is required before Submit.'); return; }
+      delete recs[id].status;
+      localStorage.setItem('erp_weight_records', JSON.stringify(recs));
+      w1ListMode = 'complete';
+      document.getElementById('w1ModeSel').value = 'complete';
+      renderW1Table();
+    }
     function openW1List() {
+      w1ListMode = 'draft';
+      document.getElementById('w1ModeSel').value = 'draft';
       document.getElementById('w1SearchInput').value = '';
       renderW1Table();
       document.getElementById('w1ListOverlay').classList.add('active');
@@ -15066,27 +15235,40 @@ return btns;
       var search = document.getElementById('w1SearchInput').value.toLowerCase();
 
       var filtered = records.filter(function(r) {
-        return !search ||
+        return (w1ListMode === 'draft') === (r.status === 'Draft') && (!search ||
           (r.serial || '').toLowerCase().indexOf(search) !== -1 ||
           (r.scale_id || '').toLowerCase().indexOf(search) !== -1 ||
           (r.supplier || '').toLowerCase().indexOf(search) !== -1 ||
           (r.item_name || '').toLowerCase().indexOf(search) !== -1 ||
-          (r.vehicle_no || '').toLowerCase().indexOf(search) !== -1;
+          (r.vehicle_no || '').toLowerCase().indexOf(search) !== -1);
       });
+
+      var ceRows = w1ListMode === 'draft' ? getW1PendingCes().filter(function(c) {
+        return !search || [c.ref, c.po, c.supplier, c.item_name, c.vehicle_no, c.challan_no].join(' ').toLowerCase().indexOf(search) !== -1;
+      }) : [];
+      var secStyle = 'background:#e2e8f0;font-weight:700;color:#0f172a;padding:8px 12px;text-align:left;';
+      var ceHtml = ceRows.length ? '<tr><td colspan="13" style="' + secStyle + '">📋 Submitted Challan Entries (1st Weight pending) · ' + ceRows.length + '</td></tr>' +
+        ceRows.map(function(c, i) {
+          return '<tr style="background:#f0fdf4;"><td style="text-align:center;">' + (i + 1) + '</td>' +
+            '<td><strong style="color:#16a34a;">' + c.ref + '</strong></td><td>' + c.date + '</td><td>' + c.supplier + '</td><td>' + c.item_name + '</td><td>' + c.item_code + '</td>' +
+            '<td>' + c.vehicle_no + '</td><td>' + c.challan_no + '</td><td>' + c.challan_qty + '</td><td>-</td><td></td><td></td>' +
+            '<td><button class="str-action-btn str-btn-view" style="background:#16a34a;color:#fff;width:auto;padding:4px 10px;" onclick="startW1FromCe(\'' + c.ref + '\')" title="Take 1st Weight for this Challan Entry">➕ 1st Weight</button></td></tr>';
+        }).join('') : '';
+      var wHead = (w1ListMode === 'draft' && (ceRows.length || filtered.length)) ? '<tr><td colspan="13" style="' + secStyle + '">📝 1st Weight Draft · ' + filtered.length + '</td></tr>' : '';
 
       var tbody = document.getElementById('w1TableBody');
       var emptyMsg = document.getElementById('w1EmptyMsg');
       var countEl = document.getElementById('w1Count');
       if (countEl) countEl.textContent = filtered.length;
 
-      if (filtered.length === 0) {
+      if (filtered.length === 0 && !ceHtml) {
         tbody.innerHTML = '';
         emptyMsg.style.display = 'block';
         return;
       }
 
       emptyMsg.style.display = 'none';
-      tbody.innerHTML = filtered.map(function(r, i) {
+      tbody.innerHTML = wHead + filtered.map(function(r, i) {
         return '<tr>' +
           '<td style="text-align:center;">' + (i + 1) + '</td>' +
           '<td><strong style="color:#2563eb;">' + (r.scale_id || '') + '</strong></td>' +
@@ -15103,8 +15285,9 @@ return btns;
           '<td>' +
             '<button class="str-action-btn str-btn-view" onclick="viewW1(\'' + (r.scale_id || '') + '\')" title="View">👁</button>' +
             '<button class="str-action-btn str-btn-print" onclick="printW1(\'' + (r.scale_id || '') + '\')" title="Print">🖨</button>' +
+            (r.status === 'Draft' ? '<button class="str-action-btn str-btn-view" style="background:#16a34a;color:#fff;width:auto;padding:4px 8px;" onclick="submitW1Record(\'' + (r.scale_id || '') + '\')" title="Submit">✅ Submit</button>' : '') +
           '</td></tr>';
-      }).join('');
+      }).join('') + ceHtml;
     }
 
     function filterW1List() { renderW1Table(); }
@@ -15527,6 +15710,8 @@ return btns;
 
         // Show Forward to QC and Gate Out buttons, hide Forward to 2nd Weight button
         btnForwardTo2nd.style.display = 'none';
+        document.getElementById('btnWfSubmit').style.display = 'none';
+        document.getElementById('btnWfSave').textContent = 'Update';
         btnForwardToQC.style.display = 'inline-block';
         var btnGateOut = document.getElementById('btnForwardToGateOut');
         if (btnGateOut) btnGateOut.style.display = 'inline-block';
@@ -15558,7 +15743,9 @@ return btns;
         setSharedFieldsReadonly(false);
 
         // Show Forward to 2nd Weight button, hide Forward to QC and Gate Out buttons
-        btnForwardTo2nd.style.display = 'inline-block';
+        btnForwardTo2nd.style.display = 'none';
+        document.getElementById('btnWfSubmit').style.display = 'inline-block';
+        document.getElementById('btnWfSave').textContent = '💾 Save (Draft)';
         btnForwardToQC.style.display = 'none';
         var btnGateOut = document.getElementById('btnForwardToGateOut');
         if (btnGateOut) btnGateOut.style.display = 'none';
@@ -15769,6 +15956,10 @@ return btns;
 
       // Persist locally so 2nd Weight can look this record up by Scale ID
       const records = JSON.parse(localStorage.getItem('erp_weight_records') || '{}');
+      var w1Prev = records[scaleId], w1Submitted = !!window.__w1SubmitNext;
+      window.__w1SubmitNext = false;
+      if (!w1Submitted && (!w1Prev || w1Prev.status === 'Draft')) data.status = 'Draft';
+      else if (!w1Submitted && w1Prev && w1Prev.status) data.status = w1Prev.status;
       records[scaleId] = data;
       localStorage.setItem('erp_weight_records', JSON.stringify(records));
 
@@ -15784,8 +15975,9 @@ return btns;
         });
       }
 
-      successEl.textContent = '✅ Weight record updated! (Scale ID: ' + scaleId + ')';
+      successEl.textContent = (w1Submitted ? '✅ 1st Weight submitted (Complete)' : '✅ 1st Weight saved as Draft') + ' (Scale ID: ' + scaleId + ')';
       successEl.classList.add('show');
+      if (w1Submitted) w1ListMode = 'complete';
 
       setTimeout(closeWeightForm, 1400);
     }
@@ -16134,21 +16326,26 @@ return btns;
         submitted_by: currentUser ? currentUser.id : ''
       };
 
-      // Save to localStorage
+      // Save to localStorage (Save keeps a Draft; Submit makes it complete)
       const records = JSON.parse(localStorage.getItem('erp_qc1_records') || '{}');
+      var qcPrev = records[scaleId], qcSubmitted = !!window.__qc1SubmitNext;
+      window.__qc1SubmitNext = false;
+      if (!qcSubmitted && (!qcPrev || qcPrev.status === 'Draft')) data.status = 'Draft';
+      else if (!qcSubmitted && qcPrev && qcPrev.status) data.status = qcPrev.status;
       records[scaleId] = data;
       localStorage.setItem('erp_qc1_records', JSON.stringify(records));
 
       // Update weight record with QC status
       const weightRecords = JSON.parse(localStorage.getItem('erp_weight_records') || '{}');
-      if (weightRecords[scaleId]) {
+      if (weightRecords[scaleId] && data.status !== 'Draft') {
         weightRecords[scaleId].qc_status = qcResult;
         weightRecords[scaleId].qc_date = data.date;
         localStorage.setItem('erp_weight_records', JSON.stringify(weightRecords));
       }
 
-      successEl.textContent = '✅ 1st QC saved successfully! (Scale ID: ' + scaleId + ' - ' + qcResult + ')';
+      successEl.textContent = (data.status === 'Draft' ? '✅ 1st QC saved as Draft' : '✅ 1st QC submitted (Complete)') + ' (Scale ID: ' + scaleId + ' - ' + qcResult + ')';
       successEl.classList.add('show');
+      if (qcSubmitted) qc1ListMode = 'complete';
 
       setTimeout(function() {
         closeGenericForm('qc1FormOverlay');
@@ -16159,7 +16356,38 @@ return btns;
     // ===== 1ST QC LIST FUNCTIONS =====
     // =====================================================================
 
+    var qc1ListMode = 'draft';
+    function setQc1Mode(m) { qc1ListMode = m; renderQc1Table(); }
+    // Submitted 1st Weights that do not have a 1st QC yet
+    function getQc1PendingWeights() {
+      var wr = JSON.parse(localStorage.getItem('erp_weight_records') || '{}');
+      var qc = JSON.parse(localStorage.getItem('erp_qc1_records') || '{}');
+      return Object.keys(wr).sort().map(function(k) { return wr[k]; }).filter(function(r) {
+        return r.scale_id && r.form === 'WEIGHT_1ST' && r.status !== 'Draft' && !qc[r.scale_id];
+      });
+    }
+    function startQc1FromWeight(scaleId) {
+      var wr = JSON.parse(localStorage.getItem('erp_weight_records') || '{}');
+      if (!wr[scaleId]) return;
+      closeQc1List();
+      setTimeout(function() { openQc1Form(scaleId, wr[scaleId]); }, 200);
+    }
+    function submitQc1Record(scaleId) {
+      var recs = JSON.parse(localStorage.getItem('erp_qc1_records') || '{}');
+      var r = recs[scaleId];
+      if (!r) return;
+      if (!r.qc_result) { alert('QC Result is required before Submit.'); return; }
+      delete r.status;
+      localStorage.setItem('erp_qc1_records', JSON.stringify(recs));
+      var wr = JSON.parse(localStorage.getItem('erp_weight_records') || '{}');
+      if (wr[scaleId]) { wr[scaleId].qc_status = r.qc_result; wr[scaleId].qc_date = r.date; localStorage.setItem('erp_weight_records', JSON.stringify(wr)); }
+      qc1ListMode = 'complete';
+      document.getElementById('qc1ModeSel').value = 'complete';
+      renderQc1Table();
+    }
     function openQc1List() {
+      qc1ListMode = 'draft';
+      document.getElementById('qc1ModeSel').value = 'draft';
       document.getElementById('qc1SearchInput').value = '';
       document.getElementById('qc1StatusFilter').value = '';
       renderQc1Table();
@@ -16239,7 +16467,8 @@ return btns;
           fat: r.fat || '',
           protein: r.protein || '',
           qc_result: r.qc_result || '',
-          qc_by: r.qc_by || ''
+          qc_by: r.qc_by || '',
+          status: r.status || ''
         };
       });
     }
@@ -16257,24 +16486,39 @@ return btns;
           r.item_code.toLowerCase().indexOf(search) !== -1 ||
           r.vehicle_no.toLowerCase().indexOf(search) !== -1;
         var matchStatus = !statusFilter || r.qc_result === statusFilter;
-        return matchSearch && matchStatus;
+        return matchSearch && matchStatus && ((qc1ListMode === 'draft') === (r.status === 'Draft'));
       });
 
       var tbody = document.getElementById('qc1TableBody');
       var emptyMsg = document.getElementById('qc1EmptyMsg');
 
-      if (filtered.length === 0) {
+      var wRows = (qc1ListMode === 'draft' && !statusFilter) ? getQc1PendingWeights().filter(function(w) {
+        return !search || [w.scale_id, w.gate_entry_no, w.supplier, w.item_name, w.item_code, w.vehicle_no].join(' ').toLowerCase().indexOf(search) !== -1;
+      }) : [];
+      var secStyle = 'background:#e2e8f0;font-weight:700;color:#0f172a;padding:8px 12px;text-align:left;';
+      var wHtml = wRows.length ? '<tr><td colspan="15" style="' + secStyle + '">📋 Submitted 1st Weights (1st QC pending) · ' + wRows.length + '</td></tr>' +
+        wRows.map(function(w, i) {
+          return '<tr style="background:#f0fdf4;"><td>' + (i + 1) + '</td><td><span style="color:#64748b;">New</span></td>' +
+            '<td><strong>' + w.scale_id + '</strong></td><td>' + (w.date || '') + '</td><td>' + (w.supplier || '') + '</td><td>' + (w.item_name || '') + '</td><td>' + (w.item_code || '') + '</td>' +
+            '<td>' + (w.vehicle_no || '') + '</td><td>' + (w.net_weight || w.gross || '') + '</td><td>-</td><td>-</td><td>-</td>' +
+            '<td><span class="pr-status-badge pr-status-approved">1st Weight Done</span></td><td></td>' +
+            '<td><button class="pr-action-btn pr-btn-view" style="background:#16a34a;color:#fff;" onclick="startQc1FromWeight(\'' + w.scale_id + '\')" title="Take 1st QC for this weight">➕ 1st QC</button></td></tr>';
+        }).join('') : '';
+      var qHead = (qc1ListMode === 'draft' && (wRows.length || filtered.length)) ? '<tr><td colspan="15" style="' + secStyle + '">📝 1st QC Draft · ' + filtered.length + '</td></tr>' : '';
+
+      if (filtered.length === 0 && !wHtml) {
         tbody.innerHTML = '';
         emptyMsg.style.display = 'block';
         return;
       }
 
       emptyMsg.style.display = 'none';
-      tbody.innerHTML = filtered.map(function(r, i) {
+      tbody.innerHTML = qHead + filtered.map(function(r, i) {
         var resultClass = r.qc_result === 'Passed' ? 'pr-status-approved' :
                          r.qc_result === 'Rejected' ? 'pr-status-rejected' : 'pr-status-pending';
         var actions = '<button class="pr-action-btn pr-btn-view" onclick="viewQc1(\'' + r.scale_id + '\')" title="View">👁 View</button>';
         actions += '<button class="pr-action-btn pr-btn-print" onclick="printQc1(\'' + r.scale_id + '\')" title="Print">🖨</button>';
+        if (r.status === 'Draft') actions += '<button class="pr-action-btn pr-btn-view" style="background:#16a34a;color:#fff;" onclick="submitQc1Record(\'' + r.scale_id + '\')" title="Submit">✅ Submit</button>';
         return '<tr>' +
           '<td>' + (i + 1) + '</td>' +
           '<td><strong style="color:#22b6a2;">' + r.qc_ref + '</strong></td>' +
@@ -16292,7 +16536,7 @@ return btns;
           '<td>' + r.qc_by + '</td>' +
           '<td>' + actions + '</td>' +
           '</tr>';
-      }).join('');
+      }).join('') + wHtml;
     }
 
     function filterQc1List() { renderQc1Table(); }
@@ -16303,7 +16547,18 @@ return btns;
       if (!record) return;
       closeQc1List();
       setTimeout(function() {
+        var serial = localStorage.getItem('erp_qc1_serial');
         openQc1Form(scaleId, record);
+        if (serial !== null) localStorage.setItem('erp_qc1_serial', serial); // don't burn a QC number
+        // restore the saved QC readings so a Draft can be edited and re-saved
+        var $ = function(x) { return document.getElementById(x); };
+        if (record.qc_ref) $('qc1_ref').value = record.qc_ref;
+        ['date', 'qc_by', 'physical_condition', 'smell', 'odor', 'moisture', 'fat', 'protein', 'ash', 'dust', 'broken', 'ffa', 'remarks', 'qc_result', 'reject_reason', 'partial_remark'].forEach(function(f) {
+          var el = $('qc1_' + f); if (el && record[f] !== undefined) el.value = record[f];
+        });
+        try { validateQcResult(); } catch (e) {}
+        if (record.reject_reason) $('qc1_reject_reason').value = record.reject_reason;
+        if (record.partial_remark) $('qc1_partial_remark').value = record.partial_remark;
       }, 200);
     }
 
