@@ -2686,6 +2686,7 @@
           <a href="#" data-sub="quotation_review"><span class="arrow">▶</span> Quotation Review</a>
           <a href="#" data-sub="cs_approval" onclick="event.preventDefault(); openGenericForm(&#39;CS&#39;); return false;"><span class="arrow">▶</span> CS Approval</a>
           <a href="#" data-sub="vendor_agreement"><span class="arrow">▶</span> Vendor Agreement</a>
+          <a href="#" data-sub="vendor_master" onclick="event.preventDefault(); openVmList(); return false;"><span class="arrow">▶</span> Vendor Master</a>
         </div>
       </div>
       <!-- Order -->
@@ -2736,6 +2737,7 @@
       <div class="menu-item" data-menu="inventory">
         <a href="#">📊 Inventory ▾</a>
         <div class="dropdown" data-parent="inventory">
+          <a href="#" data-sub="opening_balance" onclick="event.preventDefault(); openObList(); return false;"><span class="arrow">▶</span> Opening Balance</a>
           <a href="#" data-sub="grn" onclick="event.preventDefault(); openGrnList(); return false;"><span class="arrow">▶</span> Goods Receipt Notes</a>
           <a href="#" data-sub="trn" onclick="event.preventDefault(); openStnList(); return false;"><span class="arrow">▶</span> Stock Transfer Notes</a>
           <a href="#" data-sub="vehicle_unload" onclick="event.preventDefault(); openVuList(); return false;"><span class="arrow">▶</span> Vehicle Unload</a>
@@ -2757,7 +2759,9 @@
           <a href="#" data-sub="vehicle_unload_report" onclick="event.preventDefault(); openReport(&#39;vehicle_unload&#39;); return false;"><span class="arrow">▶</span> Vehicle Unload Status</a>
           <a href="#" data-sub="po_summary" onclick="event.preventDefault(); openReport(&#39;po_summary&#39;); return false;"><span class="arrow">▶</span> PO Summary</a>
           <a href="#" data-sub="po_vs_receive"><span class="arrow">▶</span> PO vs Receive Report</a>
-          <a href="#" data-sub="inventory_stock" onclick="event.preventDefault(); openStockReport(); return false;"><span class="arrow">▶</span> Inventory Stock Report with Valuation</a>
+          <a href="#" data-sub="inventory_valuation" onclick="event.preventDefault(); openIvRep(); return false;"><span class="arrow">▶</span> Inventory Valuation Report</a>
+          <a href="#" data-sub="inventory_batch" onclick="event.preventDefault(); openIvBatch(); return false;"><span class="arrow">▶</span> Batch Wise Inventory Report</a>
+          <a href="#" data-sub="po_vs_receive" onclick="event.preventDefault(); openPoRcv(); return false;"><span class="arrow">▶</span> PO vs Receive Report</a>
           <a href="#" data-sub="inventory_movement" onclick="event.preventDefault(); openMvRep(); return false;"><span class="arrow">▶</span> Inventory Movement Report</a>
           <a href="#" data-sub="goods_exchange" onclick="event.preventDefault(); openMmRep('ge'); return false;"><span class="arrow">▶</span> Goods Exchange Report</a>
           <a href="#" data-sub="adjustment_report" onclick="event.preventDefault(); openMmRep('adj'); return false;"><span class="arrow">▶</span> Adjustment Report</a>
@@ -2795,12 +2799,6 @@
           <div class="card-title">Gate Entry (Challan)</div>
           <div class="card-desc">New Challan / Gate Entry</div>
           <div class="ql-badge ql-orange">GATE</div>
-        </div>
-        <div class="card ql-card" onclick="openStockReport()">
-          <span class="card-icon">📊</span>
-          <div class="card-title">Stock Report</div>
-          <div class="card-desc">Inventory &amp; Valuation</div>
-          <div class="ql-badge ql-purple">STOCK</div>
         </div>
       </div>
     </main>
@@ -3371,6 +3369,11 @@ const mmIssue=(b,n,u)=>{const x=mmFindRec(b.wh,n);if(!x||!(u>0))return;
  if(typeof adjustStock=='function')adjustStock(x.warehouse,x.item_code,x.item_name,-u);
  if(typeof logStockTransaction=='function'){let g='',m='';try{const t=JSON.parse(localStorage.getItem('erp_stock_transactions')||'[]').filter(z=>nrm(z.material_name)==nrm(x.item_name)||(x.item_code&&z.material_code==x.item_code)).pop();if(t){g=t.item_group||'';m=t.uom||''}}catch(e){}
   logStockTransaction('consumption',x.item_code,x.item_name,g,m,x.warehouse,u,b.date,b.no)}};
+const allocFifo=(wh,ids,q)=>{const L=(window.__ivBatchAvail?window.__ivBatchAvail(wh,ids):[]),out=[];let r=+q||0;L.forEach(z=>{if(r<=1e-9)return;const t=Math.min(r,z.bal);out.push({b:z.batch,q:rnd(t),av:rnd(z.bal)});r=rnd(r-t)});if(r>1e-9)out.push({b:'(No Batch)',q:rnd(r),av:0,short:1});return out};
+const batAlloc=(b,n,q)=>{const x=mmFindRec(b.wh,n)||{};return allocFifo(b.wh,[x.item_code,x.item_name,n].filter(Boolean),q)};
+const batTxt=a=>(a||[]).map(z=>'<b>'+z.b+'</b> : '+z.q+' Kg').join('<br>')||'—';
+const allocSave=(b,n,al)=>{const x=mmFindRec(b.wh,n)||{};let A=[];try{A=JSON.parse(localStorage.getItem('erp_batch_alloc')||'[]')}catch(e){}if(!Array.isArray(A))A=[];al.forEach(z=>A.push({ref:b.no,wh:b.wh,code:x.item_code||'',name:x.item_name||n,batch:z.b,qty:z.q,date:b.date}));localStorage.setItem('erp_batch_alloc',JSON.stringify(A))};
+const allocDrop=ref=>{let A=[];try{A=JSON.parse(localStorage.getItem('erp_batch_alloc')||'[]')}catch(e){}if(!Array.isArray(A))return;localStorage.setItem('erp_batch_alloc',JSON.stringify(A.filter(z=>z.ref!=ref)))};
 const mmAvail=(n,cd)=>{let o={};try{o=JSON.parse(localStorage.getItem('erp_stock_records')||'{}')}catch(e){}const by={};Object.values(o).forEach(r=>{if(r&&(nrm(r.item_name)==nrm(n)||(cd&&r.item_code&&nrm(r.item_code)==nrm(cd)))){const w=r.warehouse||'-';by[w]=rnd((by[w]||0)+(parseFloat(r.qty)||0))}});const parts=Object.entries(by).filter(x=>x[1]!=0);return {total:rnd(parts.reduce((a,x)=>a+x[1],0)),parts}};
 const avHtml=(n,cd)=>{if(!n)return '—';const a=mmAvail(n,cd),tip=a.parts.map(x=>x[0]+': '+x[1]).join(' | ').replace(/"/g,'&quot;');return '<b style="color:'+(a.total>0?'#2da44e':'#d9342b')+'" title="'+tip+'">'+a.total+'</b>'+(a.total>0&&a.parts.length>1?' <small style="color:#667">('+a.parts.length+' warehouse)</small>':'')+(a.total>0?'':' <small>no stock</small>')};
 const avUpd=tr=>{const c=tr.querySelector('.rav');if(c)c.innerHTML=avHtml(tr.querySelector('.rn').value,tr.querySelector('.rcd').value)};
@@ -3379,8 +3382,8 @@ let SS={rows:null,secs:[],busy:false,err:'',at:''};
 let PLV2='draft',PRV='draft',PAV='draft',PQV='draft',QCV='draft',QSE=null,QCE=null,QCW=null,RPE=null,RPW=null;let MAN={},PS=null,PV=null,RV=null,RW=null,F={},PE=null,PWV=null,PLV=null;
 const live=()=>D.batches.filter(b=>b.st!='Draft');
 const resv=(p,i)=>D.batches.filter(x=>x.st=='Draft'&&x.dpp==p.no&&x.fg==i.fg&&x.pl==(i.pl||p.pl)&&x.no!=PS).reduce((a,x)=>a+x.qty,0);
-const bLines=b=>{const r=D.recipes.find(x=>x.id==b.rc),ci=n=>{const l=r&&r.lines.find(z=>z[0]==n),c=(l&&l[2])||itmCatOf(n)||'—';return [c,(l&&l[3])||itmCode(c=='—'?'':c,n)||'—']};if(b.st=='Draft'){return r.lines.map(([n,q])=>{const k=ci(n);return [k[0],n,k[1],rnd(q*b.qty/r.size),b.act[n]]})}return D.cons.filter(c=>c.b==b.no).map(c=>{const k=ci(c.rm);return [k[0],c.rm,k[1],c.req??c.q,c.q]})};
-const bDoc=b=>\`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['Production No',b.pro],['Batch No',b.no],['Status',b.st],['Process Date',b.date],['DPP No.',b.dpp],['Product',b.fg],['BOM No.',b.rc||'—'],['Plant',b.pl],['Shift',b.sh||'—'],['Worker Group',b.wg||'—'],['RM-Warehouse',b.wh||'—'],['Production Qty (Kg)',b.qty],['Batch Size (Kg)',b.bs||'—'],['No. of Batch Run',b.run],['Remarks',b.rem||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\${T(['Item Category','Raw Material','Item Code','Required (Kg)','Actual Consumption (Kg)'],bLines(b).concat([['','<b>Total</b>','','<b>'+rnd(bLines(b).reduce((a,l)=>a+(+l[3]||0),0))+'</b>','<b>'+rnd(bLines(b).reduce((a,l)=>a+(+l[4]||0),0))+'</b>']]))}\`;
+const bLines=b=>{const r=D.recipes.find(x=>x.id==b.rc),ci=n=>{const l=r&&r.lines.find(z=>z[0]==n),c=(l&&l[2])||itmCatOf(n)||'—';return [c,(l&&l[3])||itmCode(c=='—'?'':c,n)||'—']};if(b.st=='Draft'){return r.lines.map(([n,q])=>{const k=ci(n);return [k[0],n,k[1],rnd(q*b.qty/r.size),b.act[n],batTxt(batAlloc(b,n,+b.act[n]||0))]})}return D.cons.filter(c=>c.b==b.no).map(c=>{const k=ci(c.rm);return [k[0],c.rm,k[1],c.req??c.q,c.q,batTxt((b.bat||{})[c.rm])]})};
+const bDoc=b=>\`<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 20px">\${[['Production No',b.pro],['Batch No',b.no],['Status',b.st],['Process Date',b.date],['DPP No.',b.dpp],['Product',b.fg],['BOM No.',b.rc||'—'],['Plant',b.pl],['Shift',b.sh||'—'],['Worker Group',b.wg||'—'],['RM-Warehouse',b.wh||'—'],['Production Qty (Kg)',b.qty],['Batch Size (Kg)',b.bs||'—'],['No. of Batch Run',b.run],['Remarks',b.rem||'—']].map(([k,x])=>\`<div><span style="color:var(--mut);font-size:11px">\${k}</span><br><b>\${x}</b></div>\`).join('')}</div>\${T(['Item Category','Raw Material','Item Code','Required (Kg)','Actual Consumption (Kg)','Batch No (FIFO)'],bLines(b).concat([['','<b>Total</b>','','<b>'+rnd(bLines(b).reduce((a,l)=>a+(+l[3]||0),0))+'</b>','<b>'+rnd(bLines(b).reduce((a,l)=>a+(+l[4]||0),0))+'</b>','']]))}\`;
 const pView=no=>{const b=D.batches.find(x=>x.no==no);return b?\`<div class="modal" id="vw" style="display:flex"><div class="pn"><div class="ih">Production Entry \${b.pro} [View]<span>\${b.st=='Processed'&&!revBlock(b)?\`<button class="btn ex" data-act="prevert" data-id="\${b.no}">↩ Revert</button> \`:''}<button class="btn pr" data-act="pprn" data-id="\${b.no}">🖶 Print</button> <span class="x" data-act="pvhide">✕</span></span></div>\${bDoc(b)}</div></div>\`:''};
 const proOf=n=>(D.batches.find(b=>b.no==n)||{}).pro||'—',rfpOf=n=>(D.rcv.find(r=>r.bn==n&&r.st=='Received')||{}).no||'—';
 const revBlock=b=>{if(b.plcl)return 'Actual Consumption entry exists, revert it first';const r=D.rcv.find(x=>x.bn==b.no);return r&&r.st=='Received'?'FG already received ('+r.no+'), revert the FG Receive first':b.rq?'FG already received':''};
@@ -3391,9 +3394,9 @@ pdef(){MAN={};set('sh',shiftNow());set('wg','Group A');const o=[...$('#dpp').opt
  if(o.length==1){set('dpp',o[0].value);A.fill({id:'dpp'});const it=[...$('#it').options].filter(x=>x.value);if(it.length==1){set('it',it[0].value);A.fill({id:'it'})}}A.rmp()},
 rmp(){const p=D.plans.find(x=>x.no==v('dpp')),i=ifind(p,v('it')),r=i&&D.recipes.find(x=>x.id==v('rc')),qty=+v('prq')||0;
  if(!r){$('#rmp').innerHTML='';return}
- const rows=r.lines.map(([n,q,c,cd])=>{const need=rnd(q*qty/r.size),a=MAN[n]!==undefined?MAN[n]:need,av=mmQty(v('wh'),n),cat=c||itmCatOf(n)||'—',code=cd||itmCode(c||itmCatOf(n),n)||'—';return {n,cat,code,need,a,av}}),sum=k=>rnd(rows.reduce((t,x)=>t+(+x[k]||0),0));
- $('#rmp').innerHTML=T(['Item Category','Raw Material','Item Code','Required (Kg)','Available (Kg)','Actual Consumption (Kg)','Status'],rows.map(x=>[x.cat,x.n,x.code,x.need,x.av,\`<input class="act" data-rm="\${x.n}" data-av="\${x.av}" data-chg="rmv" type="number" min="0" step="any" value="\${x.a}" style="width:110px">\`,+x.a<=x.av?'✔':'<span style="color:#d9342b">✘ short</span>']).concat([['','<b>Total</b>','',\`<b>\${sum('need')}</b>\`,'',\`<b id="tac">\${sum('a')}</b>\`,'']]))},
-rmv(t){if(t.value==='')delete MAN[t.dataset.rm];else MAN[t.dataset.rm]=t.value;t.closest('tr').lastElementChild.innerHTML=+t.value<=+t.dataset.av?'✔':'<span style="color:#d9342b">✘ short</span>';$('#tac').textContent=rnd([...root.querySelectorAll('.act')].reduce((a,x)=>a+(+x.value||0),0))},
+ const rows=r.lines.map(([n,q,c,cd])=>{const need=rnd(q*qty/r.size),a=MAN[n]!==undefined?MAN[n]:need,av=mmQty(v('wh'),n),cat=c||itmCatOf(n)||'—',code=cd||itmCode(c||itmCatOf(n),n)||'—';return {n,cat,code,need,a,av,bt:batTxt(batAlloc({wh:v('wh')},n,+a||0))}}),sum=k=>rnd(rows.reduce((t,x)=>t+(+x[k]||0),0));
+ $('#rmp').innerHTML=T(['Item Category','Raw Material','Item Code','Required (Kg)','Available (Kg)','Actual Consumption (Kg)','Batch No (FIFO)','Status'],rows.map(x=>[x.cat,x.n,x.code,x.need,x.av,\`<input class="act" data-rm="\${x.n}" data-av="\${x.av}" data-chg="rmv" type="number" min="0" step="any" value="\${x.a}" style="width:110px">\`,x.bt,+x.a<=x.av?'✔':'<span style="color:#d9342b">✘ short</span>']).concat([['','<b>Total</b>','',\`<b>\${sum('need')}</b>\`,'',\`<b id="tac">\${sum('a')}</b>\`,'','']]))},
+rmv(t){if(t.value==='')delete MAN[t.dataset.rm];else MAN[t.dataset.rm]=t.value;t.closest('tr').children[6].innerHTML=batTxt(batAlloc({wh:v('wh')},t.dataset.rm,+t.value||0));t.closest('tr').lastElementChild.innerHTML=+t.value<=+t.dataset.av?'✔':'<span style="color:#d9342b">✘ short</span>';$('#tac').textContent=rnd([...root.querySelectorAll('.act')].reduce((a,x)=>a+(+x.value||0),0))},
 rnew(){RS={mode:'new'};if(!PM.length)pmLoad();if(!ITM.length)itmLoad();go('582',1)},
 fshow(){if(v('ff')&&v('ft')&&v('ff')>v('ft'))return toast('From Date is after To Date',1);F={from:v('ff')||'',to:v('ft')||'',fg:(v('fp')||'').trim(),bn:(v('fb')||'').trim(),loc:v('fl')||''};go(cur,1)},
 freset(){F={};go(cur,1)},rcode(){if(!$('#code').dataset.man){const e=rec(v('fg').trim());set('code',e?e.code:mkCode(v('fg')))}},cman(){$('#code').dataset.man=v('code')?'1':''},rview(a){RS={mode:'view',id:a.dataset.id};go('582',1)},rtoggle(a){const r=D.recipes.find(x=>x.id==a.dataset.id);if(!r)return;r.act=r.act===false;save();go('582');toast('BOM '+r.id+(r.act===false?' inactivated':' activated'))},
@@ -3487,7 +3490,7 @@ submit(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Draft')ret
  const p=D.plans.find(x=>x.no==b.dpp),i=p&&p.items.find(x=>x.fg==b.fg&&(x.pl||p.pl)==b.pl),r=D.recipes.find(x=>x.id==b.rc);if(!i||!r)return toast('Plan or BOM not found',1);
  if(b.qty>(i.n-i.done)*isz(i)+1e-6)return toast('Qty exceeds plan balance, edit this entry first',1);
  const sh=Object.entries(b.act).filter(([n,q])=>mmQty(b.wh,n)<q).map(x=>x[0]);if(sh.length)return toast('Insufficient RM stock in MM Inventory ('+b.wh+'): '+sh.join(', '),1);
- r.lines.forEach(([n,q])=>{const u=rnd(b.act[n]);mmIssue(b,n,u);D.cons.push({b:b.no,date:b.date,fg:b.fg,rm:n,req:rnd(q*b.qty/r.size),q:u})});
+ b.bat={};r.lines.forEach(([n,q])=>{const u=rnd(b.act[n]);const al=u>0?batAlloc(b,n,u):[];mmIssue(b,n,u);if(al.length){b.bat[n]=al;allocSave(b,n,al)}D.cons.push({b:b.no,date:b.date,fg:b.fg,rm:n,req:rnd(q*b.qty/r.size),q:u})});
  i.done=Math.round((i.done+b.qty/isz(i))*1e6)/1e6;p.st='In Progress';b.st='Processed';save();PQV='complete';go('630');toast(\`Batch \${b.no} submitted, RM consumed from MM Inventory stock\`)},
 prevert(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Processed')return;
  const bl=revBlock(b);if(bl)return toast('Cannot revert: '+bl,1);
@@ -3495,6 +3498,7 @@ prevert(a){const b=D.batches.find(x=>x.no==a.dataset.id);if(!b||b.st!='Processed
  Object.entries(b.act||{}).forEach(([n,q])=>{const u=rnd(q);if(!(u>0))return;const x=mmFindRec(b.wh,n);if(!x)return;
   if(typeof adjustStock=='function')adjustStock(x.warehouse,x.item_code,x.item_name,u);
   if(typeof logStockTransaction=='function')logStockTransaction('consumption',x.item_code,x.item_name,'','',x.warehouse,-u,td(),b.no)});
+ allocDrop(b.no);delete b.bat;
  D.cons=D.cons.filter(c=>c.b!=b.no);D.rcv=D.rcv.filter(x=>!(x.bn==b.no&&x.st=='Draft'));
  const p=D.plans.find(x=>x.no==b.dpp),i=p&&p.items.find(x=>x.fg==b.fg&&(x.pl||p.pl)==b.pl);
  if(i){i.done=Math.max(0,Math.round((i.done-b.qty/isz(i))*1e6)/1e6)}
@@ -6388,6 +6392,79 @@ go('home');
 
 
   <!-- ===================== Inventory Adjustment (Physical Count) ===================== -->
+  <!-- ===================== Opening Balance ===================== -->
+  <div class="str-list-overlay" id="obListOverlay" onclick="if(event.target===this) closeObList()">
+    <div class="str-list-outer" style="max-width:1300px; border-radius:8px; border:2px solid #1e8449; overflow:auto;">
+      <div style="background:linear-gradient(135deg, #196f3d, #27ae60); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
+        <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">📘 Opening Balance</h2>
+        <select id="obModeSel" onchange="setObMode(this.value)" style="margin:0 auto;min-width:150px;padding:6px 14px;border-radius:4px;font-size:0.82rem;font-weight:700;border:1px solid #ccc;background:#fff;"><option value="draft">Draft</option><option value="complete">Complete</option></select>
+        <button class="str-close-list-btn" onclick="closeObList()" style="font-size:1rem; width:28px; height:28px;">X</button>
+      </div>
+      <div style="background:#d5f5e3; padding:8px 16px; border-bottom:1px solid #abebc6; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <span style="font-size:0.88rem; font-weight:700; color:#1e293b;">Opening Balances (<span id="obCount">0</span>)</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <input type="text" id="obSearchInput" placeholder="🔍 Search by OB#, Warehouse, Item..." oninput="renderObTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:220px;">
+          <button onclick="openObForm()" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
+          <button onclick="renderObTable()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto; background:#f8f9fa;">
+        <table class="str-table" style="font-size:0.78rem;">
+          <thead><tr><th>SL#</th><th>OB No</th><th>Date</th><th>Company</th><th>BU</th><th>PC</th><th>Warehouse</th><th>Items</th><th>Total Qty</th><th>Total Amount</th><th>Status</th><th>Note</th><th>Created By</th><th>Actions</th></tr></thead>
+          <tbody id="obTableBody"></tbody>
+        </table>
+        <div id="obEmptyMsg" style="text-align:center; padding:40px 20px; color:#94a3b8; font-size:0.85rem; display:none;">
+          <span style="font-size:2.5rem; display:block; margin-bottom:10px;">📘</span>
+          No Opening Balance found.<br>Click "+" to add an Opening Balance.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="weight-modal-overlay" id="obFormOverlay" onclick="if(event.target===this) closeObForm()">
+    <div class="erp-form-outer" style="max-width:1100px;">
+      <div class="erp-form-titlebar"><h2>📘 Opening Balance</h2></div>
+      <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>General Information (1)</span></div>
+      <div class="erp-form-card">
+        <div class="erp-form-header"><span id="obFormMode">Opening Balance [Insert mode]</span><button type="button" class="erp-close-btn" onclick="closeObForm()">X</button></div>
+        <div class="erp-form-body">
+          <div class="erp-field-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="erp-field"><div class="erp-field-label-row"><label for="ob_no">OB No</label><span class="erp-info-icon">i</span></div><input type="text" id="ob_no" readonly style="font-weight:700; color:#1e8449; background:#f1f5f9;"></div>
+            <div class="erp-field"><div class="erp-field-label-row"><label for="ob_date">Date</label><span class="erp-info-icon">i</span></div><input type="date" id="ob_date"></div>
+            <div class="erp-field"><div class="erp-field-label-row"><label for="ob_company">Company</label><span class="erp-info-icon">i</span></div><select id="ob_company" class="org-company-select" onchange="onOrgCompanyChange('ob_company','ob_bu','ob_pc')"><option value="">-- Select Company --</option><option value="Astha Feed Industries Ltd">Astha Feed Industries Ltd</option></select></div>
+            <div class="erp-field"><div class="erp-field-label-row"><label for="ob_bu">Business Unit</label><span class="erp-info-icon">i</span></div><select id="ob_bu" onchange="onOrgBuChange('ob_company','ob_bu','ob_pc')"><option value="">-- Select BU --</option></select></div>
+          </div>
+          <div class="erp-field-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="erp-field"><div class="erp-field-label-row"><label for="ob_pc">Profit Center</label><span class="erp-info-icon">i</span></div><select id="ob_pc"><option value="">-- Select Profit Center --</option></select></div>
+            <div class="erp-field"><div class="erp-field-label-row"><label for="ob_wh">Warehouse</label><span class="erp-info-icon">i</span></div><select id="ob_wh" class="pr-warehouse-select"><option value="">-- Select Warehouse --</option></select></div>
+            <div class="erp-field" style="grid-column: span 2;"><div class="erp-field-label-row"><label for="ob_note">Note</label><span class="erp-info-icon">i</span></div><input type="text" id="ob_note" placeholder="Note"></div>
+          </div>
+        </div>
+      </div>
+      <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Item Details (2)</span></div>
+      <div class="erp-form-card">
+        <div class="erp-form-header"><span>Opening Balance Items</span></div>
+        <div class="erp-form-body">
+          <div class="pr-items-wrap" style="margin-top:0;">
+            <h4>Line Items <button type="button" class="pr-add-item-btn" id="obAddItemBtn" onclick="addObItemRow()">➕ Add Item</button></h4>
+            <div class="pr-items-table-scroll">
+              <table class="pr-items-table">
+                <thead><tr><th>Line No.</th><th>Item Category</th><th>Item Name</th><th>Item Code</th><th>UOM</th><th>Quantity</th><th>Rate</th><th>Amount</th><th>Specification</th><th>Pack Size</th><th></th></tr></thead>
+                <tbody id="obItemsBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="erp-form-messages"><div class="error-msg" id="obFormError"></div><div class="success-msg" id="obFormSuccess"></div></div>
+        </div>
+      </div>
+      <div class="erp-form-actions">
+        <button type="button" class="erp-btn" style="background:#8e44ad;" id="obSaveBtn" onclick="saveObForm(false)">💾 Save (Draft)</button>
+        <button type="button" class="erp-btn" style="background:#16a34a;" id="obSubmitBtn" onclick="saveObForm(true)">✅ Submit</button>
+        <button type="button" class="erp-btn erp-btn-exit" onclick="closeObForm()">Exit</button>
+      </div>
+    </div>
+  </div>
+
   <div class="str-list-overlay" id="adjListOverlay" onclick="if(event.target===this) closeAdjList()">
     <div class="str-list-outer" style="max-width:1300px; border-radius:8px; border:2px solid #b9770e; overflow:auto;">
       <div style="background:linear-gradient(135deg, #9c640c, #d68910); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
@@ -6687,11 +6764,11 @@ go('home');
     var $=function(i){return document.getElementById(i);};
     function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
     function fmt(n){return Math.round(n*1000)/1000;}
-    var LABEL={purchase:'Purchase / GRN Receive',transfer_received:'Transfer Received',transfer_issue:'Transfer Issue',sto_issue:'STO Issue',sto_issue_reversal:'STO Issue Reversal',
+    var LABEL={opening_balance:'Opening Balance',opening_balance_reversal:'Opening Balance Reversal',purchase:'Purchase / GRN Receive',transfer_received:'Transfer Received',transfer_issue:'Transfer Issue',sto_issue:'STO Issue',sto_issue_reversal:'STO Issue Reversal',
       consumption:'Materials Issue (Consumption)',materials_issue_return:'Materials Issue Return',goods_exchange_issue:'Goods Exchange – Issue',goods_exchange_receive:'Goods Exchange – Receive',
       positive_adjustment:'Positive Adjustment',negative_adjustment:'Negative Adjustment',sale:'Sale',sale_return:'Sale Return',purchase_return:'Purchase Return',
       material_direct_issue:'Direct Issue',production_consumption:'RM Consumption (Production)',production_rm_return:'RM Return (PLC Adjustment / Revert)',fg_receive:'FG Receive (Production)',loan_received:'Loan Received',loan_return:'Loan Return',wastage_sale:'Wastage Sale',issue:'Issue'};
-    var OUT=['production_consumption','consumption','transfer_issue','sto_issue','sale','purchase_return','material_direct_issue','loan_return','goods_exchange_issue','negative_adjustment','wastage_sale','issue'];
+    var OUT=['opening_balance_reversal','production_consumption','consumption','transfer_issue','sto_issue','sale','purchase_return','material_direct_issue','loan_return','goods_exchange_issue','negative_adjustment','wastage_sale','issue'];
     function localProd(){try{var d=JSON.parse(localStorage.getItem('erpProd1')||'null');return d&&typeof d==='object'?d:null;}catch(e){return null;}}
     function prodD(){return SH.prod||localProd();}
     var SH={tx:null,prod:null,srl:null,at:'',msg:'',busy:false};
@@ -7265,6 +7342,7 @@ go('home');
       <!-- Title Bar -->
       <div style="background:linear-gradient(135deg, #1a5276, #2980b9); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
         <h2 style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">📄 Stock Transfer Notes</h2>
+        <select id="stnModeSel" onchange="setStnMode(this.value)" style="margin:0 auto;min-width:150px;padding:6px 14px;border-radius:4px;font-size:0.82rem;font-weight:700;border:1px solid #ccc;background:#fff;"><option value="draft">Draft</option><option value="complete">Complete</option></select>
         <button class="str-close-list-btn" onclick="closeStnList()" style="font-size:1rem; width:28px; height:28px;">X</button>
       </div>
 
@@ -7298,6 +7376,7 @@ go('home');
               <th>Received Qty</th>
               <th>Bag Qty</th>
               <th>UOM</th>
+              <th>Batch No</th>
               <th>Status</th>
               <th>Received By</th>
               <th>Actions</th>
@@ -7387,6 +7466,7 @@ go('home');
             <div class="erp-field"><div class="erp-field-label-row"><label for="stn_received_qty">Received Qty</label><span class="erp-info-icon">i</span></div><input type="number" id="stn_received_qty" step="0.01" placeholder="0.00" required=""></div>
             <div class="erp-field"><div class="erp-field-label-row"><label for="stn_bag_qty">Bag Qty</label><span class="erp-info-icon">i</span></div><input type="number" id="stn_bag_qty" step="1" placeholder="0" required=""></div>
             <div class="erp-field"><div class="erp-field-label-row"><label for="stn_remarks">Remarks</label><span class="erp-info-icon">i</span></div><input type="text" id="stn_remarks" placeholder="e.g. Received in good condition"></div>
+            <div class="erp-field"><div class="erp-field-label-row"><label for="stn_batch_no">Batch No</label><span class="erp-info-icon">i</span></div><input type="text" id="stn_batch_no" readonly="" placeholder="Generated on Submit" style="background:#f1f5f9;font-weight:700;color:#0d6e3a;"></div>
           </div>
           <div class="erp-form-messages">
             <div class="error-msg" id="stnFormError"></div>
@@ -7397,7 +7477,8 @@ go('home');
 
       <div class="erp-form-actions">
         <button type="button" class="erp-btn erp-btn-show-message" onclick="showGenericMessage(&#39;stnFormError&#39;,&#39;stnFormSuccess&#39;)">Show Message</button>
-        <button type="button" class="erp-btn erp-btn-update" onclick="submitStnForm(event)">✅ Confirm Receive</button>
+        <button type="button" class="erp-btn" style="background:#8e44ad;" onclick="submitStnForm(event)">💾 Save (Draft)</button>
+        <button type="button" class="erp-btn" style="background:#16a34a;" onclick="window.__stnSubmitNext=true;submitStnForm(event)">✅ Submit</button>
         <button type="button" class="erp-btn erp-btn-exit" onclick="closeGenericForm(&#39;stnFormOverlay&#39;)">Exit</button>
       </div>
     </div>
@@ -11794,7 +11875,7 @@ go('home');
 
     // ===== FIREBASE SYNC: AUTO-SAVE on key data changes =====
     var FB_SYNC_KEYS = [
-      'erpProd1',
+      'erpProd1','erp_batch_alloc','erp_vendor_records','erp_vendor_serial',
       'erp_pr_records','erp_pr_serial',
       'erp_rfq_records','erp_rfq_serial',
       'erp_cs_records','erp_cs_serial',
@@ -13114,6 +13195,16 @@ go('home');
     // Fills a "hang from" <select> with every previously-saved Ref# — shows the local
     // (browser-cached) list immediately, then refreshes from the Google Sheet in the
     // background so Ref#s created on other PCs/users also show up.
+    // Re-fill a <select>'s options WITHOUT losing what the user already picked (background
+    // refreshes from the Sheet / storage used to wipe the selected "hang from" value).
+    function keepSelectValue(select, fn) {
+      var cur = select ? select.value : '';
+      fn();
+      if (!select || !cur) return;
+      var has = Array.prototype.some.call(select.options, function(o) { return o.value === cur; });
+      if (!has) { var o = document.createElement('option'); o.value = cur; o.textContent = cur; select.appendChild(o); }
+      select.value = cur;
+    }
     function populateChainDropdown(selectId, storageKey) {
       const select = document.getElementById(selectId);
       if (!select) return;
@@ -13122,7 +13213,7 @@ go('home');
       function render() {
         const records = JSON.parse(localStorage.getItem(storageKey) || '{}');
         const refs = Object.keys(records).filter(function(k) { return !(storageKey === 'erp_gi_records' && records[k] && records[k].status === 'Draft'); }).sort();
-        select.innerHTML = placeholder + refs.map(function(r) { return '<option value="' + r + '">' + r + '</option>'; }).join('');
+        keepSelectValue(select, function() { select.innerHTML = placeholder + refs.map(function(r) { return '<option value="' + r + '">' + r + '</option>'; }).join(''); });
       }
       render();
 
@@ -13384,7 +13475,7 @@ go('home');
           // Single-item / legacy: any weight record hides it
           return !(weighed._any || Object.keys(weighed).length > 0);
         }).sort();
-        select.innerHTML = placeholder + refs.map(function(r) { return '<option value="' + r + '">' + r + '</option>'; }).join('');
+        keepSelectValue(select, function() { select.innerHTML = placeholder + refs.map(function(r) { return '<option value="' + r + '">' + r + '</option>'; }).join(''); });
       }
       render();
 
@@ -22665,9 +22756,6 @@ return btns;
         btns += '<button class="str-action-btn pr-btn-revert" onclick="changeToStatus(\'' + record.ref_no + '\', \'Reverted\')" title="Revert">↩</button>';
       }
 
-      if (record.status === 'Approved') {
-        btns += '<button class="str-action-btn str-btn-stn" onclick="openStnFormForTo(\'' + record.ref_no + '\')" title="Create Stock Transfer Note">📄 STN</button>';
-      }
 
             btns += getDeleteRequestButton('TR', record.ref_no, record);
 return btns;
@@ -24354,7 +24442,97 @@ return btns;
     }
 
     // ===== STN List =====
-    function openStnList() {
+    var stnListMode = 'draft', stnCtx = {};
+    function setStnMode(m) { stnListMode = m; renderStnTable(); }
+    function getQcStoRef(q) {
+      var wr = JSON.parse(localStorage.getItem('erp_weight_records') || '{}')[q.scale_id] || {};
+      var gi = JSON.parse(localStorage.getItem('erp_gi_records') || '{}')[wr.gate_entry_no] || {};
+      return gi.po_no || gi.gi_po_no || '';
+    }
+    // Submitted Passed 2nd QCs of STO trucks that do not have an STN yet
+    function getStnPendingQcs() {
+      var qc = JSON.parse(localStorage.getItem('erp_qc2_records') || '{}'), stn = JSON.parse(localStorage.getItem(STN_STORAGE_KEY) || '{}'),
+          to = JSON.parse(localStorage.getItem(TO_STORAGE_KEY) || '{}'), wr = JSON.parse(localStorage.getItem('erp_weight_records') || '{}'), used = {};
+      Object.keys(stn).forEach(function(k) { if (stn[k] && stn[k].qc2_ref) used[stn[k].qc2_ref] = true; });
+      var out = [];
+      Object.keys(qc).sort().forEach(function(k) {
+        var q = qc[k], ref = q && getQcStoRef(q);
+        if (!q || !q.qc_ref || q.status === 'Draft' || q.qc_result !== 'Passed' || used[q.qc_ref] || !isStoRef(ref) || !to[ref]) return;
+        var w = wr[q.scale_id] || {}, t = to[ref];
+        out.push({ scale_id: q.scale_id, qc_ref: q.qc_ref, to_ref: ref, date: q.date || '', item_name: t.item_name || '', item_code: t.item_code || '', from_warehouse: t.from_warehouse || '',
+          to_warehouse: t.to_warehouse || '', transfer_qty: t.qty || '', net: w.net_weight || w.gross || q.net_weight || '', uom: t.uom || '' });
+      });
+      return out;
+    }
+    function startStnFromQc2(scaleId) {
+      var qc = JSON.parse(localStorage.getItem('erp_qc2_records') || '{}'), q = qc[scaleId];
+      if (!q) return;
+      var wr = JSON.parse(localStorage.getItem('erp_weight_records') || '{}')[scaleId] || {}, toRef = getQcStoRef(q);
+      closeStnList();
+      setTimeout(function() {
+        openStnForm();
+        stnCtx = { qc2_ref: q.qc_ref, scale_id: scaleId, gate_entry_no: wr.gate_entry_no || '' };
+        var sel = document.getElementById('stn_str_ref');
+        sel.value = toRef;
+        autofillStnFromTo(toRef);
+        document.getElementById('stn_received_qty').value = wr.net_weight || wr.gross || q.net_weight || '';
+      }, 200);
+    }
+    function editStnDraft(ref) {
+      var r = JSON.parse(localStorage.getItem(STN_STORAGE_KEY) || '{}')[ref];
+      if (!r) return;
+      try { closeStnList(); } catch (e) {}
+      setTimeout(function() {
+        var sv = localStorage.getItem(STN_SERIAL_KEY);
+        openStnForm();
+        if (sv !== null) localStorage.setItem(STN_SERIAL_KEY, sv); // don't burn an STN number
+        stnCtx = { qc2_ref: r.qc2_ref || '', scale_id: r.scale_id || '', gate_entry_no: r.gate_entry_no || '' };
+        var $ = function(x) { return document.getElementById(x); };
+        $('stn_ref').value = ref; if (r.date) $('stn_date').value = r.date;
+        var sel = $('stn_str_ref');
+        if (![].some.call(sel.options, function(o) { return o.value === r.to_ref; })) { var op = document.createElement('option'); op.value = r.to_ref; op.textContent = r.to_ref; sel.appendChild(op); }
+        sel.value = r.to_ref; autofillStnFromTo(r.to_ref);
+        $('stn_received_qty').value = r.received_qty || ''; $('stn_bag_qty').value = r.bag_qty || ''; $('stn_remarks').value = r.remarks || '';
+      }, 250);
+    }
+    // Submit: receive the goods into the To Warehouse, give the STN a batch no (like a GRN), close the STO when fully received
+    function stnApplyReceive(data) {
+      var toRecords = JSON.parse(localStorage.getItem(TO_STORAGE_KEY) || '{}'), toRec = toRecords[data.to_ref] || {};
+      data.status = 'Received';
+      data.batch_no = data.batch_no || generateItemBatchNo(toRec.to_pc || data.to_pc || '', toRec.item_name || data.item_name || '');
+      data.received_at = new Date().toISOString();
+      var stnRecords = JSON.parse(localStorage.getItem(STN_STORAGE_KEY) || '{}');
+      stnRecords[data.ref_no] = data;
+      localStorage.setItem(STN_STORAGE_KEY, JSON.stringify(stnRecords));
+      var qty = parseFloat(data.received_qty) || 0;
+      adjustStock(toRec.to_warehouse || data.to_warehouse, toRec.item_code || data.item_code, toRec.item_name || data.item_name, qty);
+      logStockTransaction('transfer_received', toRec.item_code || data.item_code, toRec.item_name || data.item_name, toRec.item_group || '', toRec.uom || data.uom || '', toRec.to_warehouse || data.to_warehouse, qty, data.date, data.ref_no);
+      if (toRec.status !== undefined) {
+        var done = true;
+        if (data.qc2_ref) {
+          var cum = 0; Object.keys(stnRecords).forEach(function(k) { var x = stnRecords[k]; if (x.to_ref === data.to_ref && x.status !== 'Draft') cum += parseFloat(x.received_qty) || 0; });
+          done = cum + 0.000001 >= (parseFloat(toRec.qty) || 0);
+        }
+        if (done) { toRecords[data.to_ref].status = 'STN Generated'; toRecords[data.to_ref].stn_ref = data.ref_no; localStorage.setItem(TO_STORAGE_KEY, JSON.stringify(toRecords)); }
+      }
+      if (GAS_WEB_APP_URL && GAS_WEB_APP_URL !== '#') {
+        fetch(GAS_WEB_APP_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data) }).catch(function(err) { console.warn('Could not reach STN submit endpoint:', err); });
+      }
+      return data;
+    }
+    function submitStnRecord(ref) {
+      var recs = JSON.parse(localStorage.getItem(STN_STORAGE_KEY) || '{}'), r = recs[ref];
+      if (!r) return;
+      if (!(parseFloat(r.received_qty) > 0) || !(parseFloat(r.bag_qty) > 0)) { alert('Open Edit and enter Received Qty and Bag Qty before Submit.'); return; }
+      stnApplyReceive(r);
+      stnListMode = 'complete';
+      document.getElementById('stnModeSel').value = 'complete';
+      try { renderStrTable(); renderToTable(); } catch (e) {}
+      renderStnTable();
+    }
+    function openStnList(keepMode) {
+      if (!keepMode) stnListMode = 'draft';
+      document.getElementById('stnModeSel').value = stnListMode;
       document.getElementById('stnSearchInput').value = '';
       renderStnTable();
       document.getElementById('stnListOverlay').classList.add('active');
@@ -24447,6 +24625,8 @@ return btns;
       document.getElementById('stn_date').value = todayStr;
       document.getElementById('stn_received_by').value = currentUser ? currentUser.name : '';
       document.getElementById('stn_ref').value = getNextStnRef();
+      stnCtx = {};
+      document.getElementById('stn_batch_no').value = '';
 
       populateApprovedTODropdown('stn_str_ref');
 
@@ -24461,6 +24641,8 @@ return btns;
       errEl.classList.remove('show');
       successEl.classList.remove('show');
 
+      var stnSubmitted = !!window.__stnSubmitNext;
+      window.__stnSubmitNext = false;
       var toRef = document.getElementById('stn_str_ref').value;
       var receivedQty = document.getElementById('stn_received_qty').value;
       var bagQty = document.getElementById('stn_bag_qty').value;
@@ -24470,12 +24652,12 @@ return btns;
         errEl.classList.add('show');
         return false;
       }
-      if (!receivedQty || parseFloat(receivedQty) <= 0) {
+      if (stnSubmitted && (!receivedQty || parseFloat(receivedQty) <= 0)) {
         errEl.textContent = '❌ Received Qty is required.';
         errEl.classList.add('show');
         return false;
       }
-      if (!bagQty || parseFloat(bagQty) <= 0) {
+      if (stnSubmitted && (!bagQty || parseFloat(bagQty) <= 0)) {
         errEl.textContent = '❌ Bag Qty is required.';
         errEl.classList.add('show');
         return false;
@@ -24510,39 +24692,26 @@ return btns;
         approved_by: toRec.approved_by,
         received_by: currentUser ? currentUser.name : '',
         received_by_id: currentUser ? currentUser.id : '',
+        qc2_ref: stnCtx.qc2_ref || '', scale_id: stnCtx.scale_id || '', gate_entry_no: stnCtx.gate_entry_no || '',
         received_at: new Date().toISOString(),
-        status: 'Received'
+        status: 'Draft'
       };
 
       var stnRecords = JSON.parse(localStorage.getItem(STN_STORAGE_KEY) || '{}');
       stnRecords[stnRef] = data;
       localStorage.setItem(STN_STORAGE_KEY, JSON.stringify(stnRecords));
 
-      // Receive stock into the To Warehouse
-      adjustStock(toRec.to_warehouse, toRec.item_code, toRec.item_name, parseFloat(receivedQty) || 0);
-      logStockTransaction('transfer_received', toRec.item_code, toRec.item_name, toRec.item_group || '', toRec.uom || '', toRec.to_warehouse, parseFloat(receivedQty) || 0, document.getElementById('stn_date').value, stnRef);
+      // Submit receives the stock, assigns the batch no and closes the STO; Save keeps a Draft
+      if (stnSubmitted) stnApplyReceive(data);
 
-      // Mark the source TO as completed so it drops off the "Approved" dropdown/actions
-      toRecords[toRef].status = 'STN Generated';
-      toRecords[toRef].stn_ref = stnRef;
-      localStorage.setItem(TO_STORAGE_KEY, JSON.stringify(toRecords));
-
-      // Send to Google Sheet
-      if (GAS_WEB_APP_URL && GAS_WEB_APP_URL !== '#') {
-        fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(data)
-        }).catch(function(err) {
-          console.warn('Could not reach STN submit endpoint:', err);
-        });
-      }
-
-      successEl.textContent = '✅ Goods received at ' + toRec.to_warehouse + '! (' + stnRef + ')';
+      successEl.textContent = stnSubmitted ? '✅ STN submitted — goods received at ' + toRec.to_warehouse + '! Batch No: ' + data.batch_no + ' (' + stnRef + ')' : '✅ STN saved as Draft. (' + stnRef + ')';
       successEl.classList.add('show');
-      renderStrTable();
-      renderToTable();
-      setTimeout(function() { closeGenericForm('stnFormOverlay'); renderStnTable(); }, 1500);
+      try { renderStrTable(); renderToTable(); } catch (e) {}
+      setTimeout(function() {
+        closeGenericForm('stnFormOverlay');
+        if (stnSubmitted) stnListMode = 'complete';
+        openStnList(true);
+      }, 1200);
       return false;
     }
 
@@ -24557,12 +24726,12 @@ return btns;
       var search = document.getElementById('stnSearchInput').value.toLowerCase();
 
       var filtered = records.filter(function(r) {
-        return !search ||
+        return (!search ||
           (r.ref_no || '').toLowerCase().indexOf(search) !== -1 ||
           (r.to_ref || r.str_ref || '').toLowerCase().indexOf(search) !== -1 ||
           (r.item_name || '').toLowerCase().indexOf(search) !== -1 ||
           (r.item_code || '').toLowerCase().indexOf(search) !== -1 ||
-          (r.to_warehouse || '').toLowerCase().indexOf(search) !== -1;
+          (r.to_warehouse || '').toLowerCase().indexOf(search) !== -1) && ((stnListMode === 'draft') === (r.status === 'Draft'));
       });
 
       var tbody = document.getElementById('stnTableBody');
@@ -24570,14 +24739,27 @@ return btns;
       var countEl = document.getElementById('stnCount');
       if (countEl) countEl.textContent = filtered.length;
 
-      if (filtered.length === 0) {
+      var qRows = stnListMode === 'draft' ? getStnPendingQcs().filter(function(w) {
+        return !search || [w.qc_ref, w.scale_id, w.to_ref, w.item_name, w.item_code, w.to_warehouse].join(' ').toLowerCase().indexOf(search) !== -1;
+      }) : [];
+      var secStyle = 'background:#e2e8f0;font-weight:700;color:#0f172a;padding:8px 12px;text-align:left;';
+      var qHtml = qRows.length ? '<tr><td colspan="16" style="' + secStyle + '">📋 Submitted 2nd QC (STN pending) · ' + qRows.length + '</td></tr>' +
+        qRows.map(function(w, i) {
+          return '<tr style="background:#f0fdf4;"><td style="text-align:center;">' + (i + 1) + '</td><td><span style="color:#64748b;">New</span></td><td><strong>' + w.to_ref + '</strong></td><td>' + w.date + '</td>' +
+            '<td>' + w.item_name + '</td><td>' + w.item_code + '</td><td>' + w.from_warehouse + '</td><td>' + w.to_warehouse + '</td><td>' + w.transfer_qty + '</td><td style="font-weight:700;">' + w.net + '</td><td>-</td><td>' + w.uom + '</td><td>-</td>' +
+            '<td><span class="pr-status-badge pr-status-approved">2nd QC Passed</span></td><td></td>' +
+            '<td><button class="str-action-btn" style="background:#16a34a;color:#fff;width:auto;padding:4px 10px;" onclick="startStnFromQc2(\'' + w.scale_id + '\')" title="Create STN for this 2nd QC">➕ STN</button></td></tr>';
+        }).join('') : '';
+      var sHead = (stnListMode === 'draft' && (qRows.length || filtered.length)) ? '<tr><td colspan="16" style="' + secStyle + '">📝 STN Draft · ' + filtered.length + '</td></tr>' : '';
+
+      if (filtered.length === 0 && !qHtml) {
         tbody.innerHTML = '';
         emptyMsg.style.display = 'block';
         return;
       }
 
       emptyMsg.style.display = 'none';
-      tbody.innerHTML = filtered.map(function(r, i) {
+      tbody.innerHTML = sHead + filtered.map(function(r, i) {
         return '<tr>' +
           '<td style="text-align:center;">' + (i + 1) + '</td>' +
           '<td><strong style="color:#2563eb;">' + (r.ref_no || '') + '</strong></td>' +
@@ -24591,14 +24773,16 @@ return btns;
           '<td style="font-weight:700;">' + (r.received_qty || '') + '</td>' +
           '<td>' + (r.bag_qty || '') + '</td>' +
           '<td>' + (r.uom || '') + '</td>' +
-          '<td><span class="pr-status-badge pr-status-approved">' + (r.status || 'Received') + '</span></td>' +
+          '<td><strong style="color:#0d6e3a;">' + (r.batch_no || '-') + '</strong></td>' +
+          '<td><span class="pr-status-badge ' + (r.status === 'Draft' ? 'pr-status-draft' : 'pr-status-approved') + '">' + (r.status || 'Received') + '</span></td>' +
           '<td>' + (r.received_by || '') + '</td>' +
           '<td>' +
             '<button class="str-action-btn str-btn-view" onclick="viewStn(\'' + r.ref_no + '\')" title="View">👁</button>' +
             '<button class="str-action-btn str-btn-print" onclick="printStn(\'' + r.ref_no + '\')" title="Print">🖨</button>' +
+            (r.status === 'Draft' ? '<button class="str-action-btn" style="background:#16a34a;color:#fff;width:auto;padding:4px 8px;" onclick="submitStnRecord(\'' + r.ref_no + '\')" title="Submit">✅ Submit</button>' : '') +
           '</td>' +
           '</tr>';
-      }).join('');
+      }).join('') + qHtml;
     }
 
     function filterStnList() {
@@ -24616,6 +24800,7 @@ return btns;
         'Transfer Qty: ' + r.transfer_qty + ' ' + r.uom + '\n' +
         'Received Qty: ' + r.received_qty + ' ' + r.uom + '\n' +
         'Bag Qty: ' + r.bag_qty + '\n' +
+        (r.batch_no ? 'Batch No: ' + r.batch_no + '\n' : '') +
         'Received By: ' + r.received_by + '\n' +
         'Received At: ' + (r.received_at ? new Date(r.received_at).toLocaleString('en-GB') : '')
       );
@@ -24644,6 +24829,7 @@ return btns;
         '<div class="print-field"><label>Transfer Qty</label><span>' + (r.transfer_qty || '') + '</span></div>' +
         '<div class="print-field"><label>Received Qty</label><span>' + (r.received_qty || '') + '</span></div>' +
         '<div class="print-field"><label>Bag Qty</label><span>' + (r.bag_qty || '') + '</span></div>' +
+        '<div class="print-field"><label>Batch No</label><span>' + (r.batch_no || '') + '</span></div>' +
         '<div class="print-field"><label>Raised By</label><span>' + (r.raised_by || '') + '</span></div>' +
         '<div class="print-field"><label>Approved By</label><span>' + (r.approved_by || '') + '</span></div>' +
         '<div class="print-field"><label>Received By</label><span>' + (r.received_by || '') + '</span></div>' +
@@ -25043,6 +25229,8 @@ return btns;
           case 'materials_issue_return': m.materials_issue_return += (t.qty > 0 ? qty : 0); break;
           case 'loan_received': m.loan_received += qty; break;
           case 'goods_exchange_receive': m.goods_exchange_receive += qty; break;
+          case 'opening_balance': m.opening_stock += qty; break;
+          case 'opening_balance_reversal': m.opening_stock -= qty; break;
           case 'positive_adjustment': m.positive_adjustment += qty; break;
           case 'consumption': m.consumption += qty; break;
           case 'transfer_issue': m.transfer_issue += qty; break;
@@ -25148,7 +25336,7 @@ return btns;
         }
         var m = materials[key];
         var qty = Math.abs(t.qty) || 0;
-        switch(t.type) { case 'purchase': m.purchase+=qty; break; case 'transfer_received': m.transfer_received+=qty; break; case 'sale_return': m.sale_return+=qty; break; case 'materials_issue_return': m.materials_issue_return+=(t.qty>0?qty:0); break; case 'loan_received': m.loan_received+=qty; break; case 'goods_exchange_receive': m.goods_exchange_receive+=qty; break; case 'positive_adjustment': m.positive_adjustment+=qty; break; case 'consumption': m.consumption+=qty; break; case 'transfer_issue': m.transfer_issue+=qty; break; case 'sale': m.sale+=qty; break; case 'purchase_return': m.purchase_return+=qty; break; case 'material_direct_issue': m.material_direct_issue+=qty; break; case 'loan_return': m.loan_return+=qty; break; case 'goods_exchange_issue': m.goods_exchange_issue+=qty; break; case 'negative_adjustment': m.negative_adjustment+=qty; break; case 'wastage_sale': m.wastage_sale+=qty; break; }
+        switch(t.type) { case 'opening_balance': m.opening_stock+=qty; break; case 'opening_balance_reversal': m.opening_stock-=qty; break; case 'purchase': m.purchase+=qty; break; case 'transfer_received': m.transfer_received+=qty; break; case 'sale_return': m.sale_return+=qty; break; case 'materials_issue_return': m.materials_issue_return+=(t.qty>0?qty:0); break; case 'loan_received': m.loan_received+=qty; break; case 'goods_exchange_receive': m.goods_exchange_receive+=qty; break; case 'positive_adjustment': m.positive_adjustment+=qty; break; case 'consumption': m.consumption+=qty; break; case 'transfer_issue': m.transfer_issue+=qty; break; case 'sale': m.sale+=qty; break; case 'purchase_return': m.purchase_return+=qty; break; case 'material_direct_issue': m.material_direct_issue+=qty; break; case 'loan_return': m.loan_return+=qty; break; case 'goods_exchange_issue': m.goods_exchange_issue+=qty; break; case 'negative_adjustment': m.negative_adjustment+=qty; break; case 'wastage_sale': m.wastage_sale+=qty; break; }
       });
       var matList = Object.values(materials).sort(function(a,b){ return (a.material_code||'').localeCompare(b.material_code||''); });
       var now = new Date();
@@ -25175,7 +25363,7 @@ return btns;
         var key = (t.material_code || t.material_name || '').toLowerCase();
         if (!materials[key]) { materials[key] = { item_group:t.item_group||'', material_code:t.material_code||'', material_name:t.material_name||'', uom:t.uom||'', purchase:0, transfer_received:0, sale_return:0, materials_issue_return:0, loan_received:0, goods_exchange_receive:0, positive_adjustment:0, consumption:0, transfer_issue:0, sale:0, purchase_return:0, material_direct_issue:0, loan_return:0, goods_exchange_issue:0, negative_adjustment:0, wastage_sale:0 }; }
         var m = materials[key]; var qty = Math.abs(t.qty)||0;
-        switch(t.type) { case 'purchase': m.purchase+=qty; break; case 'transfer_received': m.transfer_received+=qty; break; case 'sale_return': m.sale_return+=qty; break; case 'materials_issue_return': m.materials_issue_return+=(t.qty>0?qty:0); break; case 'loan_received': m.loan_received+=qty; break; case 'goods_exchange_receive': m.goods_exchange_receive+=qty; break; case 'positive_adjustment': m.positive_adjustment+=qty; break; case 'consumption': m.consumption+=qty; break; case 'transfer_issue': m.transfer_issue+=qty; break; case 'sale': m.sale+=qty; break; case 'purchase_return': m.purchase_return+=qty; break; case 'material_direct_issue': m.material_direct_issue+=qty; break; case 'loan_return': m.loan_return+=qty; break; case 'goods_exchange_issue': m.goods_exchange_issue+=qty; break; case 'negative_adjustment': m.negative_adjustment+=qty; break; case 'wastage_sale': m.wastage_sale+=qty; break; }
+        switch(t.type) { case 'opening_balance': m.opening_stock+=qty; break; case 'opening_balance_reversal': m.opening_stock-=qty; break; case 'purchase': m.purchase+=qty; break; case 'transfer_received': m.transfer_received+=qty; break; case 'sale_return': m.sale_return+=qty; break; case 'materials_issue_return': m.materials_issue_return+=(t.qty>0?qty:0); break; case 'loan_received': m.loan_received+=qty; break; case 'goods_exchange_receive': m.goods_exchange_receive+=qty; break; case 'positive_adjustment': m.positive_adjustment+=qty; break; case 'consumption': m.consumption+=qty; break; case 'transfer_issue': m.transfer_issue+=qty; break; case 'sale': m.sale+=qty; break; case 'purchase_return': m.purchase_return+=qty; break; case 'material_direct_issue': m.material_direct_issue+=qty; break; case 'loan_return': m.loan_return+=qty; break; case 'goods_exchange_issue': m.goods_exchange_issue+=qty; break; case 'negative_adjustment': m.negative_adjustment+=qty; break; case 'wastage_sale': m.wastage_sale+=qty; break; }
       });
       var headers = ['Item Group','Material Code','Material Description','UOM','Primary Opening','Opening Stock','Purchase','Transfer Received','Sale Return','Materials Issue Return','Loan Received','Goods Exchange Receive','Positive Adjustment','Consumption','Transfer Issue','Sale','Purchase Return','Material Direct Issue','Loan Return','Goods Exchange Issue','Negative Adjustment','Wastage Sale','Closing Stock'];
       var rows = Object.values(materials).map(function(m) {
@@ -36842,7 +37030,7 @@ return btns;
     }
 
     var DATA_IO_KEYS = [
-      'erpProd1', 'erp_ap_inv_records','erp_ap_inv_serial','erp_ap_pay_records','erp_ap_pay_serial',
+      'erpProd1', 'erp_batch_alloc', 'erp_vendor_records', 'erp_vendor_serial', 'erp_ap_inv_records','erp_ap_inv_serial','erp_ap_pay_records','erp_ap_pay_serial',
       'erp_appraisal_records','erp_appraisal_serial','erp_ar_inv_records','erp_ar_inv_serial',
       'erp_ar_rec_records','erp_ar_rec_serial','erp_asset_dep_records','erp_asset_dep_serial',
       'erp_asset_records','erp_asset_serial','erp_asset_transfer_records','erp_asset_transfer_serial',
@@ -37105,7 +37293,7 @@ return btns;
 <script id="mmInlinePagesJs">
 (function () {
   // MM module pages open inline (like the Production module) instead of as pop-up windows.
-  var IDS = ["w1ListOverlay", "w2ListOverlay", "weightFormOverlay", "qc1FormOverlay", "qc1ListOverlay", "qc2FormOverlay", "qc2ListOverlay", "reportOverlay", "prListOverlay", "strListOverlay", "strFormOverlay", "srListOverlay", "srFormOverlay", "miListOverlay", "miFormOverlay", "mrListOverlay", "mrFormOverlay", "stockReportOverlay", "toListOverlay", "toFormOverlay", "stnListOverlay", "stnFormOverlay", "grnListOverlay", "grnFormOverlay", "vuListOverlay", "vuFormOverlay", "prFormOverlay", "rfqFormOverlay", "csFormOverlay", "poFormOverlay", "gateInFormOverlay", "giListOverlay", "goListOverlay", "goFormOverlay", "geListOverlay", "geFormOverlay", "adjListOverlay", "adjFormOverlay", "geReportOverlay", "adjReportOverlay", "mvReportOverlay", "fcrListOverlay", "fcrFormOverlay"];
+  var IDS = ["w1ListOverlay", "w2ListOverlay", "weightFormOverlay", "qc1FormOverlay", "qc1ListOverlay", "qc2FormOverlay", "qc2ListOverlay", "reportOverlay", "prListOverlay", "strListOverlay", "strFormOverlay", "srListOverlay", "srFormOverlay", "miListOverlay", "miFormOverlay", "mrListOverlay", "mrFormOverlay", "stockReportOverlay", "toListOverlay", "toFormOverlay", "stnListOverlay", "stnFormOverlay", "grnListOverlay", "grnFormOverlay", "vuListOverlay", "vuFormOverlay", "prFormOverlay", "rfqFormOverlay", "csFormOverlay", "poFormOverlay", "gateInFormOverlay", "giListOverlay", "goListOverlay", "goFormOverlay", "geListOverlay", "geFormOverlay", "adjListOverlay", "adjFormOverlay", "geReportOverlay", "adjReportOverlay", "mvReportOverlay", "fcrListOverlay", "fcrFormOverlay", "obListOverlay", "obFormOverlay", "ivReportOverlay", "ivBatchOverlay", "poRcvOverlay", "vmListOverlay", "vmFormOverlay"];
   var stack = [];
   function mmRoot() { return document.getElementById('module-mm'); }
   function host() {
@@ -37472,7 +37660,7 @@ return btns;
   var S = {
     mr:  { render: 'renderMrTable', body: 'mrTableBody', view: 'viewMr', key: 'erp_mr_records', label: 'Materials Issue Return', block: mrBlock, revert: mrRevert, edit: mrEdit },
     grn: { render: 'renderGrnTable', body: 'grnTableBody', view: 'viewGrn', key: 'erp_grn_records', label: 'GRN', block: function (id) { return grnStockGuard(LS('erp_grn_records')[id] || {}); }, revert: grnRevert, edit: grnEdit },
-    stn: { render: 'renderStnTable', body: 'stnTableBody', view: 'viewStn', key: 'erp_stn_records', label: 'Stock Transfer Note', block: stnBlock, revert: stnRevert, edit: null },
+    stn: { render: 'renderStnTable', body: 'stnTableBody', view: 'viewStn', key: 'erp_stn_records', label: 'Stock Transfer Note', block: stnBlock, revert: stnRevert, edit: function (id) { window.editStnDraft(id); } },
     vu:  { render: 'renderVuTable', body: 'vuTableBody', view: 'viewVu', key: 'erp_vu_records', label: 'Vehicle Unload', block: function () { return ''; }, revert: vuRevert, edit: vuEdit },
     mi:  { render: 'renderMiTable', body: 'miTableBody', view: 'viewMi', key: 'erp_mi_records', label: 'Materials Issue', block: miBlock, revert: miRevert, edit: null }
   };
@@ -37597,6 +37785,734 @@ return btns;
   }
   var orig = window.renderMrTable;
   if (typeof orig === 'function') window.renderMrTable = function () { var r = orig.apply(this, arguments); try { decorate(); } catch (e) { console.warn('revert buttons:', e); } return r; };
+})();
+</script>
+
+<script id="obJs">
+(function () {
+  var KEY = 'erp_ob_records', SER = 'erp_ob_serial', mode = 'draft', rowSeq = 0, editing = null, readOnly = false;
+  var $ = function (i) { return document.getElementById(i); };
+  function recs() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function today() { return new Date().toISOString().split('T')[0]; }
+  function who() { return (typeof currentUser !== 'undefined' && currentUser) ? currentUser.name : ''; }
+  function nextRef() { return 'OB-' + String((parseInt(localStorage.getItem(SER) || '0', 10) || 0) + 1).padStart(6, '0'); }
+  function num(x) { return parseFloat(x) || 0; }
+  function totalAmt(r) { return Math.round((r.items || []).reduce(function (a, i) { return a + num(i.qty) * num(i.rate); }, 0) * 100) / 100; }
+  function total(r) { return Math.round((r.items || []).reduce(function (a, i) { return a + num(i.qty); }, 0) * 1000) / 1000; }
+
+  window.setObMode = function (m) { mode = m; window.renderObTable(); };
+  window.openObList = function (keep) {
+    if (!keep) mode = 'draft';
+    $('obModeSel').value = mode; $('obSearchInput').value = '';
+    window.renderObTable(); $('obListOverlay').classList.add('active');
+  };
+  window.closeObList = function () { $('obListOverlay').classList.remove('active'); };
+
+  window.renderObTable = function () {
+    var o = recs(), q = ($('obSearchInput').value || '').toLowerCase();
+    var list = Object.keys(o).sort().map(function (k) { return o[k]; }).filter(function (r) {
+      if ((mode === 'draft') !== (r.status === 'Draft')) return false;
+      var hay = [r.ref_no, r.warehouse, r.company, r.bu, r.pc, r.note].concat((r.items || []).map(function (i) { return i.item_name + ' ' + i.item_code; })).join(' ').toLowerCase();
+      return !q || hay.indexOf(q) !== -1;
+    });
+    $('obCount').textContent = list.length;
+    var tb = $('obTableBody');
+    if (!list.length) { tb.innerHTML = ''; $('obEmptyMsg').style.display = 'block'; return; }
+    $('obEmptyMsg').style.display = 'none';
+    tb.innerHTML = list.map(function (r, i) {
+      var b = '<button class="str-action-btn str-btn-view" onclick="viewOb(\'' + r.ref_no + '\')" title="View">👁</button>';
+      if (r.status === 'Draft') {
+        b += '<span class="mm-draft-pill">Draft</span><button class="mm-edit-btn" onclick="editOb(\'' + r.ref_no + '\')">✏ Edit</button>' +
+          '<button class="str-action-btn" style="background:#16a34a;color:#fff;width:auto;padding:4px 8px;" onclick="submitObRecord(\'' + r.ref_no + '\')">✅ Submit</button>' +
+          '<button class="str-action-btn" style="background:#dc2626;color:#fff;width:auto;padding:4px 8px;" onclick="deleteOb(\'' + r.ref_no + '\')">🗑</button>';
+      } else {
+        b += '<button class="mm-revert-btn" onclick="revertOb(\'' + r.ref_no + '\')">↩ Revert</button>';
+      }
+      return '<tr><td style="text-align:center;">' + (i + 1) + '</td><td><strong style="color:#1e8449;">' + esc(r.ref_no) + '</strong></td><td>' + esc(r.date) + '</td><td>' + esc(r.company) + '</td><td>' + esc(r.bu) + '</td><td>' + esc(r.pc) + '</td><td>' + esc(r.warehouse) + '</td>' +
+        '<td>' + (r.items || []).length + '</td><td style="font-weight:700;">' + total(r) + '</td><td style="font-weight:700;">' + totalAmt(r).toFixed(2) + '</td><td><span class="pr-status-badge ' + (r.status === 'Draft' ? 'pr-status-draft' : 'pr-status-approved') + '">' + esc(r.status) + '</span></td><td>' + esc(r.note) + '</td><td>' + esc(r.created_by) + '</td><td>' + b + '</td></tr>';
+    }).join('');
+  };
+
+  // ---------- form ----------
+  function rowIdOf(tr) { return tr.id.replace('ob_item_row_', ''); }
+  window.addObItemRow = function (it) {
+    rowSeq += 1; var id = rowSeq, tb = $('obItemsBody');
+    var tr = document.createElement('tr'); tr.id = 'ob_item_row_' + id;
+    tr.innerHTML = '<td><input type="text" readonly class="pr-line-no" value="' + (tb.children.length + 1) * 10 + '"></td>' +
+      '<td><select class="pr-item-cat-select" id="ob_item_cat_' + id + '" onchange="onObRowCategoryChange(' + id + ')"></select></td>' +
+      '<td><select id="ob_item_name_' + id + '" onchange="onObRowItemNameChange(' + id + ')"><option value="">-- Select --</option></select></td>' +
+      '<td><input type="text" readonly id="ob_item_code_' + id + '"></td><td><input type="text" readonly id="ob_item_uom_' + id + '"></td>' +
+      '<td><input type="number" step="0.01" min="0" placeholder="0.00" id="ob_item_qty_' + id + '" oninput="calcObRow(' + id + ')"></td>' +
+      '<td><input type="number" step="0.0001" min="0" placeholder="0.00" id="ob_item_rate_' + id + '" oninput="calcObRow(' + id + ')"></td>' +
+      '<td><input type="text" readonly id="ob_item_amt_' + id + '" style="text-align:right;"></td>' +
+      '<td><input type="text" id="ob_item_spec_' + id + '"></td><td><input type="text" id="ob_item_pack_' + id + '"></td>' +
+      '<td><button type="button" class="pr-remove-item-btn" onclick="removeObItemRow(' + id + ')">✕</button></td>';
+    tb.appendChild(tr);
+    prFillCategorySelect($('ob_item_cat_' + id));
+    if (it) {
+      $('ob_item_cat_' + id).value = it.item_category || ''; window.onObRowCategoryChange(id);
+      $('ob_item_name_' + id).value = it.item_name || '';
+      $('ob_item_code_' + id).value = it.item_code || ''; $('ob_item_uom_' + id).value = it.uom || '';
+      $('ob_item_qty_' + id).value = it.qty || ''; $('ob_item_rate_' + id).value = it.rate || ''; window.calcObRow(id); $('ob_item_spec_' + id).value = it.specification || ''; $('ob_item_pack_' + id).value = it.pack_size || '';
+    }
+    return id;
+  };
+  window.calcObRow = function (id) {
+    var q = parseFloat($('ob_item_qty_' + id).value), r = parseFloat($('ob_item_rate_' + id).value);
+    $('ob_item_amt_' + id).value = (isNaN(q) || isNaN(r)) ? '' : (Math.round(q * r * 100) / 100).toFixed(2);
+  };
+  window.removeObItemRow = function (id) {
+    var r = $('ob_item_row_' + id); if (r) r.remove();
+    [].forEach.call($('obItemsBody').children, function (tr, i) { tr.querySelector('.pr-line-no').value = (i + 1) * 10; });
+  };
+  window.onObRowCategoryChange = function (id) {
+    var cat = $('ob_item_cat_' + id).value, sel = $('ob_item_name_' + id);
+    sel.innerHTML = '<option value="">-- Select --</option>'; $('ob_item_code_' + id).value = ''; $('ob_item_uom_' + id).value = '';
+    var e = PR_ITEM_DATA.hierarchy && PR_ITEM_DATA.hierarchy[cat];
+    if (e) e.items.forEach(function (n) { var op = document.createElement('option'); op.value = n; op.textContent = n; sel.appendChild(op); });
+  };
+  window.onObRowItemNameChange = function (id) {
+    var cat = $('ob_item_cat_' + id).value, n = $('ob_item_name_' + id).value;
+    var e = PR_ITEM_DATA.hierarchy && PR_ITEM_DATA.hierarchy[cat], it = e && e.itemMap[n];
+    $('ob_item_code_' + id).value = it ? it.code : ''; $('ob_item_uom_' + id).value = it ? it.uom : '';
+  };
+  function collect() {
+    var out = [];
+    [].forEach.call($('obItemsBody').children, function (tr) {
+      var id = rowIdOf(tr), n = $('ob_item_name_' + id).value; if (!n) return;
+      out.push({ line_no: tr.querySelector('.pr-line-no').value, item_category: $('ob_item_cat_' + id).value, item_name: n, item_code: $('ob_item_code_' + id).value, uom: $('ob_item_uom_' + id).value,
+        qty: $('ob_item_qty_' + id).value, rate: $('ob_item_rate_' + id).value, amount: $('ob_item_amt_' + id).value, specification: $('ob_item_spec_' + id).value, pack_size: $('ob_item_pack_' + id).value });
+    });
+    return out;
+  }
+  function setReadOnly(ro) {
+    readOnly = ro;
+    ['obSaveBtn', 'obSubmitBtn', 'obAddItemBtn'].forEach(function (i) { $(i).style.display = ro ? 'none' : ''; });
+    [].forEach.call($('obFormOverlay').querySelectorAll('input:not([readonly]),select,.pr-remove-item-btn'), function (e) { e.disabled = ro; });
+  }
+  window.openObForm = function (ref, ro) {
+    $('obFormError').textContent = ''; $('obFormSuccess').textContent = '';
+    var r = ref ? recs()[ref] : null; editing = r ? ref : null;
+    $('obItemsBody').innerHTML = '';
+    setReadOnly(false);
+    if (r) {
+      $('ob_no').value = r.ref_no; $('ob_date').value = r.date || today(); $('ob_note').value = r.note || '';
+      var c = $('ob_company'); c.value = r.company || ''; onOrgCompanyChange('ob_company', 'ob_bu', 'ob_pc');
+      $('ob_bu').value = r.bu || ''; onOrgBuChange('ob_company', 'ob_bu', 'ob_pc'); $('ob_pc').value = r.pc || '';
+      var w = $('ob_wh'); if (r.warehouse && ![].some.call(w.options, function (o) { return o.value === r.warehouse; })) { var op = document.createElement('option'); op.value = r.warehouse; op.textContent = r.warehouse; w.appendChild(op); }
+      w.value = r.warehouse || '';
+      (r.items && r.items.length ? r.items : [null]).forEach(function (it) { window.addObItemRow(it); });
+      $('obFormMode').textContent = 'Opening Balance [' + (ro ? 'View' : 'Edit') + ' mode]';
+    } else {
+      $('ob_no').value = nextRef(); $('ob_date').value = today(); $('ob_note').value = '';
+      $('ob_company').value = ''; onOrgCompanyChange('ob_company', 'ob_bu', 'ob_pc'); $('ob_wh').value = '';
+      window.addObItemRow();
+      $('obFormMode').textContent = 'Opening Balance [Insert mode]';
+    }
+    if (ro) setReadOnly(true);
+    $('obFormOverlay').classList.add('active');
+  };
+  window.closeObForm = function () { $('obFormOverlay').classList.remove('active'); };
+  window.viewOb = function (ref) { window.closeObList(); setTimeout(function () { window.openObForm(ref, true); }, 150); };
+  window.editOb = function (ref) { window.closeObList(); setTimeout(function () { window.openObForm(ref); }, 150); };
+
+  function build(submit) {
+    var prev = editing ? recs()[editing] : null, ref = $('ob_no').value;
+    return { ref_no: ref, date: $('ob_date').value || today(), company: $('ob_company').value, bu: $('ob_bu').value, pc: $('ob_pc').value, warehouse: $('ob_wh').value,
+      note: $('ob_note').value.trim(), items: collect(), status: 'Draft', created_by: prev ? prev.created_by : who(), created_at: prev ? prev.created_at : new Date().toISOString() };
+  }
+  function validate(r) {
+    if (!r.date) return 'Date is required.';
+    if (!r.company) return 'Select a company.';
+    if (!r.warehouse) return 'Select a warehouse.';
+    if (!r.items.length) return 'Add at least one item.';
+    for (var i = 0; i < r.items.length; i++) {
+      if (!(num(r.items[i].qty) > 0)) return 'Enter a quantity for ' + r.items[i].item_name + '.';
+      if (r.items[i].rate === '' || r.items[i].rate == null || isNaN(parseFloat(r.items[i].rate)) || parseFloat(r.items[i].rate) < 0) return 'Enter a rate for ' + r.items[i].item_name + ' (needed for valuation).';
+    }
+    return '';
+  }
+  function post(r) {
+    r.items.forEach(function (i) {
+      i.batch_no = i.batch_no || generateItemBatchNo(r.pc || '', i.item_name || i.item_code || '');
+      adjustStock(r.warehouse, i.item_code, i.item_name, num(i.qty));
+      logStockTransaction('opening_balance', i.item_code, i.item_name, i.item_category || '', i.uom, r.warehouse, num(i.qty), r.date, r.ref_no);
+    });
+    r.status = 'Completed'; r.submitted_at = new Date().toISOString();
+  }
+  window.saveObForm = function (submit) {
+    if (readOnly) return;
+    var r = build(submit), err = (submit ? validate(r) : (r.warehouse || r.items.length || r.note ? '' : 'Fill in the form before saving.'));
+    if (err) { $('obFormError').textContent = '❌ ' + err; return; }
+    var o = recs();
+    if (!editing) localStorage.setItem(SER, String((parseInt(localStorage.getItem(SER) || '0', 10) || 0) + 1));
+    if (submit) post(r);
+    o[r.ref_no] = r; save(o);
+    $('obFormSuccess').textContent = submit ? '✅ Opening Balance submitted — stock added to ' + r.warehouse + '. (' + r.ref_no + ')' : '✅ Opening Balance saved as Draft. (' + r.ref_no + ')';
+    setTimeout(function () { window.closeObForm(); if (submit) mode = 'complete'; window.openObList(true); }, 700);
+  };
+  window.submitObRecord = function (ref) {
+    var o = recs(), r = o[ref]; if (!r) return;
+    var err = validate(r); if (err) { alert('Open Edit and fix: ' + err); return; }
+    post(r); o[ref] = r; save(o);
+    mode = 'complete'; $('obModeSel').value = 'complete'; window.renderObTable();
+  };
+  window.deleteOb = function (ref) {
+    if (!confirm('Delete Draft Opening Balance ' + ref + '?')) return;
+    var o = recs(); if (o[ref] && o[ref].status === 'Draft') { delete o[ref]; save(o); } window.renderObTable();
+  };
+  window.revertOb = function (ref) {
+    var o = recs(), r = o[ref]; if (!r || r.status === 'Draft') return;
+    var bad = (r.items || []).filter(function (i) { return getStockQty(r.warehouse, i.item_code, i.item_name) + 0.00001 < num(i.qty); });
+    if (bad.length) { alert('Cannot revert ' + ref + ': stock of ' + bad.map(function (i) { return i.item_name; }).join(', ') + ' has already been used.'); return; }
+    if (!confirm('Revert Opening Balance ' + ref + ' back to Draft? The stock it added will be taken back.')) return;
+    r.items.forEach(function (i) {
+      adjustStock(r.warehouse, i.item_code, i.item_name, -num(i.qty));
+      logStockTransaction('opening_balance_reversal', i.item_code, i.item_name, i.item_category || '', i.uom, r.warehouse, num(i.qty), today(), ref);
+      delete i.batch_no;
+    });
+    r.status = 'Draft'; o[ref] = r; save(o);
+    mode = 'draft'; $('obModeSel').value = 'draft'; window.renderObTable();
+  };
+})();
+</script>
+
+<div class="str-list-overlay" id="ivReportOverlay" onclick="if(event.target===this) closeIvRep()">
+  <div class="str-list-outer" style="max-width:1700px; border-radius:8px; border:2px solid #1e8449; overflow:auto;">
+    <div style="background:linear-gradient(135deg,#145a32,#1e8449); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
+      <h2 style="color:#fff;font-size:1.2rem;font-weight:700;margin:0;">💰 Inventory Valuation Report</h2>
+      <button class="str-close-list-btn" onclick="closeIvRep()" style="font-size:1rem;width:28px;height:28px;">X</button>
+    </div>
+    <div style="background:#eef2f3;padding:8px 16px;border-bottom:1px solid #bdc3c7;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:0.78rem;">
+      <label>From <input type="date" id="ivFrom" onchange="renderIvRep()"></label>
+      <label>To <input type="date" id="ivTo" onchange="renderIvRep()"></label>
+      <select id="ivPc" onchange="renderIvRep()"><option value="">All Profit Centers</option></select>
+      <select id="ivWh" onchange="renderIvRep()"><option value="">All Warehouses</option></select>
+      <input type="text" id="ivQ" placeholder="🔍 Item / Code..." oninput="renderIvRep()" style="padding:5px 10px;min-width:200px;">
+      <label><input type="checkbox" id="ivZero" onchange="renderIvRep()"> Hide zero-stock items</label>
+      <span style="margin-left:auto;">Items: <b id="ivCount">0</b> | Closing Value: <b id="ivTot" style="color:#1e8449;">0</b></span>
+      <button onclick="exportIvRep()" style="background:#27ae60;color:#fff;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;">⬇ Excel</button>
+      <button onclick="printIvRep()" style="background:#8e44ad;color:#fff;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;">🖨 Print</button>
+    </div>
+    <div style="overflow-x:auto;background:#fff;" id="ivWrap"></div>
+    <div style="padding:6px 16px;font-size:0.72rem;color:#64748b;">Same layout as the Stock Report, with Qty / Rate / Amount for every column. Opening Stock = Opening Balance entries + all movements before the From date. Method: Moving Average Cost. Opening Balance rate = OB entry rate · GRN rate = PO rate · Stock Transfer rate = source warehouse average cost at that time · Issues valued at average cost. <span style="background:#fde68a;padding:0 4px;">Yellow</span> = rate not found (average used).</div>
+  </div>
+</div>
+<script id="ivJs">
+(function(){
+  var $=function(i){return document.getElementById(i);};
+  function P(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v;}catch(e){return d;}}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function n(v){return parseFloat(v)||0;}
+  function f2(v){return (Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function f3(v){return (Math.round(v*1000)/1000).toLocaleString('en-US',{maximumFractionDigits:3});}
+  var OUT=['opening_balance_reversal','production_consumption','consumption','transfer_issue','sto_issue','sale','purchase_return','material_direct_issue','loan_return','goods_exchange_issue','negative_adjustment','wastage_sale','issue'];
+  var DATA=null;
+  function lc(x){return String(x||'').trim().toLowerCase();}
+  function build(){
+    var txns=P('erp_stock_transactions',[]); if(!Array.isArray(txns))txns=[];
+    var ob=P('erp_ob_records',{}),grn=P('erp_grn_records',{}),po=P('erp_po_records',{}),stn=P('erp_stn_records',{}),sto=P('erp_to_records',{});
+    var whPc={};
+    Object.keys(ob).forEach(function(k){var r=ob[k];if(r.warehouse&&r.pc)whPc[lc(r.warehouse)]=r.pc;});
+    Object.keys(grn).forEach(function(k){var r=grn[k],w=r.warehouse||r.store||r.receiving_warehouse;if(w&&r.profit_center)whPc[lc(w)]=r.profit_center;});
+    Object.keys(sto).forEach(function(k){var r=sto[k];if(r.to_warehouse&&r.to_pc)whPc[lc(r.to_warehouse)]=r.to_pc;});
+    var ev=txns.map(function(t,i){
+      var type=t.type==='GRN'?'purchase':t.type;
+      var ref=t.ref_no||t.ref||'';
+      var code=t.material_code||t.item_code||'', name=t.material_name||t.item_name||'';
+      var qty=n(t.qty);
+      return {i:i,type:type,ref:ref,code:code,name:name,uom:t.uom||'',wh:t.warehouse||'',pc:t.profit_center||'',date:String(t.date||'').slice(0,10),qty:qty,
+        d:type==='consumption'?-qty:(OUT.indexOf(type)>=0?-Math.abs(qty):qty)};
+    });
+    ev.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:a.i-b.i;});
+    var state={};  // wh|item -> {q,v}
+    function st(wh,key){var k=lc(wh)+'||'+key;return state[k]||(state[k]={q:0,v:0});}
+    function find(arr,pred){for(var k in arr){if(pred(arr[k],k))return arr[k];}return null;}
+    ev.forEach(function(e){
+      e.key=lc(e.code||e.name);
+      var s=st(e.wh,e.key),avg=s.q>0?s.v/s.q:0,rate=avg,found=true,cat='other';
+      if(e.type==='opening_balance'){
+        cat='ob';var r=ob[e.ref];found=false;
+        if(r&&r.items){var it=r.items.filter(function(x){return lc(x.item_code||x.item_name)===e.key||lc(x.item_name)===lc(e.name);})[0];if(it&&n(it.rate)>0){rate=n(it.rate);found=true;}}
+      }else if(e.type==='purchase'){
+        cat='grn';found=false;var g=grn[e.ref]||find(grn,function(x){return x.grn_no===e.ref;});
+        if(g){var pr=po[g.po_no||g.gi_po_no];if(pr&&n(pr.rate)>0){rate=n(pr.rate);found=true;}if(!e.pc&&g.profit_center)e.pc=g.profit_center;}
+      }else if(e.type==='transfer_received'){
+        cat='trf';found=false;var sr=stn[e.ref],so=sr&&sto[sr.to_ref];
+        if(so&&so.from_warehouse){var ss=st(so.from_warehouse,e.key);if(ss.q>0){rate=ss.v/ss.q;found=true;}else{
+          var fo=P('erp_stock_records',{});}}
+      }
+      if(e.d<0||e.type==='opening_balance_reversal')cat='issue';else if(cat==='other'&&e.d<0)cat='issue';
+      if(e.d<0)cat='issue';
+      e.cat=cat;
+      if(e.d>0){
+        if(e.type==='opening_balance'){var ro=ob[e.ref];if(ro&&ro.items){var bi=ro.items.filter(function(x){return lc(x.item_code||x.item_name)===e.key||lc(x.item_name)===lc(e.name);})[0];if(bi)e.batch=bi.batch_no||'';}}
+        else if(e.type==='purchase'){var gg=grn[e.ref]||find(grn,function(x){return x.grn_no===e.ref;});if(gg)e.batch=gg.batch_no||'';}
+        else if(e.type==='transfer_received'){var sn=stn[e.ref];if(sn)e.batch=sn.batch_no||'';}
+      }
+      if(e.d>=0){e.rate=rate;e.val=e.d*rate;e.found=found&&(rate>0||e.d===0);}
+      else{e.rate=avg;e.val=e.d*avg;e.found=true;}
+      s.q+=e.d;s.v+=e.val;if(s.q<=1e-9){if(s.q<1e-9&&Math.abs(s.q)<1e-9){s.q=0;s.v=0;}}
+      if(!e.pc)e.pc=whPc[lc(e.wh)]||'';
+    });
+    return ev;
+  }
+  var LABEL={opening_balance:'Opening Balance',opening_balance_reversal:'Opening Balance Reversal',purchase:'Purchase / GRN Receive',transfer_received:'Transfer Received',transfer_issue:'Transfer Issue',sto_issue:'STO Issue',sto_issue_reversal:'STO Issue Reversal',
+    consumption:'Materials Issue (Consumption)',materials_issue_return:'Materials Issue Return',goods_exchange_issue:'Goods Exchange – Issue',goods_exchange_receive:'Goods Exchange – Receive',
+    positive_adjustment:'Positive Adjustment',negative_adjustment:'Negative Adjustment',sale:'Sale',sale_return:'Sale Return',purchase_return:'Purchase Return',
+    material_direct_issue:'Direct Issue',production_consumption:'RM Consumption (Production)',production_rm_return:'RM Return (Production)',fg_receive:'FG Receive (Production)',loan_received:'Loan Received',loan_return:'Loan Return',wastage_sale:'Wastage Sale',issue:'Issue'};
+  var ORDER=Object.keys(LABEL);
+  // Column layout (same as the Stock Report): Opening | receipts (green) | issues (orange) | Closing
+  var GROUPS=[
+    {k:'open',l:'Opening Stock',c:'o'},
+    {k:'purchase',l:'Purchase',c:'g',t:['purchase']},
+    {k:'trf_in',l:'Transfer Received',c:'g',t:['transfer_received']},
+    {k:'sale_ret',l:'Sale Return',c:'g',t:['sale_return']},
+    {k:'mi_ret',l:'Materials Issue Return',c:'g',t:['materials_issue_return','production_rm_return']},
+    {k:'loan_in',l:'Loan Received',c:'g',t:['loan_received']},
+    {k:'gx_in',l:'Goods Exchange Receive',c:'g',t:['goods_exchange_receive']},
+    {k:'pos_adj',l:'Positive Adjustment',c:'g',t:['positive_adjustment']},
+    {k:'oth_in',l:'Other Receipts',c:'g',t:['fg_receive','sto_issue_reversal']},
+    {k:'consumption',l:'Consumption',c:'r',t:['consumption','production_consumption']},
+    {k:'trf_out',l:'Transfer Issue',c:'r',t:['transfer_issue','sto_issue']},
+    {k:'sale',l:'Sale',c:'r',t:['sale']},
+    {k:'pur_ret',l:'Purchase Return',c:'r',t:['purchase_return']},
+    {k:'direct',l:'Material Direct Issue',c:'r',t:['material_direct_issue']},
+    {k:'loan_out',l:'Loan Return',c:'r',t:['loan_return']},
+    {k:'gx_out',l:'Goods Exchange Issue',c:'r',t:['goods_exchange_issue']},
+    {k:'neg_adj',l:'Negative Adjustment',c:'r',t:['negative_adjustment']},
+    {k:'wastage',l:'Wastage Sale',c:'r',t:['wastage_sale']},
+    {k:'oth_out',l:'Other Issues',c:'r',t:['opening_balance_reversal','issue']},
+    {k:'close',l:'Closing Stock',c:'o'}];
+  var COLS=GROUPS.map(function(g){return [g.l,g.k];});
+  var TMAP={};GROUPS.forEach(function(g){(g.t||[]).forEach(function(t){TMAP[t]=g.k;});});
+  var FILL={o:'#f4b183',g:'#00b050',r:'#ed9b2f'},HEADFILL={o:'#f8cbad',g:'#00b050',r:'#ed9b2f'};
+  function groupOf(e){
+    if(e.type==='opening_balance')return 'open';
+    if(TMAP[e.type])return TMAP[e.type];
+    return e.d>=0?'oth_in':'oth_out';
+  }
+  function compute(){
+    var ev=build(),from=$('ivFrom').value,to=$('ivTo').value,fp=$('ivPc').value,fw=$('ivWh').value,q=lc($('ivQ').value),hz=$('ivZero').checked;
+    var rows={};
+    ev.forEach(function(e){
+      if(to&&e.date>to)return;
+      var pc=e.pc||'— (No PC)',k=pc+'||'+lc(e.wh)+'||'+e.key;
+      var r=rows[k]||(rows[k]={pc:pc,wh:e.wh||'—',code:e.code,name:e.name,uom:e.uom,t:{},close:{q:0,a:0}});
+      if(!r.uom&&e.uom)r.uom=e.uom;
+      r.close.q+=e.d;r.close.a+=e.val;
+      var gk=groupOf(e);
+      if(gk!=='open'&&from&&e.date<from)gk='open';
+      var c=r.t[gk]||(r.t[gk]={q:0,a:0,miss:0});
+      c.q+=e.d;c.a+=e.val;if(e.d>0&&!e.found)c.miss=1;
+    });
+    var list=Object.keys(rows).map(function(k){return rows[k];}).filter(function(r){
+      if(fp&&r.pc!==fp)return false;if(fw&&r.wh!==fw)return false;
+      if(q&&(lc(r.name)+' '+lc(r.code)).indexOf(q)<0)return false;
+      if(hz&&Math.abs(r.close.q)<1e-9&&Math.abs(r.close.a)<1e-9)return false;return true;});
+    list.sort(function(a,b){return a.pc<b.pc?-1:a.pc>b.pc?1:a.wh<b.wh?-1:a.wh>b.wh?1:lc(a.name)<lc(b.name)?-1:1;});
+    return {list:list,ev:ev};
+  }
+  function G(r,k){return k==='close'?r.close:(r.t[k]||{q:0,a:0,miss:0});}
+  function rate(c){return c.q?c.a/c.q:0;}
+  function dash(v,f){return Math.abs(v)<1e-9?'-':f(v);}
+  function sum(list){var t={};GROUPS.forEach(function(g){t[g.k]={q:0,a:0};});list.forEach(function(r){GROUPS.forEach(function(g){var c=G(r,g.k);t[g.k].q+=c.q;t[g.k].a+=c.a;});});return t;}
+  var TH='border:1px solid #fff;padding:4px 6px;text-align:center;font-weight:700;';
+  function totRow(label,t,bg,fg){
+    var st='border:1px solid #999;padding:3px 6px;text-align:right;font-weight:700;background:'+bg+';color:'+fg+';';
+    var h='<tr><td colspan="3" style="'+st+'">'+esc(label)+'</td>';
+    GROUPS.forEach(function(g){var c=t[g.k],m=g.c==='r'?-1:1;h+='<td style="'+st+'">'+dash(c.q*m,f3)+'</td><td style="'+st+'">'+(c.q?dash(c.a/c.q,f2):'-')+'</td><td style="'+st+'">'+dash(c.a*m,f2)+'</td>';});
+    return h+'</tr>';
+  }
+  function table(list){
+    if(!list.length)return '<div style="padding:30px;text-align:center;color:#64748b;">No stock data found for the selected filters.</div>';
+    var W=3+GROUPS.length*3;
+    var h='<table style="border-collapse:collapse;font-size:12px;font-family:Calibri,Arial,sans-serif"><thead><tr>'+
+      '<th rowspan="2" style="'+TH+'background:#c55a11;color:#fff;">Material Code</th><th rowspan="2" style="'+TH+'background:#c55a11;color:#fff;min-width:180px;">Material Description</th><th rowspan="2" style="'+TH+'background:#c55a11;color:#fff;">UOM</th>';
+    GROUPS.forEach(function(g){h+='<th colspan="3" style="'+TH+'background:'+HEADFILL[g.c]+';color:'+(g.c==='o'?'#000':'#fff')+';">'+esc(g.l)+'</th>';});
+    h+='</tr><tr>';
+    GROUPS.forEach(function(g){['Qty','Rate','Amount'].forEach(function(x){h+='<th style="'+TH+'background:'+HEADFILL[g.c]+';color:'+(g.c==='o'?'#000':'#fff')+';font-weight:600;">'+x+'</th>';});});
+    h+='</tr></thead><tbody>';
+    var curPc=null,curWh=null,whList=[],pcList=[];
+    function closeWh(){if(whList.length)h+=totRow('Warehouse Total — '+curWh,sum(whList),'#e2e8f0','#000');whList=[];}
+    function closePc(){closeWh();if(pcList.length)h+=totRow('Profit Center Total — '+curPc,sum(pcList),'#cbd5e1','#000');pcList=[];}
+    list.forEach(function(r){
+      if(r.pc!==curPc){closePc();curPc=r.pc;curWh=null;h+='<tr><td colspan="'+W+'" style="background:#c55a11;color:#fff;font-weight:700;padding:4px 8px;">Profit Center: '+esc(r.pc)+'</td></tr>';}
+      if(r.wh!==curWh){closeWh();curWh=r.wh;h+='<tr><td colspan="'+W+'" style="background:#f8cbad;font-weight:700;padding:3px 8px;">Warehouse: '+esc(r.wh)+'</td></tr>';}
+      var b='border:1px solid #999;padding:2px 6px;';
+      h+='<tr><td style="'+b+'background:#eef3fb;">'+esc(r.code)+'</td><td style="'+b+'background:#eef3fb;">'+esc(r.name)+'</td><td style="'+b+'background:#eef3fb;text-align:center;">'+esc(r.uom)+'</td>';
+      GROUPS.forEach(function(g){
+        var c=G(r,g.k),st=b+'text-align:right;background:'+FILL[g.c]+(c.miss?';outline:2px solid #fde047':'')+';'+(g.k==='close'||g.k==='open'?'font-weight:700;':'');
+        var m=g.c==='r'?-1:1;h+='<td style="'+st+'">'+dash(c.q*m,f3)+'</td><td style="'+st+'">'+(c.q?dash(rate(c),f2):'-')+'</td><td style="'+st+'">'+dash(c.a*m,f2)+'</td>';
+      });
+      h+='</tr>';whList.push(r);pcList.push(r);
+    });
+    closePc();
+    h+=totRow('GRAND TOTAL',sum(list),'#c55a11','#fff')+'</tbody></table>';
+    return h;
+  }
+  function fill(){
+    var ev=build(),pcs={},whs={};
+    ev.forEach(function(e){pcs[e.pc||'— (No PC)']=1;if(e.wh)whs[e.wh]=1;});
+    var sp=$('ivPc').value,sw=$('ivWh').value;
+    $('ivPc').innerHTML='<option value="">All Profit Centers</option>'+Object.keys(pcs).sort().map(function(x){return '<option>'+esc(x)+'</option>';}).join('');
+    $('ivWh').innerHTML='<option value="">All Warehouses</option>'+Object.keys(whs).sort().map(function(x){return '<option>'+esc(x)+'</option>';}).join('');
+    $('ivPc').value=sp;$('ivWh').value=sw;
+  }
+  window.__ivBuild=build;window.__ivLabel=function(t){return LABEL[t]||t;};
+  window.renderIvRep=function(){var d=compute();$('ivWrap').innerHTML=table(d.list);$('ivCount').textContent=d.list.length;$('ivTot').textContent=f2(d.list.reduce(function(a,r){return a+r.close.a;},0));};
+  window.openIvRep=function(){fill();renderIvRep();$('ivReportOverlay').classList.add('active');};
+  window.closeIvRep=function(){$('ivReportOverlay').classList.remove('active');};
+  window.exportIvRep=function(){
+    var t=$('ivWrap').querySelector('table');if(!t){alert('No data to export.');return;}
+    var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><h3>Inventory Valuation Report</h3>'+t.outerHTML+'</body></html>';
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+html],{type:'application/vnd.ms-excel;charset=utf-8'}));a.download='inventory_valuation_report.xls';document.body.appendChild(a);a.click();a.remove();
+  };
+  window.printIvRep=function(){var w=window.open('','_blank');if(!w){alert('Pop-up blocked.');return;}
+    w.document.write('<html><head><title>Inventory Valuation</title><style>body{font-family:Arial;padding:12px}table{border-collapse:collapse;width:100%;font-size:9px}td,th{border:1px solid #999;padding:2px 4px}td.num{text-align:right}tr.pc td{background:#1e8449;color:#fff}tr.wh td,tr.sw td{background:#d5f5e3;font-weight:bold}tr.gt td{background:#145a32;color:#fff}th{background:#145a32;color:#fff}td.miss{background:#fde68a}</style></head><body><h3>Inventory Valuation Report</h3>'+$('ivWrap').innerHTML+'</body></html>');
+    w.document.close();w.print();};
+})();
+</script>
+
+<div class="str-list-overlay" id="ivBatchOverlay" onclick="if(event.target===this) closeIvBatch()">
+  <div class="str-list-outer" style="max-width:1700px; border-radius:4px; border:1px solid #89919a; overflow:auto; background:#f7f7f7; font-family:'72','Segoe UI',Arial,sans-serif;">
+    <div style="background:#354a5f; padding:8px 16px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="color:#fff;font-size:0.95rem;"><b>Batch Stock Overview</b> <span style="opacity:.7;">— Batch Wise Inventory Report</span></div>
+      <button class="str-close-list-btn" onclick="closeIvBatch()" style="font-size:1rem;width:28px;height:28px;">X</button>
+    </div>
+    <div style="background:#fff;padding:10px 16px;border-bottom:1px solid #d9d9d9;">
+      <div style="font-size:0.8rem;font-weight:700;color:#32363a;margin-bottom:6px;">Selection</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 18px;font-size:0.78rem;color:#32363a;">
+        <label>Profit Center<br><select id="ibPc" onchange="renderIvBatch()" style="width:100%;padding:4px;border:1px solid #89919a;border-radius:2px;"><option value="">All</option></select></label>
+        <label>Warehouse (Storage Location)<br><select id="ibWh" onchange="renderIvBatch()" style="width:100%;padding:4px;border:1px solid #89919a;border-radius:2px;"><option value="">All</option></select></label>
+        <label>Material / Batch / Ref<br><input type="text" id="ibQ" placeholder="Material, Code, Batch..." oninput="renderIvBatch()" style="width:100%;padding:4px;border:1px solid #89919a;border-radius:2px;"></label>
+        <label>Stock as on (Key Date)<br><input type="date" id="ibTo" onchange="renderIvBatch()" style="width:100%;padding:3px;border:1px solid #89919a;border-radius:2px;"></label>
+        <label style="align-self:end;"><input type="checkbox" id="ibZero" checked onchange="renderIvBatch()"> Suppress zero stock batches</label>
+      </div>
+    </div>
+    <div style="background:#f2f2f2;padding:6px 16px;border-bottom:1px solid #d9d9d9;display:flex;align-items:center;gap:8px;font-size:0.78rem;">
+      <button onclick="renderIvBatch()" style="background:#0a6ed1;color:#fff;border:none;padding:5px 14px;border-radius:2px;cursor:pointer;">▶ Execute</button>
+      <button onclick="exportIvBatch()" style="background:#fff;color:#0a6ed1;border:1px solid #0a6ed1;padding:5px 12px;border-radius:2px;cursor:pointer;">📊 Export to Spreadsheet</button>
+      <button onclick="printIvBatch()" style="background:#fff;color:#0a6ed1;border:1px solid #0a6ed1;padding:5px 12px;border-radius:2px;cursor:pointer;">🖨 Print</button>
+      <span style="margin-left:auto;color:#32363a;">Batches: <b id="ibCount">0</b> | Total Unrestricted Qty: <b id="ibQty">0</b> | Value: <b id="ibTot">0</b></span>
+    </div>
+    <div style="overflow-x:auto;background:#fff;margin:8px 16px;border:1px solid #d9d9d9;" id="ibWrap"></div>
+    <div style="padding:4px 16px 8px;font-size:0.72rem;color:#6a6d70;">Item name &amp; code on top, its stock batch numbers below with quantity on the right. Issues are allocated FIFO per warehouse &amp; material. Sources: Opening Balance / GRN / Stock Transfer Note.</div>
+  </div>
+</div>
+<script id="ivBatchJs">
+(function(){
+  var $=function(i){return document.getElementById(i);};
+  function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function lc(x){return String(x||'').trim().toLowerCase();}
+  function f2(v){return (Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function f3(v){return (Math.round(v*1000)/1000).toLocaleString('en-US',{maximumFractionDigits:3});}
+  var RET=['consumption','materials_issue_return','production_rm_return','sto_issue_reversal','sale_return'];
+  function calc(to){
+    var ev=window.__ivBuild(),groups={},order=[],al=[];
+    try{al=JSON.parse(localStorage.getItem('erp_batch_alloc')||'[]');if(!Array.isArray(al))al=[];}catch(e){al=[];}
+    ev.forEach(function(e){
+      if(to&&e.date>to)return;
+      var k=lc(e.wh)+'||'+e.key;
+      var g=groups[k]||(groups[k]={batches:[],issues:0,alloc:0,wh:e.wh,key:e.key});if(!g.init){g.init=1;order.push(k);}
+      if(e.d>0&&RET.indexOf(e.type)>=0)g.issues-=e.d;
+      else if(e.d>0)g.batches.push({pc:e.pc||'— (No PC)',wh:e.wh||'—',code:e.code,name:e.name,uom:e.uom,batch:e.batch||'(No Batch)',type:e.type,ref:e.ref,date:e.date,qty:e.d,rate:e.rate,amt:e.val,issued:0});
+      else if(e.d<0)g.issues+=-e.d;
+    });
+    // explicit batch allocations (e.g. Production) first
+    al.forEach(function(a){
+      if(to&&String(a.date||'').slice(0,10)>to)return;
+      var gk=null;order.forEach(function(k){var g=groups[k];if(lc(g.wh)!==lc(a.wh))return;if(g.key===lc(a.code)||g.key===lc(a.name)||g.batches.some(function(b){return lc(b.name)===lc(a.name)||lc(b.code)===lc(a.code)&&a.code;}))gk=k;});
+      if(!gk)return;var g=groups[gk],rem=parseFloat(a.qty)||0;
+      for(var i=0;i<g.batches.length&&rem>1e-9;i++){var b=g.batches[i];if(b.batch!==a.batch)continue;var u=Math.min(rem,b.qty-b.issued);b.issued+=u;rem-=u;g.alloc+=u;}
+      if(rem>1e-9){g.alloc+=0;}
+    });
+    var rows=[];
+    order.forEach(function(k){
+      var g=groups[k],rem=Math.max(0,g.issues-g.alloc);
+      g.batches.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
+      g.batches.forEach(function(b){var u=Math.min(rem,b.qty-b.issued);b.issued+=u;rem-=u;b.bal=b.qty-b.issued;b.balAmt=b.bal*b.rate;rows.push(b);});
+    });
+    return rows;
+  }
+  window.__ivBatchCalc=calc;
+  window.__ivBatchAvail=function(wh,ids){
+    ids=(ids||[]).map(lc).filter(Boolean);
+    return calc('').filter(function(r){return lc(r.wh)===lc(wh)&&r.bal>1e-9&&(ids.indexOf(lc(r.code))>=0||ids.indexOf(lc(r.name))>=0);})
+      .sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:a.batch<b.batch?-1:1;})
+      .map(function(r){return {batch:r.batch,bal:r.bal,date:r.date};});
+  };
+  function compute(){
+    var to=$('ibTo').value,fp=$('ibPc').value,fw=$('ibWh').value,q=lc($('ibQ').value),hz=$('ibZero').checked;
+    var rows=calc(to).filter(function(r){
+      if(fp&&r.pc!==fp)return false;if(fw&&r.wh!==fw)return false;
+      if(q&&(lc(r.name)+' '+lc(r.code)+' '+lc(r.batch)+' '+lc(r.ref)).indexOf(q)<0)return false;
+      if(hz&&r.bal<=1e-9)return false;return true;});
+    rows.sort(function(a,b){return a.pc<b.pc?-1:a.pc>b.pc?1:a.wh<b.wh?-1:a.wh>b.wh?1:lc(a.name)<lc(b.name)?-1:lc(a.name)>lc(b.name)?1:a.date<b.date?-1:1;});
+    return rows;
+  }
+  function sum(l){var t={qty:0,amt:0,issued:0,bal:0,balAmt:0};l.forEach(function(r){t.qty+=r.qty;t.amt+=r.amt;t.issued+=r.issued;t.bal+=r.bal;t.balAmt+=r.balAmt;});return t;}
+  function tot(label,t,cls){return '<tr class="'+cls+'"><td colspan="8" style="text-align:right;">'+esc(label)+'</td><td class="num">'+f3(t.qty)+'</td><td></td><td class="num">'+f2(t.amt)+'</td><td class="num">'+f3(t.issued)+'</td><td class="num">'+f3(t.bal)+'</td><td class="num">'+f2(t.balAmt)+'</td></tr>';}
+  function table(rows){
+    if(!rows.length)return '<div style="padding:30px;text-align:center;color:#64748b;">No batch stock found for the selected filters.</div>';
+    var items=[],imap={};
+    rows.forEach(function(r){
+      var ik=lc(r.code||r.name);if(!(ik in imap)){imap[ik]=items.length;items.push({code:r.code,name:r.name,b:{},order:[]});}
+      var it=items[imap[ik]];if(!(r.batch in it.b)){it.b[r.batch]=0;it.order.push(r.batch);}it.b[r.batch]+=r.bal;
+    });
+    items.sort(function(a,b){return lc(a.name)<lc(b.name)?-1:1;});
+    var h='<style>#ibWrap table{border-collapse:collapse;font-size:0.85rem;font-family:Calibri,Arial,sans-serif;min-width:360px}#ibWrap td{padding:2px 10px;border:none}#ibWrap td.num{text-align:right;min-width:90px}#ibWrap tr.t td{font-size:1rem}#ibWrap tr.i td{font-weight:400}</style><table><tbody><tr class="t"><td colspan="2">Batch wise inventory report</td></tr>';
+    items.forEach(function(it){
+      h+='<tr class="i"><td colspan="2">'+esc(it.name)+(it.code?' ('+esc(it.code)+')':'')+'</td></tr>';
+      it.order.sort();
+      it.order.forEach(function(bn){h+='<tr><td>'+esc(bn)+'</td><td class="num">'+f3(it.b[bn])+'</td></tr>';});
+    });
+    return h+'</tbody></table>';
+  }
+  function fill(){
+    var ev=window.__ivBuild(),pcs={},whs={};ev.forEach(function(e){pcs[e.pc||'— (No PC)']=1;if(e.wh)whs[e.wh]=1;});
+    var sp=$('ibPc').value,sw=$('ibWh').value;
+    $('ibPc').innerHTML='<option value="">All Profit Centers</option>'+Object.keys(pcs).sort().map(function(x){return '<option>'+esc(x)+'</option>';}).join('');
+    $('ibWh').innerHTML='<option value="">All Warehouses</option>'+Object.keys(whs).sort().map(function(x){return '<option>'+esc(x)+'</option>';}).join('');
+    $('ibPc').value=sp;$('ibWh').value=sw;
+  }
+  window.renderIvBatch=function(){var r=compute(),t=sum(r);$('ibWrap').innerHTML=table(r);$('ibCount').textContent=r.length;$('ibQty').textContent=f3(t.bal);$('ibTot').textContent=f2(t.balAmt);};
+  window.openIvBatch=function(){fill();renderIvBatch();$('ivBatchOverlay').classList.add('active');};
+  window.closeIvBatch=function(){$('ivBatchOverlay').classList.remove('active');};
+  window.exportIvBatch=function(){
+    var r=compute();if(!r.length){alert('No data to export.');return;}
+    var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Batch Wise Inventory</x:Name></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>'+$('ibWrap').querySelector('table').outerHTML.replace(/<style[\s\S]*?<\/style>/,'').replace(/<td/g,'<td style="border:none"')+'</body></html>';
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+html],{type:'application/vnd.ms-excel;charset=utf-8'}));a.download='batch_wise_inventory_report.xls';document.body.appendChild(a);a.click();a.remove();
+  };
+  window.printIvBatch=function(){var w=window.open('','_blank');if(!w){alert('Pop-up blocked.');return;}
+    w.document.write('<html><head><title>Batch Wise Inventory</title><style>body{font-family:Arial;padding:12px}table{border-collapse:collapse;width:100%;font-size:10px}td,th{border:1px solid #999;padding:2px 4px}td.num{text-align:right}tr.pc td{background:#7d3c98;color:#fff}tr.wh td,tr.sw td{background:#ebdef0;font-weight:bold}tr.gt td{background:#512e5f;color:#fff}th{background:#512e5f;color:#fff}</style></head><body><h3>Batch Wise Inventory Report</h3>'+$('ibWrap').innerHTML+'</body></html>');
+    w.document.close();w.print();};
+})();
+</script>
+
+<div class="str-list-overlay" id="poRcvOverlay" onclick="if(event.target===this) closePoRcv()">
+  <div class="str-list-outer" style="max-width:1700px; border-radius:8px; border:2px solid #1a5276; overflow:auto;">
+    <div style="background:linear-gradient(135deg,#1a5276,#2471a3); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
+      <h2 style="color:#fff;font-size:1.2rem;font-weight:700;margin:0;">📑 PO vs Receive Report</h2>
+      <button class="str-close-list-btn" onclick="closePoRcv()" style="font-size:1rem;width:28px;height:28px;">X</button>
+    </div>
+    <div style="background:#eef2f3;padding:8px 16px;border-bottom:1px solid #bdc3c7;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:0.78rem;">
+      <label>PO Date From <input type="date" id="prFrom" onchange="renderPoRcv()"></label>
+      <label>To <input type="date" id="prTo" onchange="renderPoRcv()"></label>
+      <select id="prSup" onchange="renderPoRcv()"><option value="">All Suppliers</option></select>
+      <select id="prSt" onchange="renderPoRcv()"><option value="">All Receive Status</option><option>Not Received</option><option>Partially Received</option><option>Fully Received</option><option>Over Received</option></select>
+      <select id="prPoSt" onchange="renderPoRcv()"><option value="Approved">Approved POs</option><option value="">All POs</option></select>
+      <input type="text" id="prQ" placeholder="🔍 PO / Item / Supplier / GRN..." oninput="renderPoRcv()" style="padding:5px 10px;min-width:220px;">
+      <span style="margin-left:auto;">POs: <b id="prCount">0</b> | PO Qty: <b id="prPoQty">0</b> | Received: <b id="prRcQty" style="color:#1e8449;">0</b> | Balance: <b id="prBal" style="color:#c0392b;">0</b></span>
+      <button onclick="exportPoRcv()" style="background:#27ae60;color:#fff;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;">⬇ Excel</button>
+      <button onclick="printPoRcv()" style="background:#8e44ad;color:#fff;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;">🖨 Print</button>
+    </div>
+    <div style="overflow-x:auto;background:#fff;" id="prWrap"></div>
+    <div style="padding:6px 16px;font-size:0.72rem;color:#64748b;">Received Qty = GRN Inventory Qty of <b>Approved</b> GRNs of that PO. "GRN Pending" = submitted GRNs still waiting for approval. Challan Qty = gate entry (challan) quantity. Amounts use the PO rate.</div>
+  </div>
+</div>
+<script id="poRcvJs">
+(function(){
+  var $=function(i){return document.getElementById(i);};
+  function P(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v;}catch(e){return d;}}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function lc(x){return String(x||'').trim().toLowerCase();}
+  function n(v){return parseFloat(v)||0;}
+  function f2(v){return (Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function f3(v){return (Math.round(v*1000)/1000).toLocaleString('en-US',{maximumFractionDigits:3});}
+  function compute(){
+    var po=P('erp_po_records',{}),grn=P('erp_grn_records',{}),gi=P('erp_gi_records',{});
+    var from=$('prFrom').value,to=$('prTo').value,sup=$('prSup').value,st=$('prSt').value,pst=$('prPoSt').value,q=lc($('prQ').value);
+    var rc={},pend={},ch={},grns={};
+    Object.keys(grn).forEach(function(k){
+      var g=grn[k]||{},ref=g.po_no||g.gi_po_no;if(!ref)return;
+      var qty=n(g.inventory_qty||g.invoice_qty);
+      if(g.status==='Approved'){rc[ref]=(rc[ref]||0)+qty;}
+      else if(g.status==='Pending'){pend[ref]=(pend[ref]||0)+qty;}
+      else return;
+      (grns[ref]=grns[ref]||[]).push(g.grn_no||k);
+    });
+    Object.keys(gi).forEach(function(k){
+      var g=gi[k]||{},ref=g.gi_po_no||g.po_no;if(!ref)return;
+      if(g.status==='Rejected'||g.status==='Reverted'||g.status==='Draft')return;
+      var sum=0;if(g.items&&g.items.length)g.items.forEach(function(it){sum+=n(it.challan_qty);});else sum=n(g.gi_received_qty||g.received_qty);
+      ch[ref]=(ch[ref]||0)+sum;
+    });
+    var rows=[],sups={};
+    Object.keys(po).sort().forEach(function(ref){
+      var r=po[ref]||{};
+      if(pst&&r.status!==pst)return;
+      if(r.status==='Rejected'||r.status==='Reverted'||r.status==='Draft')return;
+      var date=String(r.date||r.po_date||'').slice(0,10);
+      if(from&&date<from)return;if(to&&date>to)return;
+      var supplier=r.supplier||r.po_supplier||'';if(supplier)sups[supplier]=1;
+      if(sup&&supplier!==sup)return;
+      var qty=n(r.qty||r.po_qty),rate=n(r.rate),got=rc[ref]||0,bal=qty-got;
+      var status=got<=1e-9?'Not Received':got>qty+1e-6?'Over Received':bal<=1e-6?'Fully Received':'Partially Received';
+      if(st&&status!==st)return;
+      var row={po:ref,date:date,supplier:supplier,company:r.company||'',code:r.item_code||'',name:r.item_name||'',uom:r.uom||'',qty:qty,rate:rate,amt:qty*rate,
+        challan:ch[ref]||0,pend:pend[ref]||0,got:got,gotAmt:got*rate,bal:bal,balAmt:bal*rate,pct:qty>0?got/qty*100:0,status:status,last:r.last_delivery||'',grns:(grns[ref]||[]).join(', ')};
+      if(q&&(lc(row.po)+' '+lc(row.name)+' '+lc(row.code)+' '+lc(row.supplier)+' '+lc(row.grns)).indexOf(q)<0)return;
+      rows.push(row);
+    });
+    return {rows:rows,sups:Object.keys(sups).sort()};
+  }
+  var COLOR={'Not Received':'#fde2e2','Partially Received':'#fff3cd','Fully Received':'#d5f5e3','Over Received':'#d6eaf8'};
+  var TH='border:1px solid #fff;padding:4px 6px;background:#1a5276;color:#fff;text-align:center;white-space:nowrap;';
+  var TD='border:1px solid #999;padding:3px 6px;white-space:nowrap;';
+  function table(rows){
+    if(!rows.length)return '<div style="padding:30px;text-align:center;color:#64748b;">No Purchase Orders found for the selected filters.</div>';
+    var H=['PO No','PO Date','Supplier','Item Code','Item Name','UOM','PO Qty','Rate','PO Amount','Challan Qty','GRN Pending Qty','Received Qty (GRN)','Received Amount','Balance Qty','Balance Amount','Received %','Status','Last Delivery','GRN No'];
+    var h='<table style="border-collapse:collapse;font-size:12px;font-family:Calibri,Arial,sans-serif;width:100%"><thead><tr>'+H.map(function(x){return '<th style="'+TH+'">'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+    var t={qty:0,amt:0,challan:0,pend:0,got:0,gotAmt:0,bal:0,balAmt:0};
+    rows.forEach(function(r){
+      var R=TD+'text-align:right;';
+      h+='<tr><td style="'+TD+'">'+esc(r.po)+'</td><td style="'+TD+'">'+esc(r.date)+'</td><td style="'+TD+'">'+esc(r.supplier)+'</td><td style="'+TD+'">'+esc(r.code)+'</td><td style="'+TD+'">'+esc(r.name)+'</td><td style="'+TD+'">'+esc(r.uom)+'</td>'+
+        '<td style="'+R+'">'+f3(r.qty)+'</td><td style="'+R+'">'+f2(r.rate)+'</td><td style="'+R+'">'+f2(r.amt)+'</td><td style="'+R+'">'+f3(r.challan)+'</td><td style="'+R+'">'+f3(r.pend)+'</td>'+
+        '<td style="'+R+'background:#d5f5e3;font-weight:700;">'+f3(r.got)+'</td><td style="'+R+'">'+f2(r.gotAmt)+'</td><td style="'+R+'background:#fde2e2;font-weight:700;">'+f3(Math.max(r.bal,0))+'</td><td style="'+R+'">'+f2(Math.max(r.balAmt,0))+'</td>'+
+        '<td style="'+R+'">'+f2(r.pct)+'%</td><td style="'+TD+'background:'+COLOR[r.status]+';font-weight:700;">'+r.status+'</td><td style="'+TD+'">'+esc(r.last)+'</td><td style="'+TD+'">'+esc(r.grns)+'</td></tr>';
+      t.qty+=r.qty;t.amt+=r.amt;t.challan+=r.challan;t.pend+=r.pend;t.got+=r.got;t.gotAmt+=r.gotAmt;t.bal+=Math.max(r.bal,0);t.balAmt+=Math.max(r.balAmt,0);
+    });
+    var B=TD+'text-align:right;font-weight:700;background:#1a5276;color:#fff;';
+    h+='<tr><td colspan="6" style="'+B+'">TOTAL</td><td style="'+B+'">'+f3(t.qty)+'</td><td style="'+B+'"></td><td style="'+B+'">'+f2(t.amt)+'</td><td style="'+B+'">'+f3(t.challan)+'</td><td style="'+B+'">'+f3(t.pend)+'</td><td style="'+B+'">'+f3(t.got)+'</td><td style="'+B+'">'+f2(t.gotAmt)+'</td><td style="'+B+'">'+f3(t.bal)+'</td><td style="'+B+'">'+f2(t.balAmt)+'</td><td style="'+B+'">'+(t.qty?f2(t.got/t.qty*100)+'%':'')+'</td><td colspan="3" style="'+B+'"></td></tr></tbody></table>';
+    return h;
+  }
+  function fill(){var d=compute(),sp=$('prSup').value;$('prSup').innerHTML='<option value="">All Suppliers</option>'+d.sups.map(function(x){return '<option>'+esc(x)+'</option>';}).join('');$('prSup').value=sp;}
+  window.renderPoRcv=function(){
+    var d=compute(),r=d.rows;$('prWrap').innerHTML=table(r);$('prCount').textContent=r.length;
+    var q=0,g=0,b=0;r.forEach(function(x){q+=x.qty;g+=x.got;b+=Math.max(x.bal,0);});
+    $('prPoQty').textContent=f3(q);$('prRcQty').textContent=f3(g);$('prBal').textContent=f3(b);
+  };
+  window.openPoRcv=function(){fill();renderPoRcv();$('poRcvOverlay').classList.add('active');};
+  window.closePoRcv=function(){$('poRcvOverlay').classList.remove('active');};
+  window.exportPoRcv=function(){
+    var t=$('prWrap').querySelector('table');if(!t){alert('No data to export.');return;}
+    var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><h3>PO vs Receive Report</h3>'+t.outerHTML+'</body></html>';
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+html],{type:'application/vnd.ms-excel;charset=utf-8'}));a.download='po_vs_receive_report.xls';document.body.appendChild(a);a.click();a.remove();
+  };
+  window.printPoRcv=function(){var w=window.open('','_blank');if(!w){alert('Pop-up blocked.');return;}
+    w.document.write('<html><head><title>PO vs Receive</title><style>body{font-family:Arial;padding:12px}table{width:100%}</style></head><body><h3>PO vs Receive Report</h3>'+$('prWrap').innerHTML+'</body></html>');w.document.close();w.print();};
+})();
+</script>
+
+<div class="str-list-overlay" id="vmListOverlay" onclick="if(event.target===this) closeVmList()">
+  <div class="str-list-outer" style="max-width:1300px; border-radius:8px; border:2px solid #1a5276; overflow:auto;">
+    <div style="background:linear-gradient(135deg,#1a5276,#2471a3); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
+      <h2 style="color:#fff;font-size:1.2rem;font-weight:700;margin:0;">🏢 Vendor Master</h2>
+      <button class="str-close-list-btn" onclick="closeVmList()" style="font-size:1rem;width:28px;height:28px;">X</button>
+    </div>
+    <div style="background:#d6eaf8;padding:8px 16px;border-bottom:1px solid #aed6f1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <span style="font-size:0.88rem;font-weight:700;color:#1e293b;">Vendors (<span id="vmCount">0</span>)</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <select id="vmStatusSel" onchange="renderVmTable()" style="padding:5px;border:1px solid #aaa;border-radius:3px;font-size:0.78rem;"><option value="">All Status</option><option>Active</option><option>Inactive</option></select>
+        <input type="text" id="vmSearchInput" placeholder="🔍 Search by Code, Name, Contact, Mobile..." oninput="renderVmTable()" style="padding:5px 10px;border:1px solid #aaa;border-radius:3px;font-size:0.78rem;min-width:240px;">
+        <button onclick="openVmForm()" title="Add New" style="background:#27ae60;color:#fff;border:none;width:28px;height:28px;border-radius:3px;font-size:1rem;cursor:pointer;">➕</button>
+        <button onclick="renderVmTable()" title="Refresh" style="background:#2980b9;color:#fff;border:none;width:28px;height:28px;border-radius:3px;font-size:0.9rem;cursor:pointer;">🔄</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;background:#f8f9fa;">
+      <table class="str-table" style="font-size:0.78rem;">
+        <thead><tr><th>SL#</th><th>Vendor Code</th><th>Vendor Name</th><th>Type</th><th>Contact Person</th><th>Mobile</th><th>Email</th><th>City</th><th>Payment Terms</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="vmTableBody"></tbody>
+      </table>
+      <div id="vmEmptyMsg" style="text-align:center;padding:40px 20px;color:#94a3b8;font-size:0.85rem;display:none;"><span style="font-size:2.5rem;display:block;margin-bottom:10px;">🏢</span>No vendor found.<br>Click "+" to add a vendor.</div>
+    </div>
+  </div>
+</div>
+<div class="weight-modal-overlay" id="vmFormOverlay" onclick="if(event.target===this) closeVmForm()">
+  <div class="erp-form-outer" style="max-width:1100px;">
+    <div class="erp-form-titlebar"><h2>🏢 Vendor Master</h2></div>
+    <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>General Information (1)</span></div>
+    <div class="erp-form-card">
+      <div class="erp-form-header"><span id="vmFormMode">Vendor [Insert mode]</span><button type="button" class="erp-close-btn" onclick="closeVmForm()">X</button></div>
+      <div class="erp-form-body">
+        <div class="erp-field-grid" style="grid-template-columns:repeat(4,1fr);" id="vmGen"></div>
+      </div>
+    </div>
+    <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Tax &amp; Legal (2)</span></div>
+    <div class="erp-form-card"><div class="erp-form-body"><div class="erp-field-grid" style="grid-template-columns:repeat(4,1fr);" id="vmTax"></div></div></div>
+    <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Payment &amp; Bank (3)</span></div>
+    <div class="erp-form-card"><div class="erp-form-body"><div class="erp-field-grid" style="grid-template-columns:repeat(4,1fr);" id="vmPay"></div>
+      <div class="erp-form-messages"><div class="error-msg" id="vmFormError"></div><div class="success-msg" id="vmFormSuccess"></div></div></div></div>
+    <div class="erp-form-actions">
+      <button type="button" class="erp-btn" style="background:#16a34a;" onclick="saveVmForm()">💾 Save</button>
+      <button type="button" class="erp-btn erp-btn-exit" onclick="closeVmForm()">Exit</button>
+    </div>
+  </div>
+</div>
+<script id="vmJs">
+(function(){
+  var KEY='erp_vendor_records',SER='erp_vendor_serial',$=function(i){return document.getElementById(i);},editing=null;
+  function P(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v;}catch(e){return d;}}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function lc(x){return String(x||'').trim().toLowerCase();}
+  var F={
+   vmGen:[['no','Vendor Code','readonly'],['name','Vendor Name *','text'],['type','Vendor Type','select',['Local','Foreign']],['status','Status','select',['Active','Inactive']],
+          ['contact','Contact Person','text'],['mobile','Mobile','text'],['phone','Phone','text'],['email','Email','email'],
+          ['address','Address','text',null,2],['city','City / District','text'],['country','Country','text'],['category','Supply Category (Material Group)','text',null,2],['remarks','Remarks','text',null,2]],
+   vmTax:[['bin','BIN / VAT Reg. No','text'],['tin','TIN No','text'],['license','Trade License No','text'],['license_exp','License Expiry','date']],
+   vmPay:[['terms','Payment Terms','select',['Cash','Advance','Credit','LC','TT']],['credit_days','Credit Days','number'],['credit_limit','Credit Limit','number'],['currency','Currency','select',['BDT','USD','EUR','INR','CNY']],
+          ['bank','Bank Name','text'],['branch','Branch','text'],['acc_name','Account Name','text'],['acc_no','Account No','text']]};
+  function build(){
+    Object.keys(F).forEach(function(box){
+      $(box).innerHTML=F[box].map(function(f){
+        var id='vm_'+f[0],span=f[4]?' style="grid-column: span '+f[4]+';"':'',inp;
+        if(f[2]==='select')inp='<select id="'+id+'">'+f[3].map(function(o){return '<option>'+o+'</option>';}).join('')+'</select>';
+        else if(f[2]==='readonly')inp='<input type="text" id="'+id+'" readonly style="font-weight:700;color:#1a5276;background:#f1f5f9;">';
+        else inp='<input type="'+f[2]+'" id="'+id+'"'+(f[2]==='number'?' min="0" step="any"':'')+'>';
+        return '<div class="erp-field"'+span+'><div class="erp-field-label-row"><label for="'+id+'">'+f[1]+'</label><span class="erp-info-icon">i</span></div>'+inp+'</div>';
+      }).join('');
+    });
+  }
+  function all(){var a=[];Object.keys(F).forEach(function(b){F[b].forEach(function(f){a.push(f);});});return a;}
+  function nextNo(){var n=(parseInt(localStorage.getItem(SER)||'0',10)||0)+1;return 'VND-'+String(n).padStart(6,'0');}
+  window.openVmList=function(){renderVmTable();$('vmListOverlay').classList.add('active');};
+  window.closeVmList=function(){$('vmListOverlay').classList.remove('active');};
+  window.renderVmTable=function(){
+    var recs=P(KEY,{}),q=lc($('vmSearchInput').value),st=$('vmStatusSel').value;
+    var rows=Object.keys(recs).sort().map(function(k){return recs[k];}).filter(function(r){
+      if(st&&r.status!==st)return false;
+      return !q||(lc(r.no)+' '+lc(r.name)+' '+lc(r.contact)+' '+lc(r.mobile)+' '+lc(r.city)+' '+lc(r.email)).indexOf(q)>=0;});
+    $('vmCount').textContent=rows.length;
+    $('vmEmptyMsg').style.display=rows.length?'none':'block';
+    $('vmTableBody').innerHTML=rows.map(function(r,i){
+      var c=r.status==='Inactive'?'#c0392b':'#1e8449';
+      return '<tr><td>'+(i+1)+'</td><td><b>'+esc(r.no)+'</b></td><td>'+esc(r.name)+'</td><td>'+esc(r.type)+'</td><td>'+esc(r.contact)+'</td><td>'+esc(r.mobile)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.city)+'</td><td>'+esc(r.terms)+(r.credit_days?' ('+esc(r.credit_days)+' d)':'')+'</td>'+
+        '<td><span style="color:'+c+';font-weight:700;">'+esc(r.status||'Active')+'</span></td><td><button class="pr-add-btn" style="background:#2980b9;padding:3px 8px;" onclick="openVmForm(\''+esc(r.no)+'\')">✏️ Edit</button> <button class="pr-add-btn" style="background:#c0392b;padding:3px 8px;" onclick="deleteVm(\''+esc(r.no)+'\')">🗑 Delete</button></td></tr>';
+    }).join('');
+  };
+  window.openVmForm=function(no){
+    if(!$('vm_name'))build();
+    var r=no?P(KEY,{})[no]:null;editing=r?r.no:null;
+    all().forEach(function(f){var e=$('vm_'+f[0]);if(!e)return;e.value=r?(r[f[0]]==null?'':r[f[0]]):(f[2]==='select'?f[3][0]:'');});
+    if(!r){$('vm_no').value=nextNo();$('vm_country').value='Bangladesh';$('vm_credit_days').value='';}
+    $('vmFormMode').textContent='Vendor ['+(r?'Edit '+r.no:'Insert')+' mode]';
+    $('vmFormError').classList.remove('show');$('vmFormSuccess').classList.remove('show');
+    $('vmFormOverlay').classList.add('active');
+  };
+  window.closeVmForm=function(){$('vmFormOverlay').classList.remove('active');};
+  function err(m){var e=$('vmFormError');e.textContent=m;e.classList.add('show');}
+  window.saveVmForm=function(){
+    var recs=P(KEY,{}),d={};
+    all().forEach(function(f){var e=$('vm_'+f[0]);d[f[0]]=e?String(e.value).trim():'';});
+    if(!d.name){err('Vendor Name is required.');return;}
+    var dup=Object.keys(recs).some(function(k){return k!==editing&&lc(recs[k].name)===lc(d.name);});
+    if(dup){err('A vendor with this name already exists.');return;}
+    if(d.email&&!/^\S+@\S+\.\S+$/.test(d.email)){err('Enter a valid email address.');return;}
+    if(editing){d.no=editing;d.created_by=recs[editing].created_by;d.created_at=recs[editing].created_at;d.updated_at=new Date().toISOString();}
+    else{
+      var n=(parseInt(localStorage.getItem(SER)||'0',10)||0)+1;localStorage.setItem(SER,String(n));
+      d.no='VND-'+String(n).padStart(6,'0');d.created_by=(typeof currentUser!=='undefined'&&currentUser)?(currentUser.name||currentUser.id||''):'';d.created_at=new Date().toISOString();
+    }
+    recs[d.no]=d;localStorage.setItem(KEY,JSON.stringify(recs));
+    closeVmForm();renderVmTable();
+  };
+  window.deleteVm=function(no){
+    if(!confirm('Delete vendor '+no+'?'))return;
+    var recs=P(KEY,{});delete recs[no];localStorage.setItem(KEY,JSON.stringify(recs));renderVmTable();
+  };
 })();
 </script>
 </body></html>
