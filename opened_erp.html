@@ -2737,19 +2737,32 @@
       <div class="menu-item" data-menu="inventory">
         <a href="#">📊 Inventory ▾</a>
         <div class="dropdown" data-parent="inventory">
+          <a href="#" data-sub="item_master" onclick="event.preventDefault(); openImList(); return false;"><span class="arrow">▶</span> Item Master</a>
           <a href="#" data-sub="opening_balance" onclick="event.preventDefault(); openObList(); return false;"><span class="arrow">▶</span> Opening Balance</a>
           <a href="#" data-sub="grn" onclick="event.preventDefault(); openGrnList(); return false;"><span class="arrow">▶</span> Goods Receipt Notes</a>
+          <a href="#" data-sub="direct_grn" onclick="event.preventDefault(); openRtList('direct_grn'); return false;"><span class="arrow">▶</span> Direct GRN</a>
           <a href="#" data-sub="trn" onclick="event.preventDefault(); openStnList(); return false;"><span class="arrow">▶</span> Stock Transfer Notes</a>
           <a href="#" data-sub="vehicle_unload" onclick="event.preventDefault(); openVuList(); return false;"><span class="arrow">▶</span> Vehicle Unload</a>
           <a href="#" data-sub="materials_issue" onclick="event.preventDefault(); openMiList(); return false;"><span class="arrow">▶</span> Materials Issue</a>
           <a href="#" data-sub="materials_return" onclick="event.preventDefault(); openMrList(); return false;"><span class="arrow">▶</span> Materials Issue Return</a>
+          <a href="#" data-sub="direct_issue" onclick="event.preventDefault(); openRtList('direct_issue'); return false;"><span class="arrow">▶</span> Materials Direct Issue</a>
           <a href="#" data-sub="stock_exchange" onclick="event.preventDefault(); openGeList(); return false;"><span class="arrow">▶</span> Goods Exchange</a>
           <a href="#" data-sub="fg_rm_exchange" onclick="event.preventDefault(); openFcrList(); return false;"><span class="arrow">▶</span> FG Convert to RM</a>
           <a href="#" data-sub="positive_adj" onclick="event.preventDefault(); openAdjList(); return false;"><span class="arrow">▶</span> Adjustment</a>
-          <a href="#" data-sub="wastage_management"><span class="arrow">▶</span> Wastage Management</a>
         </div>
       </div>
       <!-- Report -->
+      <!-- Return -->
+      <div class="menu-item" data-menu="return">
+        <a href="#">↩ Return ▾</a>
+        <div class="dropdown" data-parent="return">
+          <a href="#" data-sub="direct_sale" onclick="event.preventDefault(); openRtList('direct_sale'); return false;"><span class="arrow">▶</span> Direct Sale</a>
+          <a href="#" data-sub="sale_return" onclick="event.preventDefault(); openRtList('sale_return'); return false;"><span class="arrow">▶</span> Sale Return</a>
+          <a href="#" data-sub="purchase_return" onclick="event.preventDefault(); openRtList('purchase_return'); return false;"><span class="arrow">▶</span> Purchase Return</a>
+          <a href="#" data-sub="loan_received" onclick="event.preventDefault(); openRtList('loan_received'); return false;"><span class="arrow">▶</span> Loan Received</a>
+          <a href="#" data-sub="loan_return" onclick="event.preventDefault(); openRtList('loan_return'); return false;"><span class="arrow">▶</span> Loan Return</a>
+        </div>
+      </div>
       <div class="menu-item" data-menu="report">
         <a href="#">📈 Report ▾</a>
         <div class="dropdown" data-parent="report">
@@ -2758,7 +2771,6 @@
           <a href="#" data-sub="qc_pass_report" onclick="event.preventDefault(); openReport(&#39;qc&#39;); return false;"><span class="arrow">▶</span> Deliverable Report</a>
           <a href="#" data-sub="vehicle_unload_report" onclick="event.preventDefault(); openReport(&#39;vehicle_unload&#39;); return false;"><span class="arrow">▶</span> Vehicle Unload Status</a>
           <a href="#" data-sub="po_summary" onclick="event.preventDefault(); openReport(&#39;po_summary&#39;); return false;"><span class="arrow">▶</span> PO Summary</a>
-          <a href="#" data-sub="po_vs_receive"><span class="arrow">▶</span> PO vs Receive Report</a>
           <a href="#" data-sub="inventory_valuation" onclick="event.preventDefault(); openIvRep(); return false;"><span class="arrow">▶</span> Inventory Valuation Report</a>
           <a href="#" data-sub="inventory_batch" onclick="event.preventDefault(); openIvBatch(); return false;"><span class="arrow">▶</span> Batch Wise Inventory Report</a>
           <a href="#" data-sub="po_vs_receive" onclick="event.preventDefault(); openPoRcv(); return false;"><span class="arrow">▶</span> PO vs Receive Report</a>
@@ -6465,6 +6477,80 @@ go('home');
     </div>
   </div>
 
+  <datalist id="rtPartyList"></datalist><datalist id="rtRefList"></datalist>
+<div class="str-list-overlay" id="rtListOverlay" onclick="if(event.target===this) closeRtList()">
+  <div class="str-list-outer" style="max-width:1400px; border-radius:8px; border:2px solid #b03a2e; overflow:auto;">
+    <div id="rtListHead" style="background:linear-gradient(135deg, #922b21, #c0392b); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
+      <h2 id="rtListTitle" style="color:#fff; font-size:1.2rem; font-weight:700; margin:0;">↩ Return</h2>
+      <select id="rtModeSel" onchange="setRtMode(this.value)" style="margin:0 auto;min-width:150px;padding:6px 14px;border-radius:4px;font-size:0.82rem;font-weight:700;border:1px solid #ccc;background:#fff;"><option value="draft">Draft</option><option value="complete">Complete</option></select>
+      <button class="str-close-list-btn" onclick="closeRtList()" style="font-size:1rem; width:28px; height:28px;">X</button>
+    </div>
+    <div style="background:#fadbd8; padding:8px 16px; border-bottom:1px solid #f1948a; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+      <span style="font-size:0.88rem; font-weight:700; color:#1e293b;"><span id="rtListSub">Documents</span> (<span id="rtCount">0</span>)</span>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <input type="text" id="rtSearchInput" placeholder="🔍 Search by Doc#, Party, Warehouse, Item..." oninput="renderRtTable()" style="padding:5px 10px; border:1px solid #aaa; border-radius:3px; font-size:0.78rem; min-width:240px;">
+        <button onclick="openRtForm()" title="Add New" style="background:#27ae60; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:1rem; cursor:pointer;">➕</button>
+        <button onclick="renderRtTable()" title="Refresh" style="background:#2980b9; color:#fff; border:none; width:28px; height:28px; border-radius:3px; font-size:0.9rem; cursor:pointer;">🔄</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto; background:#f8f9fa;">
+      <table class="str-table" style="font-size:0.78rem;">
+        <thead><tr><th>SL#</th><th>Doc No</th><th>Date</th><th>Company</th><th>PC</th><th>Warehouse</th><th id="rtPartyTh">Party</th><th>Reference</th><th>Items</th><th>Total Qty</th><th>Total Amount</th><th>Status</th><th>Note</th><th>Created By</th><th>Actions</th></tr></thead>
+        <tbody id="rtTableBody"></tbody>
+      </table>
+      <div id="rtEmptyMsg" style="text-align:center; padding:40px 20px; color:#94a3b8; font-size:0.85rem; display:none;"><span style="font-size:2.5rem; display:block; margin-bottom:10px;">↩</span>No document found.<br>Click "+" to create one.</div>
+    </div>
+  </div>
+</div>
+
+<div class="weight-modal-overlay" id="rtFormOverlay" onclick="if(event.target===this) closeRtForm()">
+    <div class="erp-form-outer" style="max-width:1100px;">
+      <div class="erp-form-titlebar"><h2><span id="rtTitle">Return</span></h2></div>
+      <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>General Information (1)</span></div>
+      <div class="erp-form-card">
+        <div class="erp-form-header"><span id="rtFormMode">Document [Insert mode]</span><button type="button" class="erp-close-btn" onclick="closeRtForm()">X</button></div>
+        <div class="erp-form-body">
+          <div class="erp-field-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="erp-field"><div class="erp-field-label-row"><label for="rt_no" id="rtNoLbl">Doc No</label><span class="erp-info-icon">i</span></div><input type="text" id="rt_no" readonly style="font-weight:700; color:#1e8449; background:#f1f5f9;"></div>
+            <div class="erp-field"><div class="erp-field-label-row"><label for="rt_date">Date</label><span class="erp-info-icon">i</span></div><input type="date" id="rt_date"></div>
+            <div class="erp-field"><div class="erp-field-label-row"><label for="rt_company">Company</label><span class="erp-info-icon">i</span></div><select id="rt_company" class="org-company-select" onchange="onOrgCompanyChange('rt_company','rt_bu','rt_pc')"><option value="">-- Select Company --</option><option value="Astha Feed Industries Ltd">Astha Feed Industries Ltd</option></select></div>
+            <div class="erp-field"><div class="erp-field-label-row"><label for="rt_bu">Business Unit</label><span class="erp-info-icon">i</span></div><select id="rt_bu" onchange="onOrgBuChange('rt_company','rt_bu','rt_pc')"><option value="">-- Select BU --</option></select></div>
+          </div>
+          <div class="erp-field-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="erp-field"><div class="erp-field-label-row"><label for="rt_pc">Profit Center</label><span class="erp-info-icon">i</span></div><select id="rt_pc"><option value="">-- Select Profit Center --</option></select></div>
+            <div class="erp-field"><div class="erp-field-label-row"><label for="rt_wh">Warehouse</label><span class="erp-info-icon">i</span></div><select id="rt_wh" class="pr-warehouse-select"><option value="">-- Select Warehouse --</option></select></div>
+<div class="erp-field"><div class="erp-field-label-row"><label for="rt_party" id="rtPartyLbl">Party</label><span class="erp-info-icon">i</span></div><input type="text" id="rt_party" list="rtPartyList" autocomplete="off"></div>
+            <div class="erp-field"><div class="erp-field-label-row"><label for="rt_ref" id="rtRefLbl">Reference No</label><span class="erp-info-icon">i</span></div><input type="text" id="rt_ref" list="rtRefList" autocomplete="off"></div>
+          </div>
+          <div class="erp-field-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="erp-field" style="grid-column: span 4;"><div class="erp-field-label-row"><label for="rt_note">Note</label><span class="erp-info-icon">i</span></div><input type="text" id="rt_note" placeholder="Note"></div>
+          </div>
+        </div>
+      </div>
+      <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Item Details (2)</span></div>
+      <div class="erp-form-card">
+        <div class="erp-form-header"><span>Document Items</span></div>
+        <div class="erp-form-body">
+          <div class="pr-items-wrap" style="margin-top:0;">
+            <h4>Line Items <button type="button" class="pr-add-item-btn" id="rtAddItemBtn" onclick="addRtItemRow()">➕ Add Item</button></h4>
+            <div class="pr-items-table-scroll">
+              <table class="pr-items-table">
+                <thead><tr><th>Line No.</th><th>Item Category</th><th>Item Name</th><th>Item Code</th><th>UOM</th><th>Quantity</th><th>Rate</th><th>Amount</th><th id="rtBatchTh">Batch No</th><th></th></tr></thead>
+                <tbody id="rtItemsBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="erp-form-messages"><div class="error-msg" id="rtFormError"></div><div class="success-msg" id="rtFormSuccess"></div></div>
+        </div>
+      </div>
+      <div class="erp-form-actions">
+        <button type="button" class="erp-btn" style="background:#8e44ad;" id="rtSaveBtn" onclick="saveRtForm(false)">💾 Save (Draft)</button>
+        <button type="button" class="erp-btn" style="background:#16a34a;" id="rtSubmitBtn" onclick="saveRtForm(true)">✅ Submit</button>
+        <button type="button" class="erp-btn erp-btn-exit" onclick="closeRtForm()">Exit</button>
+      </div>
+    </div>
+  </div>
+
   <div class="str-list-overlay" id="adjListOverlay" onclick="if(event.target===this) closeAdjList()">
     <div class="str-list-outer" style="max-width:1300px; border-radius:8px; border:2px solid #b9770e; overflow:auto;">
       <div style="background:linear-gradient(135deg, #9c640c, #d68910); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
@@ -6768,7 +6854,9 @@ go('home');
       consumption:'Materials Issue (Consumption)',materials_issue_return:'Materials Issue Return',goods_exchange_issue:'Goods Exchange – Issue',goods_exchange_receive:'Goods Exchange – Receive',
       positive_adjustment:'Positive Adjustment',negative_adjustment:'Negative Adjustment',sale:'Sale',sale_return:'Sale Return',purchase_return:'Purchase Return',
       material_direct_issue:'Direct Issue',production_consumption:'RM Consumption (Production)',production_rm_return:'RM Return (PLC Adjustment / Revert)',fg_receive:'FG Receive (Production)',loan_received:'Loan Received',loan_return:'Loan Return',wastage_sale:'Wastage Sale',issue:'Issue'};
-    var OUT=['opening_balance_reversal','production_consumption','consumption','transfer_issue','sto_issue','sale','purchase_return','material_direct_issue','loan_return','goods_exchange_issue','negative_adjustment','wastage_sale','issue'];
+    var OUT=['opening_balance_reversal','production_consumption','consumption','transfer_issue','sto_issue','sale','purchase_return','material_direct_issue','loan_return','goods_exchange_issue','negative_adjustment','wastage_sale','issue','wastage','sale_return_reversal','loan_received_reversal','purchase_reversal'];
+    LABEL.wastage='Wastage';LABEL.wastage_reversal='Wastage Reversal';LABEL.wastage_sale_reversal='Wastage Sale Reversal';
+    LABEL.material_direct_issue_reversal='Direct Issue Reversal';LABEL.purchase_reversal='Purchase / GRN Reversal';LABEL.sale_reversal='Sale Reversal';LABEL.sale_return_reversal='Sale Return Reversal';LABEL.purchase_return_reversal='Purchase Return Reversal';LABEL.loan_received_reversal='Loan Received Reversal';LABEL.loan_return_reversal='Loan Return Reversal';
     function localProd(){try{var d=JSON.parse(localStorage.getItem('erpProd1')||'null');return d&&typeof d==='object'?d:null;}catch(e){return null;}}
     function prodD(){return SH.prod||localProd();}
     var SH={tx:null,prod:null,srl:null,at:'',msg:'',busy:false};
@@ -11875,7 +11963,7 @@ go('home');
 
     // ===== FIREBASE SYNC: AUTO-SAVE on key data changes =====
     var FB_SYNC_KEYS = [
-      'erpProd1','erp_batch_alloc','erp_vendor_records','erp_vendor_serial',
+      'erpProd1','erp_batch_alloc','erp_vendor_records','erp_vendor_serial','erp_item_master','erp_item_serial','erp_ret_records','erp_ret_serial',
       'erp_pr_records','erp_pr_serial',
       'erp_rfq_records','erp_rfq_serial',
       'erp_cs_records','erp_cs_serial',
@@ -20647,6 +20735,7 @@ return btns;
         if (entry.items.indexOf(name) === -1) { entry.items.push(name); }
         entry.itemMap[name] = { code: code || '', uom: uom || '' };
       }
+      try { if (typeof window.__itemMasterMergeInto === 'function') window.__itemMasterMergeInto(groups, hierarchy); } catch (e) {}
       return { groups: groups, hierarchy: hierarchy };
     }
 
@@ -24072,9 +24161,11 @@ return btns;
         var returnable = (parseFloat(mi.issued_qty) || 0) - totalReturned;
         return '<option value="' + ref + '">' + ref + ' — ' + (mi.material_name || '') + ' (Returnable: ' + returnable + ' ' + (mi.uom || '') + ')</option>';
       }).join('');
+      if (window.__mdiOptions) window.__mdiOptions(select);
     }
 
     function autofillMrFromMi(miRef) {
+      if (String(miRef).indexOf('#') > 0 && window.__mdiAutofill) { clearMrAutofillFields(); window.__mdiAutofill(miRef); return; }
       clearMrAutofillFields();
       if (!miRef) return;
       var miRecords = JSON.parse(localStorage.getItem(MI_STORAGE_KEY) || '{}');
@@ -37030,7 +37121,7 @@ return btns;
     }
 
     var DATA_IO_KEYS = [
-      'erpProd1', 'erp_batch_alloc', 'erp_vendor_records', 'erp_vendor_serial', 'erp_ap_inv_records','erp_ap_inv_serial','erp_ap_pay_records','erp_ap_pay_serial',
+      'erpProd1', 'erp_batch_alloc', 'erp_vendor_records', 'erp_vendor_serial', 'erp_item_master', 'erp_item_serial', 'erp_ret_records', 'erp_ret_serial', 'erp_ap_inv_records','erp_ap_inv_serial','erp_ap_pay_records','erp_ap_pay_serial',
       'erp_appraisal_records','erp_appraisal_serial','erp_ar_inv_records','erp_ar_inv_serial',
       'erp_ar_rec_records','erp_ar_rec_serial','erp_asset_dep_records','erp_asset_dep_serial',
       'erp_asset_records','erp_asset_serial','erp_asset_transfer_records','erp_asset_transfer_serial',
@@ -37293,7 +37384,7 @@ return btns;
 <script id="mmInlinePagesJs">
 (function () {
   // MM module pages open inline (like the Production module) instead of as pop-up windows.
-  var IDS = ["w1ListOverlay", "w2ListOverlay", "weightFormOverlay", "qc1FormOverlay", "qc1ListOverlay", "qc2FormOverlay", "qc2ListOverlay", "reportOverlay", "prListOverlay", "strListOverlay", "strFormOverlay", "srListOverlay", "srFormOverlay", "miListOverlay", "miFormOverlay", "mrListOverlay", "mrFormOverlay", "stockReportOverlay", "toListOverlay", "toFormOverlay", "stnListOverlay", "stnFormOverlay", "grnListOverlay", "grnFormOverlay", "vuListOverlay", "vuFormOverlay", "prFormOverlay", "rfqFormOverlay", "csFormOverlay", "poFormOverlay", "gateInFormOverlay", "giListOverlay", "goListOverlay", "goFormOverlay", "geListOverlay", "geFormOverlay", "adjListOverlay", "adjFormOverlay", "geReportOverlay", "adjReportOverlay", "mvReportOverlay", "fcrListOverlay", "fcrFormOverlay", "obListOverlay", "obFormOverlay", "ivReportOverlay", "ivBatchOverlay", "poRcvOverlay", "vmListOverlay", "vmFormOverlay"];
+  var IDS = ["w1ListOverlay", "w2ListOverlay", "weightFormOverlay", "qc1FormOverlay", "qc1ListOverlay", "qc2FormOverlay", "qc2ListOverlay", "reportOverlay", "prListOverlay", "strListOverlay", "strFormOverlay", "srListOverlay", "srFormOverlay", "miListOverlay", "miFormOverlay", "mrListOverlay", "mrFormOverlay", "stockReportOverlay", "toListOverlay", "toFormOverlay", "stnListOverlay", "stnFormOverlay", "grnListOverlay", "grnFormOverlay", "vuListOverlay", "vuFormOverlay", "prFormOverlay", "rfqFormOverlay", "csFormOverlay", "poFormOverlay", "gateInFormOverlay", "giListOverlay", "goListOverlay", "goFormOverlay", "geListOverlay", "geFormOverlay", "adjListOverlay", "adjFormOverlay", "geReportOverlay", "adjReportOverlay", "mvReportOverlay", "fcrListOverlay", "fcrFormOverlay", "obListOverlay", "obFormOverlay", "ivReportOverlay", "ivBatchOverlay", "poRcvOverlay", "vmListOverlay", "vmFormOverlay", "imListOverlay", "imFormOverlay", "rtListOverlay", "rtFormOverlay"];
   var stack = [];
   function mmRoot() { return document.getElementById('module-mm'); }
   function host() {
@@ -37971,10 +38062,321 @@ return btns;
     r.items.forEach(function (i) {
       adjustStock(r.warehouse, i.item_code, i.item_name, -num(i.qty));
       logStockTransaction('opening_balance_reversal', i.item_code, i.item_name, i.item_category || '', i.uom, r.warehouse, num(i.qty), today(), ref);
-      delete i.batch_no;
+      if (i.batch_no) { var AA = []; try { AA = JSON.parse(localStorage.getItem('erp_batch_alloc') || '[]'); } catch (e) {} if (!Array.isArray(AA)) AA = []; AA.push({ ref: ref + '-REV', wh: r.warehouse, code: i.item_code || '', name: i.item_name, batch: i.batch_no, qty: num(i.qty), date: today() }); localStorage.setItem('erp_batch_alloc', JSON.stringify(AA)); }
     });
     r.status = 'Draft'; o[ref] = r; save(o);
     mode = 'draft'; $('obModeSel').value = 'draft'; window.renderObTable();
+  };
+})();
+</script>
+
+
+<script id="rtJs">
+(function () {
+  var KEY = 'erp_ret_records', SER = 'erp_ret_serial', mode = 'draft', rowSeq = 0, editing = null, readOnly = false, kind = 'direct_sale';
+  var CFG = {
+    direct_sale:     { title: 'Direct Sale',     pfx: 'DSL', type: 'sale',            rev: 'sale_reversal',            out: true,  party: 'Customer', ref: 'Order / Invoice Ref', color: ['#145a32', '#1e8449'] },
+    sale_return:     { title: 'Sale Return',     pfx: 'SRT', type: 'sale_return',     rev: 'sale_return_reversal',     out: false, party: 'Customer', ref: 'Original Sale Ref', color: ['#1a5276', '#2471a3'] },
+    purchase_return: { title: 'Purchase Return', pfx: 'PRT', type: 'purchase_return', rev: 'purchase_return_reversal', out: true,  party: 'Supplier', ref: 'GRN / PO Ref', color: ['#7d3c98', '#a569bd'] },
+    loan_received:   { title: 'Loan Received',   pfx: 'LNR', type: 'loan_received',   rev: 'loan_received_reversal',   out: false, party: 'Lender',   ref: 'Loan Agreement / Ref', color: ['#b9770e', '#d68910'] },
+    direct_grn:      { title: 'Direct GRN',    pfx: 'DGRN', type: 'purchase',      rev: 'purchase_reversal',      out: false, party: 'Supplier', ref: 'Supplier Invoice / Challan No', color: ['#145a32', '#27ae60'] },
+    direct_issue:    { title: 'Materials Direct Issue', pfx: 'MDI', type: 'material_direct_issue', rev: 'material_direct_issue_reversal', out: true, party: 'Issued To (Dept / Person)', ref: 'Requisition / Purpose Ref', color: ['#1a5276', '#2e86c1'] },
+    loan_return:     { title: 'Loan Return',     pfx: 'LNT', type: 'loan_return',     rev: 'loan_return_reversal',     out: true,  party: 'Lender',   ref: 'Loan Received Ref', color: ['#922b21', '#c0392b'] }
+  };
+  var $ = function (i) { return document.getElementById(i); };
+  function C() { return CFG[kind]; }
+  function recs() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function today() { return new Date().toISOString().split('T')[0]; }
+  function who() { return (typeof currentUser !== 'undefined' && currentUser) ? currentUser.name : ''; }
+  function num(x) { return parseFloat(x) || 0; }
+  function serObj() { try { return JSON.parse(localStorage.getItem(SER) || '{}') || {}; } catch (e) { return {}; } }
+  function nextRef() { var s = serObj(); return C().pfx + '-' + String((s[C().pfx] || 0) + 1).padStart(6, '0'); }
+  function totalAmt(r) { return Math.round((r.items || []).reduce(function (a, i) { return a + num(i.qty) * num(i.rate); }, 0) * 100) / 100; }
+  function total(r) { return Math.round((r.items || []).reduce(function (a, i) { return a + num(i.qty); }, 0) * 1000) / 1000; }
+  function skin() {
+    var c = C();
+    $('rtListHead').style.background = 'linear-gradient(135deg,' + c.color[0] + ',' + c.color[1] + ')';
+    $('rtListTitle').textContent = '↩ ' + c.title; $('rtListSub').textContent = c.title + ' Documents'; $('rtPartyTh').textContent = c.party;
+    $('rtTitle').textContent = c.title; $('rtNoLbl').textContent = c.title + ' No'; $('rtPartyLbl').textContent = c.party; $('rtRefLbl').textContent = c.ref;
+    $('rtBatchTh').textContent = c.out ? 'Batch No (FIFO)' : 'Batch No (auto)';
+  }
+  function fillLists() {
+    var vend = {}, v = {}; if (kind === 'wastage_entry') { ['Damaged','Expired','Spillage','Moisture / Quality Loss','Pest / Insect Damage','Shortage','Process Loss','Other'].forEach(function (x) { vend[x] = 1; }); $('rtPartyList').innerHTML = Object.keys(vend).map(function (x) { return '<option value="' + x + '">'; }).join(''); }
+    else try { v = JSON.parse(localStorage.getItem('erp_vendor_records') || '{}'); } catch (e) {}
+    Object.keys(v).forEach(function (k) { if ((v[k].status || 'Active') === 'Active') vend[v[k].name] = 1; });
+    var o = recs(); if (kind !== 'wastage_entry') Object.keys(o).forEach(function (k) { if (o[k].party && (o[k].kind === kind || kind === 'purchase_return')) vend[o[k].party] = 1; });
+    if (kind !== 'wastage_entry') $('rtPartyList').innerHTML = Object.keys(vend).sort().map(function (x) { return '<option value="' + esc(x) + '">'; }).join('');
+    var refs = {};
+    if (kind === 'purchase_return') { var g = {}; try { g = JSON.parse(localStorage.getItem('erp_grn_records') || '{}'); } catch (e) {} Object.keys(g).forEach(function (k) { if (g[k].status === 'Approved') refs[k] = 1; }); }
+    if (kind === 'sale_return') Object.keys(o).forEach(function (k) { if (o[k].kind === 'direct_sale' && o[k].status === 'Completed') refs[k] = 1; });
+    if (kind === 'loan_return') Object.keys(o).forEach(function (k) { if (o[k].kind === 'loan_received' && o[k].status === 'Completed') refs[k] = 1; });
+    $('rtRefList').innerHTML = Object.keys(refs).sort().map(function (x) { return '<option value="' + esc(x) + '">'; }).join('');
+  }
+
+
+  // ---- Materials Return (issue return) alignment: Direct Issue lines can be returned through the Materials Return form ----
+  function mrReturned(value) {
+    var mrs = {}; try { mrs = JSON.parse(localStorage.getItem('erp_mr_records') || '{}'); } catch (e) {}
+    var t = 0; Object.keys(mrs).forEach(function (k) { var m = mrs[k]; if (m.mi_ref === value && (m.status === 'Approved' || m.status === 'Pending')) t += parseFloat(m.return_qty) || 0; });
+    return t;
+  }
+  window.__mdiOptions = function (select) {
+    var o = recs();
+    Object.keys(o).sort().forEach(function (k) {
+      var d = o[k]; if (d.kind !== 'direct_issue' || d.status !== 'Completed') return;
+      (d.items || []).forEach(function (it) {
+        var v = d.ref_no + '#' + it.line_no, left = num(it.qty) - mrReturned(v);
+        if (left <= 0) return;
+        var op = document.createElement('option'); op.value = v;
+        op.textContent = v + ' — ' + it.item_name + ' (Returnable: ' + left + ' ' + (it.uom || '') + ') [Direct Issue]';
+        select.appendChild(op);
+      });
+    });
+  };
+  window.__mdiAutofill = function (value) {
+    var ref = String(value).split('#')[0], line = String(value).split('#')[1], d = recs()[ref]; if (!d) return false;
+    var it = (d.items || []).filter(function (x) { return String(x.line_no) === line; })[0]; if (!it) return false;
+    var ret = mrReturned(value), left = Math.max(0, num(it.qty) - ret);
+    $('mr_material_name').value = it.item_name || ''; $('mr_material_code').value = it.item_code || ''; $('mr_uom').value = it.uom || '';
+    $('mr_issued_qty').value = it.qty || ''; $('mr_warehouse').value = d.warehouse || ''; $('mr_department').value = d.party || '';
+    $('mr_already_returned').value = ret || 0; $('mr_returnable_qty').value = left;
+    var q = $('mr_return_qty'); if (q && !q.value) q.value = left || '';
+    return true;
+  };
+
+  window.setRtMode = function (m) { mode = m; window.renderRtTable(); };
+  window.openRtList = function (k, keep) {
+    if (k) kind = k; if (!keep) mode = 'draft';
+    skin(); $('rtModeSel').value = mode; $('rtSearchInput').value = '';
+    window.renderRtTable(); $('rtListOverlay').classList.add('active');
+  };
+  window.closeRtList = function () { $('rtListOverlay').classList.remove('active'); };
+  window.renderRtTable = function () {
+    var o = recs(), q = ($('rtSearchInput').value || '').toLowerCase();
+    var list = Object.keys(o).sort().map(function (k) { return o[k]; }).filter(function (r) {
+      if (r.kind !== kind) return false;
+      if ((mode === 'draft') !== (r.status === 'Draft')) return false;
+      var hay = [r.ref_no, r.warehouse, r.company, r.pc, r.party, r.ref, r.note].concat((r.items || []).map(function (i) { return i.item_name + ' ' + i.item_code; })).join(' ').toLowerCase();
+      return !q || hay.indexOf(q) !== -1;
+    });
+    $('rtCount').textContent = list.length;
+    var tb = $('rtTableBody');
+    if (!list.length) { tb.innerHTML = ''; $('rtEmptyMsg').style.display = 'block'; return; }
+    $('rtEmptyMsg').style.display = 'none';
+    tb.innerHTML = list.map(function (r, i) {
+      var b = '<button class="str-action-btn str-btn-view" onclick="viewRt(\'' + r.ref_no + '\')" title="View">👁</button>';
+      if (r.status === 'Draft') {
+        b += '<span class="mm-draft-pill">Draft</span><button class="mm-edit-btn" onclick="editRt(\'' + r.ref_no + '\')">✏ Edit</button>' +
+          '<button class="str-action-btn" style="background:#16a34a;color:#fff;width:auto;padding:4px 8px;" onclick="submitRtRecord(\'' + r.ref_no + '\')">✅ Submit</button>' +
+          '<button class="str-action-btn" style="background:#dc2626;color:#fff;width:auto;padding:4px 8px;" onclick="deleteRt(\'' + r.ref_no + '\')">🗑</button>';
+      } else b += '<button class="mm-revert-btn" onclick="revertRt(\'' + r.ref_no + '\')">↩ Revert</button>';
+      return '<tr><td style="text-align:center;">' + (i + 1) + '</td><td><strong style="color:#922b21;">' + esc(r.ref_no) + '</strong></td><td>' + esc(r.date) + '</td><td>' + esc(r.company) + '</td><td>' + esc(r.pc) + '</td><td>' + esc(r.warehouse) + '</td><td>' + esc(r.party) + '</td><td>' + esc(r.ref) + '</td>' +
+        '<td>' + (r.items || []).length + '</td><td style="font-weight:700;">' + total(r) + '</td><td style="font-weight:700;">' + totalAmt(r).toFixed(2) + '</td><td><span class="pr-status-badge ' + (r.status === 'Draft' ? 'pr-status-draft' : 'pr-status-approved') + '">' + esc(r.status) + '</span></td><td>' + esc(r.note) + '</td><td>' + esc(r.created_by) + '</td><td>' + b + '</td></tr>';
+    }).join('');
+  };
+
+  // ---------- form ----------
+  function rowIdOf(tr) { return tr.id.replace('rt_item_row_', ''); }
+  function allocFifo(wh, ids, q) {
+    var L = window.__ivBatchAvail ? window.__ivBatchAvail(wh, ids) : [], out = [], r = q;
+    L.forEach(function (z) { if (r <= 1e-9) return; var t = Math.min(r, z.bal); out.push({ b: z.batch, q: Math.round(t * 1000) / 1000 }); r = Math.round((r - t) * 1000) / 1000; });
+    if (r > 1e-9) out.push({ b: '(No Batch)', q: r });
+    return out;
+  }
+  function batchTxt(a) { return (a || []).map(function (z) { return z.b + ' : ' + z.q; }).join(' | '); }
+  window.addRtItemRow = function (it) {
+    rowSeq += 1; var id = rowSeq, tb = $('rtItemsBody');
+    var tr = document.createElement('tr'); tr.id = 'rt_item_row_' + id;
+    tr.innerHTML = '<td><input type="text" readonly class="pr-line-no" value="' + (tb.children.length + 1) * 10 + '"></td>' +
+      '<td><select class="pr-item-cat-select" id="rt_item_cat_' + id + '" onchange="onRtRowCategoryChange(' + id + ')"></select></td>' +
+      '<td><select id="rt_item_name_' + id + '" onchange="onRtRowItemNameChange(' + id + ')"><option value="">-- Select --</option></select></td>' +
+      '<td><input type="text" readonly id="rt_item_code_' + id + '"></td><td><input type="text" readonly id="rt_item_uom_' + id + '"></td>' +
+      '<td><input type="number" step="0.01" min="0" placeholder="0.00" id="rt_item_qty_' + id + '" oninput="calcRtRow(' + id + ')"></td>' +
+      '<td><input type="number" step="0.0001" min="0" placeholder="0.00" id="rt_item_rate_' + id + '" oninput="calcRtRow(' + id + ')"></td>' +
+      '<td><input type="text" readonly id="rt_item_amt_' + id + '" style="text-align:right;"></td>' +
+      '<td><input type="text" readonly id="rt_item_batch_' + id + '" style="min-width:170px;"></td>' +
+      '<td><button type="button" class="pr-remove-item-btn" onclick="removeRtItemRow(' + id + ')">✕</button></td>';
+    tb.appendChild(tr);
+    prFillCategorySelect($('rt_item_cat_' + id));
+    if (it) {
+      $('rt_item_cat_' + id).value = it.item_category || ''; window.onRtRowCategoryChange(id);
+      $('rt_item_name_' + id).value = it.item_name || '';
+      $('rt_item_code_' + id).value = it.item_code || ''; $('rt_item_uom_' + id).value = it.uom || '';
+      $('rt_item_qty_' + id).value = it.qty || ''; $('rt_item_rate_' + id).value = it.rate || ''; window.calcRtRow(id);
+      if (it.batches) $('rt_item_batch_' + id).value = batchTxt(it.batches); else if (it.batch_no) $('rt_item_batch_' + id).value = it.batch_no;
+    }
+    return id;
+  };
+  window.calcRtRow = function (id) {
+    var q = parseFloat($('rt_item_qty_' + id).value), r = parseFloat($('rt_item_rate_' + id).value);
+    $('rt_item_amt_' + id).value = (isNaN(q) || isNaN(r)) ? '' : (Math.round(q * r * 100) / 100).toFixed(2);
+    var b = $('rt_item_batch_' + id);
+    if (readOnly) return;
+    if (C().out && q > 0) { var code = $('rt_item_code_' + id).value, name = $('rt_item_name_' + id).value; b.value = batchTxt(allocFifo($('rt_wh').value, [code, name], q)); }
+    else b.value = C().out ? '' : '(generated on Submit)';
+  };
+  window.removeRtItemRow = function (id) {
+    var r = $('rt_item_row_' + id); if (r) r.remove();
+    [].forEach.call($('rtItemsBody').children, function (tr, i) { tr.querySelector('.pr-line-no').value = (i + 1) * 10; });
+  };
+  window.onRtRowCategoryChange = function (id) {
+    var cat = $('rt_item_cat_' + id).value, sel = $('rt_item_name_' + id);
+    sel.innerHTML = '<option value="">-- Select --</option>'; $('rt_item_code_' + id).value = ''; $('rt_item_uom_' + id).value = '';
+    var e = PR_ITEM_DATA.hierarchy && PR_ITEM_DATA.hierarchy[cat];
+    if (e) e.items.forEach(function (n) { var op = document.createElement('option'); op.value = n; op.textContent = n; sel.appendChild(op); });
+  };
+  window.onRtRowItemNameChange = function (id) {
+    var cat = $('rt_item_cat_' + id).value, n = $('rt_item_name_' + id).value;
+    var e = PR_ITEM_DATA.hierarchy && PR_ITEM_DATA.hierarchy[cat], it = e && e.itemMap[n];
+    $('rt_item_code_' + id).value = it ? it.code : ''; $('rt_item_uom_' + id).value = it ? it.uom : ''; window.calcRtRow(id);
+  };
+  function collect() {
+    var out = [];
+    [].forEach.call($('rtItemsBody').children, function (tr) {
+      var id = rowIdOf(tr), n = $('rt_item_name_' + id).value; if (!n) return;
+      out.push({ line_no: tr.querySelector('.pr-line-no').value, item_category: $('rt_item_cat_' + id).value, item_name: n, item_code: $('rt_item_code_' + id).value, uom: $('rt_item_uom_' + id).value,
+        qty: $('rt_item_qty_' + id).value, rate: $('rt_item_rate_' + id).value, amount: $('rt_item_amt_' + id).value });
+    });
+    return out;
+  }
+  function setReadOnly(ro) {
+    readOnly = ro;
+    ['rtSaveBtn', 'rtSubmitBtn', 'rtAddItemBtn'].forEach(function (i) { $(i).style.display = ro ? 'none' : ''; });
+    [].forEach.call($('rtFormOverlay').querySelectorAll('input:not([readonly]),select,.pr-remove-item-btn'), function (e) { e.disabled = ro; });
+  }
+  window.openRtForm = function (ref, ro) {
+    skin(); fillLists();
+    $('rtFormError').textContent = ''; $('rtFormSuccess').textContent = '';
+    var r = ref ? recs()[ref] : null; if (r) kind = r.kind; editing = r ? ref : null;
+    if (r) skin();
+    $('rtItemsBody').innerHTML = '';
+    setReadOnly(false);
+    if (r) {
+      $('rt_no').value = r.ref_no; $('rt_date').value = r.date || today(); $('rt_note').value = r.note || ''; $('rt_party').value = r.party || ''; $('rt_ref').value = r.ref || '';
+      var c = $('rt_company'); c.value = r.company || ''; onOrgCompanyChange('rt_company', 'rt_bu', 'rt_pc');
+      $('rt_bu').value = r.bu || ''; onOrgBuChange('rt_company', 'rt_bu', 'rt_pc'); $('rt_pc').value = r.pc || '';
+      var w = $('rt_wh'); if (r.warehouse && ![].some.call(w.options, function (o) { return o.value === r.warehouse; })) { var op = document.createElement('option'); op.value = r.warehouse; op.textContent = r.warehouse; w.appendChild(op); }
+      w.value = r.warehouse || '';
+      (r.items && r.items.length ? r.items : [null]).forEach(function (it) { window.addRtItemRow(it); });
+      $('rtFormMode').textContent = C().title + ' [' + (ro ? 'View' : 'Edit') + ' mode]';
+    } else {
+      $('rt_no').value = nextRef(); $('rt_date').value = today(); $('rt_note').value = ''; $('rt_party').value = ''; $('rt_ref').value = '';
+      $('rt_company').value = ''; onOrgCompanyChange('rt_company', 'rt_bu', 'rt_pc'); $('rt_wh').value = '';
+      window.addRtItemRow();
+      $('rtFormMode').textContent = C().title + ' [Insert mode]';
+    }
+    if (ro) setReadOnly(true);
+    $('rt_wh').onchange = function () { [].forEach.call($('rtItemsBody').children, function (tr) { window.calcRtRow(rowIdOf(tr)); }); };
+    $('rtFormOverlay').classList.add('active');
+  };
+  window.closeRtForm = function () { $('rtFormOverlay').classList.remove('active'); };
+  window.viewRt = function (ref) { window.closeRtList(); setTimeout(function () { window.openRtForm(ref, true); }, 150); };
+  window.editRt = function (ref) { window.closeRtList(); setTimeout(function () { window.openRtForm(ref); }, 150); };
+
+  function build() {
+    var prev = editing ? recs()[editing] : null;
+    return { ref_no: $('rt_no').value, kind: kind, type: C().type, date: $('rt_date').value || today(), company: $('rt_company').value, bu: $('rt_bu').value, pc: $('rt_pc').value, warehouse: $('rt_wh').value,
+      party: $('rt_party').value.trim(), ref: $('rt_ref').value.trim(), note: $('rt_note').value.trim(), items: collect(), status: 'Draft', created_by: prev ? prev.created_by : who(), created_at: prev ? prev.created_at : new Date().toISOString() };
+  }
+  function validate(r) {
+    var c = CFG[r.kind];
+    if (!r.date) return 'Date is required.';
+    if (!r.company) return 'Select a company.';
+    if (!r.warehouse) return 'Select a warehouse.';
+    if (!r.party) return c.party + ' is required.';
+    if (!r.items.length) return 'Add at least one item.';
+    var need = {};
+    for (var i = 0; i < r.items.length; i++) {
+      var it = r.items[i];
+      if (!(num(it.qty) > 0)) return 'Enter a quantity for ' + it.item_name + '.';
+      if (it.rate === '' || it.rate == null || isNaN(parseFloat(it.rate)) || parseFloat(it.rate) < 0) return 'Enter a rate for ' + it.item_name + '.';
+      var k = (it.item_code || it.item_name); need[k] = (need[k] || 0) + num(it.qty);
+    }
+    if (c.out) {
+      for (var j = 0; j < r.items.length; j++) {
+        var x = r.items[j], k2 = (x.item_code || x.item_name), have = getStockQty(r.warehouse, x.item_code, x.item_name);
+        if (have + 0.00001 < need[k2]) return 'Not enough stock of ' + x.item_name + ' in ' + r.warehouse + ' (available ' + have + ', needed ' + need[k2] + ').';
+      }
+    }
+    return '';
+  }
+  function allocAdd(ref, r, i, a) {
+    var A = []; try { A = JSON.parse(localStorage.getItem('erp_batch_alloc') || '[]'); } catch (e) {} if (!Array.isArray(A)) A = [];
+    a.forEach(function (z) { A.push({ ref: ref, wh: r.warehouse, code: i.item_code || '', name: i.item_name, batch: z.b, qty: z.q, date: r.date }); });
+    localStorage.setItem('erp_batch_alloc', JSON.stringify(A));
+  }
+  function allocDrop(ref) {
+    var A = []; try { A = JSON.parse(localStorage.getItem('erp_batch_alloc') || '[]'); } catch (e) {} if (!Array.isArray(A)) return;
+    localStorage.setItem('erp_batch_alloc', JSON.stringify(A.filter(function (z) { return z.ref !== ref; })));
+  }
+  function post(r) {
+    var c = CFG[r.kind];
+    r.items.forEach(function (i) {
+      var q = num(i.qty);
+      if (c.out) {
+        i.batches = allocFifo(r.warehouse, [i.item_code, i.item_name], q);   // FIFO, computed BEFORE the stock movement is logged
+        adjustStock(r.warehouse, i.item_code, i.item_name, -q);
+        logStockTransaction(c.type, i.item_code, i.item_name, i.item_category || '', i.uom, r.warehouse, q, r.date, r.ref_no);
+        allocAdd(r.ref_no, r, i, i.batches);
+      } else {
+        i.batch_no = i.batch_no || generateItemBatchNo(r.pc || '', i.item_name || i.item_code || '');
+        adjustStock(r.warehouse, i.item_code, i.item_name, q);
+        logStockTransaction(c.type, i.item_code, i.item_name, i.item_category || '', i.uom, r.warehouse, q, r.date, r.ref_no);
+      }
+    });
+    r.status = 'Completed'; r.submitted_at = new Date().toISOString();
+  }
+  window.saveRtForm = function (submit) {
+    if (readOnly) return;
+    var r = build(), err = (submit ? validate(r) : (r.warehouse || r.items.length || r.party || r.note ? '' : 'Fill in the form before saving.'));
+    if (err) { $('rtFormError').textContent = '❌ ' + err; return; }
+    var o = recs();
+    if (!editing) { var s = serObj(); s[C().pfx] = (s[C().pfx] || 0) + 1; localStorage.setItem(SER, JSON.stringify(s)); }
+    if (submit) post(r);
+    o[r.ref_no] = r; save(o);
+    $('rtFormSuccess').textContent = submit ? '✅ ' + C().title + ' submitted — stock updated in ' + r.warehouse + '. (' + r.ref_no + ')' : '✅ ' + C().title + ' saved as Draft. (' + r.ref_no + ')';
+    setTimeout(function () { window.closeRtForm(); if (submit) mode = 'complete'; window.openRtList(kind, true); }, 700);
+  };
+  window.submitRtRecord = function (ref) {
+    var o = recs(), r = o[ref]; if (!r) return;
+    var err = validate(r); if (err) { alert('Open Edit and fix: ' + err); return; }
+    post(r); o[ref] = r; save(o);
+    mode = 'complete'; $('rtModeSel').value = 'complete'; window.renderRtTable();
+  };
+  window.deleteRt = function (ref) {
+    if (!confirm('Delete Draft ' + ref + '?')) return;
+    var o = recs(); if (o[ref] && o[ref].status === 'Draft') { delete o[ref]; save(o); } window.renderRtTable();
+  };
+  window.revertRt = function (ref) {
+    var o = recs(), r = o[ref]; if (!r || r.status === 'Draft') return;
+    var c = CFG[r.kind];
+    if (r.kind === 'direct_issue') {
+      var mrs = {}; try { mrs = JSON.parse(localStorage.getItem('erp_mr_records') || '{}'); } catch (e) {}
+      var used = Object.keys(mrs).some(function (k) { return String(mrs[k].mi_ref || '').indexOf(ref + '#') === 0 && (mrs[k].status === 'Approved' || mrs[k].status === 'Pending'); });
+      if (used) { alert('Cannot revert ' + ref + ': a Materials Issue Return already exists against it. Revert that return first.'); return; }
+    }
+    if (!c.out) {
+      var bad = (r.items || []).filter(function (i) { return getStockQty(r.warehouse, i.item_code, i.item_name) + 0.00001 < num(i.qty); });
+      if (bad.length) { alert('Cannot revert ' + ref + ': stock of ' + bad.map(function (i) { return i.item_name; }).join(', ') + ' has already been used.'); return; }
+    }
+    if (!confirm('Revert ' + ref + ' back to Draft? The stock movement will be reversed.')) return;
+    r.items.forEach(function (i) {
+      var q = num(i.qty);
+      if (c.out) {
+        adjustStock(r.warehouse, i.item_code, i.item_name, q);
+        logStockTransaction(c.rev, i.item_code, i.item_name, i.item_category || '', i.uom, r.warehouse, q, today(), ref);
+        delete i.batches;
+      } else {
+        adjustStock(r.warehouse, i.item_code, i.item_name, -q);
+        logStockTransaction(c.rev, i.item_code, i.item_name, i.item_category || '', i.uom, r.warehouse, q, today(), ref);
+        if (i.batch_no) allocAdd(ref + '-REV', r, i, [{ b: i.batch_no, q: q }]);
+      }
+    });
+    if (c.out) allocDrop(ref);
+    r.status = 'Draft'; o[ref] = r; save(o);
+    mode = 'draft'; $('rtModeSel').value = 'draft'; window.renderRtTable();
   };
 })();
 </script>
@@ -38008,12 +38410,12 @@ return btns;
   function n(v){return parseFloat(v)||0;}
   function f2(v){return (Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
   function f3(v){return (Math.round(v*1000)/1000).toLocaleString('en-US',{maximumFractionDigits:3});}
-  var OUT=['opening_balance_reversal','production_consumption','consumption','transfer_issue','sto_issue','sale','purchase_return','material_direct_issue','loan_return','goods_exchange_issue','negative_adjustment','wastage_sale','issue'];
+  var OUT=['opening_balance_reversal','production_consumption','consumption','transfer_issue','sto_issue','sale','purchase_return','material_direct_issue','loan_return','goods_exchange_issue','negative_adjustment','wastage_sale','issue','wastage','sale_return_reversal','loan_received_reversal','purchase_reversal'];
   var DATA=null;
   function lc(x){return String(x||'').trim().toLowerCase();}
   function build(){
     var txns=P('erp_stock_transactions',[]); if(!Array.isArray(txns))txns=[];
-    var ob=P('erp_ob_records',{}),grn=P('erp_grn_records',{}),po=P('erp_po_records',{}),stn=P('erp_stn_records',{}),sto=P('erp_to_records',{});
+    var ob=P('erp_ob_records',{}),grn=P('erp_grn_records',{}),po=P('erp_po_records',{}),stn=P('erp_stn_records',{}),sto=P('erp_to_records',{});var ret=P('erp_ret_records',{});
     var whPc={};
     Object.keys(ob).forEach(function(k){var r=ob[k];if(r.warehouse&&r.pc)whPc[lc(r.warehouse)]=r.pc;});
     Object.keys(grn).forEach(function(k){var r=grn[k],w=r.warehouse||r.store||r.receiving_warehouse;if(w&&r.profit_center)whPc[lc(w)]=r.profit_center;});
@@ -38039,6 +38441,9 @@ return btns;
       }else if(e.type==='purchase'){
         cat='grn';found=false;var g=grn[e.ref]||find(grn,function(x){return x.grn_no===e.ref;});
         if(g){var pr=po[g.po_no||g.gi_po_no];if(pr&&n(pr.rate)>0){rate=n(pr.rate);found=true;}if(!e.pc&&g.profit_center)e.pc=g.profit_center;}
+        else if(ret[e.ref]&&ret[e.ref].items){var dr=ret[e.ref].items.filter(function(x){return lc(x.item_code||x.item_name)===e.key||lc(x.item_name)===lc(e.name);})[0];if(dr&&n(dr.rate)>0){rate=n(dr.rate);found=true;}if(!e.pc&&ret[e.ref].pc)e.pc=ret[e.ref].pc;}
+      }else if((e.type==='sale_return'||e.type==='loan_received')&&e.d>0){
+        found=false;var rr=ret[e.ref];if(rr&&rr.items){var ri=rr.items.filter(function(x){return lc(x.item_code||x.item_name)===e.key||lc(x.item_name)===lc(e.name);})[0];if(ri&&n(ri.rate)>0){rate=n(ri.rate);found=true;}}
       }else if(e.type==='transfer_received'){
         cat='trf';found=false;var sr=stn[e.ref],so=sr&&sto[sr.to_ref];
         if(so&&so.from_warehouse){var ss=st(so.from_warehouse,e.key);if(ss.q>0){rate=ss.v/ss.q;found=true;}else{
@@ -38049,8 +38454,9 @@ return btns;
       e.cat=cat;
       if(e.d>0){
         if(e.type==='opening_balance'){var ro=ob[e.ref];if(ro&&ro.items){var bi=ro.items.filter(function(x){return lc(x.item_code||x.item_name)===e.key||lc(x.item_name)===lc(e.name);})[0];if(bi)e.batch=bi.batch_no||'';}}
-        else if(e.type==='purchase'){var gg=grn[e.ref]||find(grn,function(x){return x.grn_no===e.ref;});if(gg)e.batch=gg.batch_no||'';}
+        else if(e.type==='purchase'){var gg=grn[e.ref]||find(grn,function(x){return x.grn_no===e.ref;});if(gg)e.batch=gg.batch_no||'';else if(ret[e.ref]&&ret[e.ref].items){var db=ret[e.ref].items.filter(function(x){return lc(x.item_code||x.item_name)===e.key||lc(x.item_name)===lc(e.name);})[0];if(db)e.batch=db.batch_no||'';}}
         else if(e.type==='transfer_received'){var sn=stn[e.ref];if(sn)e.batch=sn.batch_no||'';}
+        else if(e.type==='sale_return'||e.type==='loan_received'){var rr2=ret[e.ref];if(rr2&&rr2.items){var bi2=rr2.items.filter(function(x){return lc(x.item_code||x.item_name)===e.key||lc(x.item_name)===lc(e.name);})[0];if(bi2)e.batch=bi2.batch_no||'';}}
       }
       if(e.d>=0){e.rate=rate;e.val=e.d*rate;e.found=found&&(rate>0||e.d===0);}
       else{e.rate=avg;e.val=e.d*avg;e.found=true;}
@@ -38063,27 +38469,28 @@ return btns;
     consumption:'Materials Issue (Consumption)',materials_issue_return:'Materials Issue Return',goods_exchange_issue:'Goods Exchange – Issue',goods_exchange_receive:'Goods Exchange – Receive',
     positive_adjustment:'Positive Adjustment',negative_adjustment:'Negative Adjustment',sale:'Sale',sale_return:'Sale Return',purchase_return:'Purchase Return',
     material_direct_issue:'Direct Issue',production_consumption:'RM Consumption (Production)',production_rm_return:'RM Return (Production)',fg_receive:'FG Receive (Production)',loan_received:'Loan Received',loan_return:'Loan Return',wastage_sale:'Wastage Sale',issue:'Issue'};
-  var ORDER=Object.keys(LABEL);
+  LABEL.sale_reversal='Sale Reversal';LABEL.sale_return_reversal='Sale Return Reversal';LABEL.purchase_return_reversal='Purchase Return Reversal';LABEL.loan_received_reversal='Loan Received Reversal';LABEL.loan_return_reversal='Loan Return Reversal';LABEL.wastage='Wastage';LABEL.wastage_reversal='Wastage Reversal';LABEL.wastage_sale_reversal='Wastage Sale Reversal';
+  LABEL.purchase_reversal='Purchase / GRN Reversal';var ORDER=Object.keys(LABEL);
   // Column layout (same as the Stock Report): Opening | receipts (green) | issues (orange) | Closing
   var GROUPS=[
     {k:'open',l:'Opening Stock',c:'o'},
-    {k:'purchase',l:'Purchase',c:'g',t:['purchase']},
+    {k:'purchase',l:'Purchase',c:'g',t:['purchase','purchase_reversal']},
     {k:'trf_in',l:'Transfer Received',c:'g',t:['transfer_received']},
-    {k:'sale_ret',l:'Sale Return',c:'g',t:['sale_return']},
+    {k:'sale_ret',l:'Sale Return',c:'g',t:['sale_return','sale_return_reversal']},
     {k:'mi_ret',l:'Materials Issue Return',c:'g',t:['materials_issue_return','production_rm_return']},
-    {k:'loan_in',l:'Loan Received',c:'g',t:['loan_received']},
+    {k:'loan_in',l:'Loan Received',c:'g',t:['loan_received','loan_received_reversal']},
     {k:'gx_in',l:'Goods Exchange Receive',c:'g',t:['goods_exchange_receive']},
     {k:'pos_adj',l:'Positive Adjustment',c:'g',t:['positive_adjustment']},
     {k:'oth_in',l:'Other Receipts',c:'g',t:['fg_receive','sto_issue_reversal']},
     {k:'consumption',l:'Consumption',c:'r',t:['consumption','production_consumption']},
     {k:'trf_out',l:'Transfer Issue',c:'r',t:['transfer_issue','sto_issue']},
-    {k:'sale',l:'Sale',c:'r',t:['sale']},
-    {k:'pur_ret',l:'Purchase Return',c:'r',t:['purchase_return']},
-    {k:'direct',l:'Material Direct Issue',c:'r',t:['material_direct_issue']},
-    {k:'loan_out',l:'Loan Return',c:'r',t:['loan_return']},
+    {k:'sale',l:'Sale',c:'r',t:['sale','sale_reversal']},
+    {k:'pur_ret',l:'Purchase Return',c:'r',t:['purchase_return','purchase_return_reversal']},
+    {k:'direct',l:'Material Direct Issue',c:'r',t:['material_direct_issue','material_direct_issue_reversal']},
+    {k:'loan_out',l:'Loan Return',c:'r',t:['loan_return','loan_return_reversal']},
     {k:'gx_out',l:'Goods Exchange Issue',c:'r',t:['goods_exchange_issue']},
     {k:'neg_adj',l:'Negative Adjustment',c:'r',t:['negative_adjustment']},
-    {k:'wastage',l:'Wastage Sale',c:'r',t:['wastage_sale']},
+    {k:'wastage',l:'Wastage Sale',c:'r',t:['wastage_sale','wastage_sale_reversal']},
     {k:'oth_out',l:'Other Issues',c:'r',t:['opening_balance_reversal','issue']},
     {k:'close',l:'Closing Stock',c:'o'}];
   var COLS=GROUPS.map(function(g){return [g.l,g.k];});
@@ -38209,7 +38616,7 @@ return btns;
   function lc(x){return String(x||'').trim().toLowerCase();}
   function f2(v){return (Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
   function f3(v){return (Math.round(v*1000)/1000).toLocaleString('en-US',{maximumFractionDigits:3});}
-  var RET=['consumption','materials_issue_return','production_rm_return','sto_issue_reversal','sale_return'];
+  var RET=['consumption','materials_issue_return','production_rm_return','sto_issue_reversal','sale_reversal','purchase_return_reversal','loan_return_reversal','wastage_reversal','wastage_sale_reversal','material_direct_issue_reversal'];
   function calc(to){
     var ev=window.__ivBuild(),groups={},order=[],al=[];
     try{al=JSON.parse(localStorage.getItem('erp_batch_alloc')||'[]');if(!Array.isArray(al))al=[];}catch(e){al=[];}
@@ -38226,12 +38633,13 @@ return btns;
       if(to&&String(a.date||'').slice(0,10)>to)return;
       var gk=null;order.forEach(function(k){var g=groups[k];if(lc(g.wh)!==lc(a.wh))return;if(g.key===lc(a.code)||g.key===lc(a.name)||g.batches.some(function(b){return lc(b.name)===lc(a.name)||lc(b.code)===lc(a.code)&&a.code;}))gk=k;});
       if(!gk)return;var g=groups[gk],rem=parseFloat(a.qty)||0;
-      for(var i=0;i<g.batches.length&&rem>1e-9;i++){var b=g.batches[i];if(b.batch!==a.batch)continue;var u=Math.min(rem,b.qty-b.issued);b.issued+=u;rem-=u;g.alloc+=u;}
+      for(var i=0;i<g.batches.length&&rem>1e-9;i++){var b=g.batches[i];if(b.batch!==a.batch)continue;var u=Math.min(rem,b.qty-b.issued);b.issued+=u;rem-=u;g.alloc+=u;(g.applied=g.applied||[]).push({b:b,u:u});}
       if(rem>1e-9){g.alloc+=0;}
     });
     var rows=[];
     order.forEach(function(k){
       var g=groups[k],rem=Math.max(0,g.issues-g.alloc);
+      if(g.issues<g.alloc-1e-9&&g.applied){var refund=g.alloc-Math.max(0,g.issues);for(var ai=g.applied.length-1;ai>=0&&refund>1e-9;ai--){var ap=g.applied[ai],t=Math.min(ap.u,refund);ap.b.issued-=t;refund-=t;}}
       g.batches.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
       g.batches.forEach(function(b){var u=Math.min(rem,b.qty-b.issued);b.issued+=u;rem-=u;b.bal=b.qty-b.issued;b.balAmt=b.bal*b.rate;rows.push(b);});
     });
@@ -38512,6 +38920,152 @@ return btns;
   window.deleteVm=function(no){
     if(!confirm('Delete vendor '+no+'?'))return;
     var recs=P(KEY,{});delete recs[no];localStorage.setItem(KEY,JSON.stringify(recs));renderVmTable();
+  };
+})();
+</script>
+
+<div class="str-list-overlay" id="imListOverlay" onclick="if(event.target===this) closeImList()">
+  <div class="str-list-outer" style="max-width:1400px; border-radius:8px; border:2px solid #7d3c98; overflow:auto;">
+    <div style="background:linear-gradient(135deg,#512e5f,#7d3c98); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
+      <h2 style="color:#fff;font-size:1.2rem;font-weight:700;margin:0;">📦 Item Master</h2>
+      <button class="str-close-list-btn" onclick="closeImList()" style="font-size:1rem;width:28px;height:28px;">X</button>
+    </div>
+    <div style="background:#ebdef0;padding:8px 16px;border-bottom:1px solid #d2b4de;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <span style="font-size:0.88rem;font-weight:700;color:#1e293b;">Items (<span id="imCount">0</span>)</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <select id="imTypeSel" onchange="renderImTable()" style="padding:5px;border:1px solid #aaa;border-radius:3px;font-size:0.78rem;"><option value="">All Types</option></select>
+        <select id="imStatusSel" onchange="renderImTable()" style="padding:5px;border:1px solid #aaa;border-radius:3px;font-size:0.78rem;"><option value="">All Status</option><option>Active</option><option>Inactive</option></select>
+        <input type="text" id="imSearchInput" placeholder="🔍 Search by Code, Name, Group..." oninput="renderImTable()" style="padding:5px 10px;border:1px solid #aaa;border-radius:3px;font-size:0.78rem;min-width:230px;">
+        <button onclick="openImForm()" title="Add New" style="background:#27ae60;color:#fff;border:none;width:28px;height:28px;border-radius:3px;font-size:1rem;cursor:pointer;">➕</button>
+        <button onclick="renderImTable()" title="Refresh" style="background:#2980b9;color:#fff;border:none;width:28px;height:28px;border-radius:3px;font-size:0.9rem;cursor:pointer;">🔄</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;background:#f8f9fa;">
+      <table class="str-table" style="font-size:0.78rem;">
+        <thead><tr><th>SL#</th><th>Item Code</th><th>Item Name</th><th>Item Group</th><th>Type</th><th>UOM</th><th>Pack Size</th><th>Batch</th><th>Min Stock</th><th>Reorder Lvl</th><th>Std Rate</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="imTableBody"></tbody>
+      </table>
+      <div id="imEmptyMsg" style="text-align:center;padding:40px 20px;color:#94a3b8;font-size:0.85rem;display:none;"><span style="font-size:2.5rem;display:block;margin-bottom:10px;">📦</span>No item found.<br>Click "+" to add an item.</div>
+    </div>
+  </div>
+</div>
+<div class="weight-modal-overlay" id="imFormOverlay" onclick="if(event.target===this) closeImForm()">
+  <div class="erp-form-outer" style="max-width:1100px;">
+    <div class="erp-form-titlebar"><h2>📦 Item Master</h2></div>
+    <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>General Information (1)</span></div>
+    <div class="erp-form-card">
+      <div class="erp-form-header"><span id="imFormMode">Item [Insert mode]</span><button type="button" class="erp-close-btn" onclick="closeImForm()">X</button></div>
+      <div class="erp-form-body"><div class="erp-field-grid" style="grid-template-columns:repeat(4,1fr);" id="imGen"></div></div>
+    </div>
+    <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Inventory Control (2)</span></div>
+    <div class="erp-form-card"><div class="erp-form-body"><div class="erp-field-grid" style="grid-template-columns:repeat(4,1fr);" id="imInv"></div></div></div>
+    <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Valuation &amp; Tax (3)</span></div>
+    <div class="erp-form-card"><div class="erp-form-body"><div class="erp-field-grid" style="grid-template-columns:repeat(4,1fr);" id="imVal"></div>
+      <div class="erp-form-messages"><div class="error-msg" id="imFormError"></div><div class="success-msg" id="imFormSuccess"></div></div></div></div>
+    <div class="erp-form-actions">
+      <button type="button" class="erp-btn" style="background:#16a34a;" onclick="saveImForm()">💾 Save</button>
+      <button type="button" class="erp-btn erp-btn-exit" onclick="closeImForm()">Exit</button>
+    </div>
+  </div>
+</div>
+<datalist id="imGroupList"></datalist><datalist id="imUomList"><option>kg</option><option>g</option><option>ton</option><option>pcs</option><option>bag</option><option>ltr</option><option>ml</option><option>box</option><option>bundle</option><option>meter</option><option>roll</option><option>drum</option></datalist>
+<script id="imJs">
+(function(){
+  var KEY='erp_item_master',SER='erp_item_serial',$=function(i){return document.getElementById(i);},editing=null;
+  var PFX={'Raw Material':'RM','Packing Material':'PM','Finished Goods':'FG','Semi-Finished':'SF','Spare Parts':'SP','Consumable':'CN','Other':'OT'};
+  var TYPES=Object.keys(PFX);
+  function P(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v;}catch(e){return d;}}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function lc(x){return String(x||'').trim().toLowerCase();}
+  var F={
+   imGen:[['code','Item Code','readonly'],['name','Item Name *','text'],['type','Item Type *','select',TYPES],['group','Item Group / Category *','list','imGroupList'],
+          ['uom','Base UOM *','list','imUomList'],['alt_uom','Alternate UOM','list','imUomList'],['conv','Conversion (1 Alt UOM = ? Base UOM)','number'],['pack','Pack Size','text'],
+          ['spec','Specification','text',null,2],['brand','Brand / Make','text'],['status','Status','select',['Active','Inactive']]],
+   imInv:[['batch','Batch Managed','select',['Yes','No']],['shelf','Shelf Life (days)','number'],['min','Minimum Stock','number'],['max','Maximum Stock','number'],
+          ['reorder','Reorder Level','number'],['lead','Lead Time (days)','number'],['remarks','Remarks','text',null,2]],
+   imVal:[['valuation','Valuation Method','select',['Moving Average','FIFO']],['rate','Standard Rate','number'],['hsn','HSN / Tariff Code','text'],['vat','VAT %','number'],['barcode','Barcode','text']]};
+  function all(){var a=[];Object.keys(F).forEach(function(b){F[b].forEach(function(f){a.push(f);});});return a;}
+  function build(){
+    Object.keys(F).forEach(function(box){
+      $(box).innerHTML=F[box].map(function(f){
+        var id='im_'+f[0],span=f[4]?' style="grid-column: span '+f[4]+';"':'',inp;
+        if(f[2]==='select')inp='<select id="'+id+'"'+(f[0]==='type'?' onchange="imTypeChanged()"':'')+'>'+f[3].map(function(o){return '<option>'+o+'</option>';}).join('')+'</select>';
+        else if(f[2]==='readonly')inp='<input type="text" id="'+id+'" readonly style="font-weight:700;color:#7d3c98;background:#f1f5f9;">';
+        else if(f[2]==='list')inp='<input type="text" id="'+id+'" list="'+f[3]+'" autocomplete="off">';
+        else inp='<input type="'+f[2]+'" id="'+id+'"'+(f[2]==='number'?' min="0" step="any"':'')+'>';
+        return '<div class="erp-field"'+span+'><div class="erp-field-label-row"><label for="'+id+'">'+f[1]+'</label><span class="erp-info-icon">i</span></div>'+inp+'</div>';
+      }).join('');
+    });
+  }
+  function nextCode(type){var ser=P(SER,{}),pf=PFX[type]||'OT';return pf+'-'+String((ser[pf]||0)+1).padStart(6,'0');}
+  function fillGroups(){
+    var g={};try{(window.PR_ITEM_DATA&&PR_ITEM_DATA.groups||[]).forEach(function(x){g[x]=1;});}catch(e){}
+    var recs=P(KEY,{});Object.keys(recs).forEach(function(k){if(recs[k].group)g[recs[k].group]=1;});
+    $('imGroupList').innerHTML=Object.keys(g).sort().map(function(x){return '<option value="'+esc(x)+'">';}).join('');
+  }
+  window.imTypeChanged=function(){if(!editing)$('im_code').value=nextCode($('im_type').value);};
+  window.openImList=function(){
+    $('imTypeSel').innerHTML='<option value="">All Types</option>'+TYPES.map(function(t){return '<option>'+t+'</option>';}).join('');
+    renderImTable();$('imListOverlay').classList.add('active');
+  };
+  window.closeImList=function(){$('imListOverlay').classList.remove('active');};
+  window.renderImTable=function(){
+    var recs=P(KEY,{}),q=lc($('imSearchInput').value),st=$('imStatusSel').value,ty=$('imTypeSel').value;
+    var rows=Object.keys(recs).sort().map(function(k){return recs[k];}).filter(function(r){
+      if(st&&(r.status||'Active')!==st)return false;if(ty&&r.type!==ty)return false;
+      return !q||(lc(r.code)+' '+lc(r.name)+' '+lc(r.group)+' '+lc(r.spec)+' '+lc(r.barcode)).indexOf(q)>=0;});
+    $('imCount').textContent=rows.length;$('imEmptyMsg').style.display=rows.length?'none':'block';
+    $('imTableBody').innerHTML=rows.map(function(r,i){
+      var c=r.status==='Inactive'?'#c0392b':'#1e8449';
+      return '<tr><td>'+(i+1)+'</td><td><b>'+esc(r.code)+'</b></td><td>'+esc(r.name)+'</td><td>'+esc(r.group)+'</td><td>'+esc(r.type)+'</td><td>'+esc(r.uom)+'</td><td>'+esc(r.pack)+'</td><td>'+esc(r.batch)+'</td><td>'+esc(r.min)+'</td><td>'+esc(r.reorder)+'</td><td>'+esc(r.rate)+'</td>'+
+        '<td><span style="color:'+c+';font-weight:700;">'+esc(r.status||'Active')+'</span></td><td><button class="pr-add-btn" style="background:#2980b9;padding:3px 8px;" onclick="openImForm(\''+esc(r.code)+'\')">✏️ Edit</button> <button class="pr-add-btn" style="background:#c0392b;padding:3px 8px;" onclick="deleteIm(\''+esc(r.code)+'\')">🗑 Delete</button></td></tr>';
+    }).join('');
+  };
+  window.openImForm=function(code){
+    if(!$('im_name'))build();
+    fillGroups();
+    var r=code?P(KEY,{})[code]:null;editing=r?r.code:null;
+    all().forEach(function(f){var e=$('im_'+f[0]);if(!e)return;e.value=r?(r[f[0]]==null?'':r[f[0]]):(f[2]==='select'?f[3][0]:'');});
+    if(!r)$('im_code').value=nextCode($('im_type').value);
+    $('imFormMode').textContent='Item ['+(r?'Edit '+r.code:'Insert')+' mode]';
+    $('imFormError').classList.remove('show');$('imFormSuccess').classList.remove('show');
+    $('imFormOverlay').classList.add('active');
+  };
+  window.closeImForm=function(){$('imFormOverlay').classList.remove('active');};
+  function err(m){var e=$('imFormError');e.textContent=m;e.classList.add('show');}
+  window.saveImForm=function(){
+    var recs=P(KEY,{}),d={};
+    all().forEach(function(f){var e=$('im_'+f[0]);d[f[0]]=e?String(e.value).trim():'';});
+    if(!d.name){err('Item Name is required.');return;}
+    if(!d.group){err('Item Group / Category is required.');return;}
+    if(!d.uom){err('Base UOM is required.');return;}
+    if(d.alt_uom&&!(parseFloat(d.conv)>0)){err('Enter the conversion factor for the Alternate UOM.');return;}
+    if(d.min&&d.max&&parseFloat(d.max)<parseFloat(d.min)){err('Maximum Stock cannot be less than Minimum Stock.');return;}
+    var dup=Object.keys(recs).some(function(k){return k!==editing&&lc(recs[k].name)===lc(d.name)&&lc(recs[k].group)===lc(d.group);});
+    if(dup){err('This item already exists in the same group.');return;}
+    if(editing){d.code=editing;d.created_by=recs[editing].created_by;d.created_at=recs[editing].created_at;d.updated_at=new Date().toISOString();}
+    else{
+      var ser=P(SER,{}),pf=PFX[d.type]||'OT';ser[pf]=(ser[pf]||0)+1;localStorage.setItem(SER,JSON.stringify(ser));
+      d.code=pf+'-'+String(ser[pf]).padStart(6,'0');d.created_by=(typeof currentUser!=='undefined'&&currentUser)?(currentUser.name||currentUser.id||''):'';d.created_at=new Date().toISOString();
+    }
+    recs[d.code]=d;localStorage.setItem(KEY,JSON.stringify(recs));
+    try{if(window.PR_ITEM_DATA&&PR_ITEM_DATA.hierarchy)window.__itemMasterMergeInto(PR_ITEM_DATA.groups,PR_ITEM_DATA.hierarchy);}catch(e){}
+    closeImForm();renderImTable();
+  };
+  window.deleteIm=function(code){
+    if(!confirm('Delete item '+code+'? (Existing transactions are not affected.)'))return;
+    var recs=P(KEY,{});delete recs[code];localStorage.setItem(KEY,JSON.stringify(recs));renderImTable();
+  };
+  // Make Item Master items available in every item dropdown (PR, PO, Opening Balance ...)
+  window.__itemMasterMergeInto=function(groups,hierarchy){
+    var recs=P(KEY,{});
+    Object.keys(recs).forEach(function(k){
+      var r=recs[k];if((r.status||'Active')!=='Active'||!r.group||!r.name)return;
+      if(!hierarchy[r.group]){hierarchy[r.group]={items:[],itemMap:{}};groups.push(r.group);}
+      var e=hierarchy[r.group];
+      if(e.items.indexOf(r.name)===-1)e.items.push(r.name);
+      e.itemMap[r.name]={code:r.code,uom:r.uom||''};
+    });
   };
 })();
 </script>
