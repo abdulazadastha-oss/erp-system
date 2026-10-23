@@ -5539,6 +5539,7 @@ go('home');
   <div class="notification-panel" id="notifPanel">
     <div class="notification-panel-header">
       <h3>🔔 Notifications</h3>
+      <button type="button" class="notification-close-btn" style="font-size:0.72rem;width:auto;padding:2px 8px;margin-right:6px;" title="Delete all notifications of this user" onclick="clearAllNotifications()">🗑 Clear all</button>
       <button class="notification-close-btn" onclick="toggleNotificationPanel()">✕</button>
     </div>
     <div id="notifList"><div class="notification-empty">No notifications yet.</div></div>
@@ -7715,7 +7716,7 @@ go('home');
                 <div class="erp-field"><div class="erp-field-label-row"><label>Item Code</label></div><input type="text" id="grn_item_code_display" readonly="" style="background:#f0f0f0;"></div>
                 <div class="erp-field"><div class="erp-field-label-row"><label>Description</label></div><input type="text" id="grn_description_display" readonly="" style="background:#f0f0f0;"></div>
                 <div class="erp-field"><div class="erp-field-label-row"><label>Purchase Order Number</label></div><input type="text" id="grn_po_number_display" readonly="" style="background:#f0f0f0;"></div>
-                <div class="erp-field"><div class="erp-field-label-row"><label>Batch No</label></div><input type="text" id="grn_batch_no" readonly="" style="background:#f0f0f0;font-weight:700;color:#0d6e3a;" placeholder="Generated after GRN approval"></div>
+                <div class="erp-field"><div class="erp-field-label-row"><label>Batch No</label></div><input type="text" id="grn_batch_no" readonly="" style="background:#f0f0f0;font-weight:700;color:#0d6e3a;" placeholder="Generated when GRN is saved"></div>
               </div>
             </div>
           </div>
@@ -7849,6 +7850,13 @@ go('home');
         <button class="data-io-close" onclick="closeDataIo()">X</button>
       </div>
       <div class="data-io-body">
+
+        <!-- Go-Live Reset -->
+        <div class="data-io-section" style="border:2px solid #dc2626;border-radius:8px;">
+          <h3 style="color:#b91c1c;">🚀 Go-Live Reset (MM + Production)</h3>
+          <p>Deletes ALL transaction data of the MM and Production modules (PR → GRN, Direct GRN, Return, Opening Balance, Stock &amp; stock transactions, batches, notifications, Production Process / FG Receive / QC Clearance etc.) from this browser, the Firebase cloud, the shared stock and the MM Google Sheet tabs, and restarts all numbering. <b>Kept:</b> Item Master, Vendor Master, BOM recipes, QC standards, User IDs and all other modules. Other users' browsers are cleaned automatically the next time they log in. <b>This cannot be undone — download a backup first.</b></p>
+          <button type="button" class="pr-add-btn" style="background:#dc2626;" onclick="goLiveReset()">🗑 Reset for Go-Live</button>
+        </div>
 
         <!-- Export Section -->
         <div class="data-io-section">
@@ -26899,7 +26907,7 @@ return btns;
               '<div class="notification-content">' +
               '<div class="title">' + title + '</div>' +
               '<div class="desc">' + desc + '</div>' +
-              '<div class="time">' + time + '</div>' +
+              '<div class="time">' + time + ' <a href="#" onclick="dismissNotification(\'' + n.id + '\');return false;" style="color:#b91c1c;margin-left:10px;text-decoration:none;">🗑 delete</a></div>' +
               '</div></div>';
           }).join('');
         }
@@ -26949,7 +26957,7 @@ return btns;
           '<div class="notification-content">' +
           '<div class="title"><strong style="color:#1d4ed8;">' + actionHeader + '</strong><br>' + label + (itemName ? ' - ' + itemName : '') + '</div>' +
           '<div class="desc">From: ' + (n.from_user || n.from_user_id || '') + ' | ' + detail + '</div>' +
-          '<div class="time">' + time + '</div>' +
+          '<div class="time">' + time + ' <a href="#" onclick="dismissNotification(\'' + n.id + '\');return false;" style="color:#b91c1c;margin-left:10px;text-decoration:none;">🗑 delete</a></div>' +
           '<div class="notification-action-btns">' +
           '<button class="notif-btn-approve" data-action="' + approveFn + '" data-label="' + (isDelete ? n.delete_key : label).replace(/"/g, '&quot;') + '" data-notif-id="' + n.id + '">' + (isVF ? '✅ Verify' : '✅ Approve') + '</button>' +
           '<button class="notif-btn-reject" data-action="' + rejectFn + '" data-label="' + (isDelete ? n.delete_key : label).replace(/"/g, '&quot;') + '" data-notif-id="' + n.id + '">' + (isVF ? '↩ Return' : '❌ Reject') + '</button>' +
@@ -27366,6 +27374,20 @@ return btns;
       loadNotifications();
     }
 
+    // Delete notifications that belong to the signed-in user (this device and, through the normal sync, the cloud copy)
+    function clearAllNotifications() {
+      if (!currentUser) return;
+      if (!confirm('Delete all notifications of this user? Pending requests will be removed from the list too.')) return;
+      var me = String(currentUser.id || '').trim();
+      var keep = (safeParse(STR_NOTIF_KEY, []) || []).filter(function(n) { return n && String(n.to_user_id || '').trim() !== me && String(n.from_user_id || '').trim() !== me; });
+      localStorage.setItem(STR_NOTIF_KEY, JSON.stringify(keep));
+      loadNotifications();
+    }
+    function dismissNotification(notifId) {
+      var list = safeParse(STR_NOTIF_KEY, []) || [];
+      localStorage.setItem(STR_NOTIF_KEY, JSON.stringify(list.filter(function(n) { return n && n.id !== notifId; })));
+      loadNotifications();
+    }
     function markNotifRead(notifId) {
       var notifs = safeParse(STR_NOTIF_KEY, []);
       if (!Array.isArray(notifs)) notifs = [];
@@ -27485,16 +27507,42 @@ return btns;
       setTimeout(function() { openGrnFromQc2(scaleId, qc[scaleId], wr[scaleId] || {}); }, 250);
     }
     function grnSendForApproval(grnData, grnNo) {
-      // Send notification to approvers — exclude the raiser
-      var raiserId = currentUser ? currentUser.id : '';
-      var GRN_APPROVERS = getApprovalRecipientIdsForUser(raiserId);
+      // Same gateway as PR / SR / PO: the raiser's configured approvers (User ID Setup), never the raiser himself,
+      // falling back to the master approver 2422 so a GRN can never be submitted without someone to approve it.
+      var raiserId = String(currentUser ? currentUser.id : '').trim();
+      var ids = [];
+      getApprovalRecipientIdsForUser(raiserId).forEach(function(x) { x = String(x || '').trim(); if (x && ids.indexOf(x) === -1) ids.push(x); });
+      var GRN_APPROVERS = ids.filter(function(x) { return x !== raiserId; });
+      if (!GRN_APPROVERS.length) GRN_APPROVERS = ['2422'];
+      // remember the approvers on the record (only the raiser's browser knows the raiser's User ID Setup)
+      try {
+        var allG = safeParse('erp_grn_records', {});
+        if (allG[grnNo]) { allG[grnNo].approver_ids = GRN_APPROVERS.slice(); allG[grnNo].raised_by_id = allG[grnNo].raised_by_id || raiserId; localStorage.setItem('erp_grn_records', JSON.stringify(allG)); grnData = allG[grnNo]; }
+      } catch (e0) {}
+      // a re-submit replaces any older pending request of this GRN
+      try {
+        var oldN = safeParse(STR_NOTIF_KEY, []);
+        if (Array.isArray(oldN)) { oldN.forEach(function(n) { if (n && n.type === 'grn_request' && String(n.grn_no) === String(grnNo) && n.status === 'pending') { n.status = 'done'; n.read = true; } }); localStorage.setItem(STR_NOTIF_KEY, JSON.stringify(oldN)); }
+      } catch (e1) {}
+      // push the GRN record itself into each approver's branch (atomic merge by GRN No) so the bell never opens an empty request
+      if (db) {
+        GRN_APPROVERS.forEach(function(approverId) {
+          if (approverId === raiserId) return;
+          try {
+            db.ref('users/' + approverId + '/data/erp_grn_records').transaction(function(cur) {
+              var o = {}; try { o = JSON.parse(cur) || {}; } catch (e) { o = {}; }
+              if (!o || typeof o !== 'object' || Array.isArray(o)) o = {};
+              o[grnNo] = grnData; return JSON.stringify(o);
+            });
+          } catch (e2) { console.warn('GRN record sync failed', e2); }
+        });
+      }
       GRN_APPROVERS.forEach(function(approverId) {
-        if (String(approverId) === String(raiserId)) return;
         createNotification({
           type: 'grn_request',
           action_header: 'Approval Request',
           grn_no: grnNo,
-          from_user_id: currentUser ? currentUser.id : '',
+          from_user_id: raiserId,
           from_user: currentUser ? currentUser.name : '',
           to_user_id: String(approverId),
           approval_id: String(approverId),
@@ -27508,35 +27556,6 @@ return btns;
           read: false
         });
       });
-
-      // Sync to Firebase if available
-      if (db && currentUser) {
-        // Push GRN record + notification to each approver's OWN Firebase path
-        // (merge-safe: fetch their existing records first so we never wipe out
-        // any of their own data — different device/browser than the raiser).
-        GRN_APPROVERS.forEach(function(approverId) {
-          if (approverId !== currentUser.id) {
-            var grnRef = db.ref('users/' + approverId + '/data/erp_grn_records');
-            grnRef.once('value', function(snap) {
-              var approverGrnRecords = {};
-              try { approverGrnRecords = JSON.parse(snap.val()) || {}; } catch(e) { approverGrnRecords = {}; }
-              approverGrnRecords[grnNo] = grnData;
-              grnRef.set(JSON.stringify(approverGrnRecords));
-            });
-
-            var targetRef = db.ref('users/' + approverId + '/data/erp_str_notifications');
-            targetRef.once('value', function(snap) {
-              var targetNotifs = [];
-              try { targetNotifs = JSON.parse(snap.val()) || []; } catch(e) { targetNotifs = []; }
-              var grnNotif = safeParse(STR_NOTIF_KEY, []).find(function(n) { return n.type === 'grn_request' && String(n.to_user_id) === String(approverId) && String(n.grn_no) === String(grnNo); });
-              if (grnNotif && !targetNotifs.some(function(n) { return n.id === grnNotif.id; })) {
-                targetNotifs.unshift(grnNotif);
-                targetRef.set(JSON.stringify(targetNotifs));
-              }
-            });
-          }
-        });
-      }
       return GRN_APPROVERS;
     }
     function submitGrnRecord(ref) {
@@ -27925,7 +27944,7 @@ return btns;
         bu: document.getElementById('grn_bu').value.trim(),
         warehouse: document.getElementById('grn_warehouse').value.trim(),
         description: document.getElementById('grn_description').value,
-        batch_no: document.getElementById('grn_batch_no').value.trim(),
+        batch_no: document.getElementById('grn_batch_no').value.trim() || (grnPrev && grnPrev.batch_no) || generateItemBatchNo(document.getElementById('grn_profit_center').value.trim(), document.getElementById('grn_item_name').value.trim() || document.getElementById('grn_item_code').value.trim()),
         no_of_bag: document.getElementById('grn_no_of_bag').value,
         empty_wt_per_unit: document.getElementById('grn_empty_wt_per_unit').value,
         total_empty_bag_wt: document.getElementById('grn_total_empty_bag_wt').value,
@@ -39707,6 +39726,18 @@ return btns;
     Object.keys(ob).forEach(function(k){var r=ob[k];if(r.warehouse&&r.pc)whPc[lc(r.warehouse)]=r.pc;});
     Object.keys(grn).forEach(function(k){var r=grn[k],w=r.warehouse||r.store||r.receiving_warehouse;if(w&&r.profit_center)whPc[lc(w)]=r.profit_center;});
     Object.keys(sto).forEach(function(k){var r=sto[k];if(r.to_warehouse&&r.to_pc)whPc[lc(r.to_warehouse)]=r.to_pc;});
+    function find(arr,pred){for(var k in arr){if(pred(arr[k],k))return arr[k];}return null;}
+    // Drop false data: movements whose source document is missing / still Draft or Pending, empty lines, and exact duplicates
+    var seenTx={};
+    txns=txns.filter(function(t){
+      if(!t||!(t.material_code||t.item_code||t.material_name||t.item_name)||!n(t.qty))return false;
+      var ty=t.type==='GRN'?'purchase':t.type,rf=t.ref_no||t.ref||'',okSt=function(r){return r&&['Draft','Pending','Rejected','Reverted','Pending Verification'].indexOf(r.status)<0;};
+      if(ty==='purchase'){var g0=grn[rf]||find(grn,function(x){return x.grn_no===rf;});if(g0){if(String(g0.status||'').toLowerCase()!=='approved')return false;}else if(!okSt(ret[rf]))return false;}
+      else if(ty==='opening_balance'&&!okSt(ob[rf]))return false;
+      else if(ty==='transfer_received'&&!okSt(stn[rf]))return false;
+      var dk=[ty,rf,t.material_code||t.item_code||t.material_name||t.item_name,lc(t.warehouse),n(t.qty),String(t.date||'').slice(0,10)].join('|');
+      if(seenTx[dk])return false;seenTx[dk]=1;return true;
+    });
     var ev=txns.map(function(t,i){
       var type=t.type==='GRN'?'purchase':t.type;
       var ref=t.ref_no||t.ref||'';
@@ -39718,7 +39749,6 @@ return btns;
     ev.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:a.i-b.i;});
     var state={};  // wh|item -> {q,v}
     function st(wh,key){var k=lc(wh)+'||'+key;return state[k]||(state[k]={q:0,v:0});}
-    function find(arr,pred){for(var k in arr){if(pred(arr[k],k))return arr[k];}return null;}
     ev.forEach(function(e){
       e.key=lc(e.code||e.name);
       var s=st(e.wh,e.key),avg=s.q>0?s.v/s.q:0,rate=avg,found=true,cat='other';
@@ -40811,6 +40841,78 @@ return btns;
     </div>
   </div>
 </div>
+
+<script id="glJs">
+(function () {
+  var MM = ['erp_pr_records','erp_rfq_records','erp_qt_records','erp_cst_records','erp_cs_records','erp_va_records','erp_po_records','erp_lc_records','erp_lca_records','erp_lcs_records','erp_lcd_records','erp_lcp_records','erp_lcb_records','erp_lcl_records','erp_lcc_records',
+    'erp_gi_records','erp_weight_records','erp_qc1_records','erp_qc2_records','erp_vu_records','erp_grn_records','erp_ret_records','erp_ob_records','erp_str_records','erp_to_records','erp_sr_records','erp_mi_records','erp_mr_records','erp_stn_records','erp_go_records',
+    'erp_ge_records','erp_adj_records','erp_stock_records','erp_stock_transactions','erp_batch_alloc','erp_batch_serials','erp_str_notifications','erp_delete_requests','erp_mm_vendor_unit'];
+  var KEYS = MM.slice();
+  MM.forEach(function (k) { if (/_records$/.test(k)) KEYS.push(k.replace(/_records$/, '_serial')); });
+  KEYS.push('erp_ge_serial', 'erp_adj_serial');
+  function wipeLocal() {
+    var raw = Storage.prototype.removeItem;
+    KEYS.forEach(function (k) { try { raw.call(localStorage, k); } catch (e) {} });
+    try {
+      var D = JSON.parse(localStorage.getItem('erpProd1') || 'null') || {};
+      var fresh = { seq: { dpp: 0, bat: 0 }, plans: [], batches: [], cons: [], recipes: D.recipes || [], stock: {}, rcv: [], qcc: [], rpc: [], qcs: {}, qcstd: D.qcstd || [] };
+      Object.keys(D).forEach(function (k) { if (!(k in fresh) && ['rmSampleBom'].indexOf(k) >= 0) fresh[k] = D[k]; });
+      Storage.prototype.setItem.call(localStorage, 'erpProd1', JSON.stringify(fresh));
+    } catch (e) {}
+  }
+  function wipeCloudOwn() {
+    if (typeof db === 'undefined' || !db || typeof currentUser === 'undefined' || !currentUser) return;
+    KEYS.concat(['erpProd1']).forEach(function (k) { try { if (k === 'erpProd1') return; db.ref('users/' + currentUser.id + '/data/' + k).remove(); } catch (e) {} });
+    try { db.ref('users/' + currentUser.id + '/inbox').remove(); } catch (e) {}
+  }
+  window.goLiveReset = function () {
+    if (!confirm('GO-LIVE RESET\n\nThis permanently deletes all MM and Production transaction data everywhere (this browser, cloud, shared stock, MM Google Sheet).\n\nContinue?')) return;
+    var t = prompt('Type GO-LIVE to confirm:', ''); if (t !== 'GO-LIVE') { alert('Cancelled — nothing was deleted.'); return; }
+    var ts = Date.now();
+    wipeLocal();
+    try { Storage.prototype.setItem.call(localStorage, 'erp_reset_epoch_seen', String(ts)); } catch (e) {}
+    var jobs = [];
+    try {
+      if (typeof db !== 'undefined' && db) {
+        wipeCloudOwn();
+        jobs.push(db.ref('shared/stock').remove(), db.ref('shared/stock_txns').remove());
+        try { db.ref('users/' + currentUser.id + '/data/erpProd1').set(localStorage.getItem('erpProd1')); } catch (e) {}
+        jobs.push(db.ref('shared/_meta/reset_epoch').set({ ts: ts, by: String(currentUser ? currentUser.id : '') }));
+      }
+    } catch (e) { console.warn('cloud reset', e); }
+    try {
+      if (typeof GAS_WEB_APP_URL !== 'undefined' && GAS_WEB_APP_URL && GAS_WEB_APP_URL !== '#') {
+        jobs.push(fetch(GAS_WEB_APP_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ form: 'RESET_TRANSACTIONS', confirm: 'GO-LIVE' }) }).catch(function () {}));
+      }
+    } catch (e) {}
+    Promise.all(jobs.map(function (j) { return Promise.resolve(j).catch(function () {}); })).then(function () {
+      alert('✅ Go-Live reset done. The page will reload now.'); location.reload();
+    });
+  };
+  // other users: clean this browser once when a newer reset exists in the cloud
+  function checkEpoch(next) {
+    if (typeof db === 'undefined' || !db) { if (next) next(); return; }
+    var done = false, go = function () { if (!done) { done = true; if (next) next(); } };
+    setTimeout(go, 4000);
+    db.ref('shared/_meta/reset_epoch').once('value', function (snap) {
+      var v = snap.val(), seen = 0;
+      try { seen = parseInt(localStorage.getItem('erp_reset_epoch_seen') || '0', 10) || 0; } catch (e) {}
+      if (v && v.ts && v.ts > seen) {
+        done = true;
+        wipeLocal(); wipeCloudOwn();
+        try { Storage.prototype.setItem.call(localStorage, 'erp_reset_epoch_seen', String(v.ts)); } catch (e) {}
+        try { db.ref('users/' + currentUser.id + '/data/erpProd1').set(localStorage.getItem('erpProd1')); } catch (e) {}
+        location.reload();
+      } else go();
+    }, go);
+  }
+  window.glCheckEpoch = checkEpoch;
+  if (typeof window.startSharedStockSync === 'function') {
+    var o = window.startSharedStockSync;
+    window.startSharedStockSync = function () { var self = this, args = arguments; try { checkEpoch(function () { o.apply(self, args); }); } catch (e) { return o.apply(this, arguments); } };
+  }
+})();
+</script>
 <script id="vfJs">
 (function () {
   // Verify -> Approve is required for PR, SR and HR (Leave). Every other module goes straight to the approver.
