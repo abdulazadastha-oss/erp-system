@@ -2629,6 +2629,8 @@
           ✉️
           <span class="notification-badge zero" id="msgBadge">0</span>
         </div>
+        <div class="notification-bell" id="saBtn" style="display:none;" onclick="saPullAll(true)" title="Super Admin: load every user's transactions">🔄</div>
+        <div class="notification-bell" id="glBtn" style="display:none;" onclick="openDataIo()" title="Data Backup &amp; Go-Live Reset (admin only)">🚀</div>
         <div class="notification-bell" id="notifBell" onclick="toggleNotificationPanel()" title="Notifications">
           🔔
           <span class="notification-badge zero" id="notifBadge">0</span>
@@ -6291,7 +6293,7 @@ go('home');
       $('geEmptyMsg').style.display=list.length?'none':'block';
       $('geTableBody').innerHTML=list.map(function(r,i){
         var st=r.status||'Pending';
-        var isAp=(typeof currentUser!=='undefined'&&currentUser)&&(isConfiguredApprover(currentUser.id)||String(currentUser.id)===String(APPROVER_ID));
+        var isAp=(typeof currentUser!=='undefined'&&currentUser)&&(isConfiguredApprover(currentUser.id)||isSuperAdminId(currentUser.id));
         var act='<button class="str-action-btn str-btn-view" onclick="viewGe(\''+r.ref_no+'\')" title="View">👁</button>'+
           '<button class="str-action-btn str-btn-print" onclick="printGe(\''+r.ref_no+'\')" title="Print">🖨</button>'+
           (isAp&&st==='Pending'?'<button class="str-action-btn pr-btn-approve" onclick="decideGe(\''+r.ref_no+'\',\'Approved\')" title="Approve">✅</button><button class="str-action-btn pr-btn-reject" onclick="decideGe(\''+r.ref_no+'\',\'Rejected\')" title="Reject">❌</button>':'')+
@@ -6657,7 +6659,7 @@ go('home');
     function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
     function nextRef(){return 'ADJ-'+String((parseInt(localStorage.getItem(SER)||'0',10)+1)).padStart(6,'0');}
     function who(){return (typeof currentUser!=='undefined'&&currentUser)?(currentUser.name||currentUser.id||''):'';}
-    function isAp(){return (typeof currentUser!=='undefined'&&currentUser)&&(isConfiguredApprover(currentUser.id)||String(currentUser.id)===String(APPROVER_ID));}
+    function isAp(){return (typeof currentUser!=='undefined'&&currentUser)&&(isConfiguredApprover(currentUser.id)||isSuperAdminId(currentUser.id));}
     function opts(sel,arr,ph){sel.innerHTML='<option value="">'+ph+'</option>'+arr.map(function(a){return '<option value="'+esc(a.v)+'">'+esc(a.t)+'</option>';}).join('');}
     function fmt(n){return Math.round(n*1000)/1000;}
     function sum(r){var p=0,n=0;(r.lines||[]).forEach(function(l){if(l.diff>0)p+=l.diff;else n+=-l.diff;});return {p:fmt(p),n:fmt(n)};}
@@ -7111,7 +7113,7 @@ go('home');
     function opts(sel,arr,ph){sel.innerHTML='<option value="">'+ph+'</option>'+arr.map(function(a){return '<option value="'+esc(a)+'">'+esc(a)+'</option>';}).join('');}
     window.openFcrList=function(){$('fcrSearch').value='';$('fcrStatus').value='';renderFcrTable();$('fcrListOverlay').classList.add('active');};
     window.closeFcrList=function(){$('fcrListOverlay').classList.remove('active');};
-    function isAp(){return (typeof currentUser!=='undefined'&&currentUser)&&(isConfiguredApprover(currentUser.id)||String(currentUser.id)===String(APPROVER_ID));}
+    function isAp(){return (typeof currentUser!=='undefined'&&currentUser)&&(isConfiguredApprover(currentUser.id)||isSuperAdminId(currentUser.id));}
     function who(){return (typeof currentUser!=='undefined'&&currentUser)?(currentUser.name||currentUser.id||''):'';}
     function stOf(m){return m?m.status||'Approved':'Pending';}
     window.renderFcrTable=function(){
@@ -11971,8 +11973,32 @@ go('home');
     // User 2422 is the ERP administrator and can view all module records.
     // Other users see records owned/submitted by that user only. Assigned
     // approval requests remain visible to the designated approver.
+    // ===== SUPER ADMIN (data-driven) =====
+    // The super admin is a normal record in HR > Employee > User ID Setup flagged super_admin:true.
+    // It is seeded once (ROOT_ADMIN_ID is only the bootstrap key), can be edited but never deleted.
+    var ROOT_ADMIN_ID = '2422';
+    function ensureSuperAdminRecord() {
+      try {
+        var all = JSON.parse(localStorage.getItem('erp_userid_records') || '{}') || {};
+        var changed = false, anySuper = Object.keys(all).some(function(k) { return all[k] && all[k].super_admin; });
+        var r = all[ROOT_ADMIN_ID];
+        if (!r) { r = all[ROOT_ADMIN_ID] = { user_id: ROOT_ADMIN_ID, password: '1234', employee_code: 'SUPER', employee_name: 'Abdul Azad', approval_id: '', approval_ids: [], verifier_ids: [], created_at: new Date().toISOString() }; changed = true; }
+        if (!anySuper && !r.super_admin) { r.super_admin = true; changed = true; }
+        if (changed) localStorage.setItem('erp_userid_records', JSON.stringify(all));
+      } catch (e) { console.warn('super admin seed failed', e); }
+    }
+    function getSuperAdminIds() {
+      var ids = [];
+      try {
+        var all = JSON.parse(localStorage.getItem('erp_userid_records') || '{}') || {};
+        Object.keys(all).forEach(function(k) { if (all[k] && all[k].super_admin) ids.push(String(all[k].user_id || k)); });
+      } catch (e) {}
+      return ids.length ? ids : [ROOT_ADMIN_ID];
+    }
+    function isSuperAdminId(id) { return !!id && getSuperAdminIds().indexOf(String(id).trim()) !== -1; }
+    function masterApproverId() { return getSuperAdminIds()[0]; }
     function isErpAdminUser() {
-      return !!(currentUser && String(currentUser.id || '').trim() === '2422');
+      return !!(currentUser && isSuperAdminId(currentUser.id));
     }
     function isRecordVisibleToCurrentUser(record) {
       if (isErpAdminUser()) return true;
@@ -12829,32 +12855,12 @@ go('home');
     }
 
     // ===== USER DATABASE WITH USER-ID BASED PERMISSIONS =====
-    const users = [
-      // Original users
-      { id: '2422', password: '1234', name: 'Abdul Azad', avatar: 'AA' },
-    ];
+    const users = [];  // all logins (including the super admin) come from HR > Employee > User ID Setup
+    ensureSuperAdminRecord();
 
     // ===== USER-ID BASED CONFIGURATIONS =====
     const userIdConfigs = {
       // Original users
-      '2422': {
-        subMenu: {
-          favorite: true,
-          purchase_req: true, transfer_req: true, store_req: true,
-          rfq: true, quotation: true, quotation_review: true, cs_approval: true, vendor_agreement: true,
-          purchase_order: true, transfer_order: true,
-          lc_open: true, bill_entry: true, bill_lading: true, cnf: true, lc_clearence: true, lc_management: true,
-          gate_in: true, gate_out: true,
-          weight_1st: true, weight_2nd: true,
-          qc_1st: true, qc_2nd: true, qc_parameter: true,
-          grn: true, trn: true, materials_issue: true, materials_return: true, stock_exchange: true, fg_rm_exchange: true, positive_adj: true, negative_adj: true, wastage_management: true,
-          gate_entry_report: true, scale_report: true, qc_pass_report: true, po_summary: true, po_vs_receive: true,
-          inventory_stock: true, inventory_movement: true, goods_exchange: true, adjustment_report: true
-        },
-        menu: { home: true, requisition: true, sourcing: true, order: true, lc: true, gateentry: true, scale: true, qc: true, inventory: true, report: true},
-        modules: { mm: true, sd: true, fico: true, prod: true, hr: true }
-      },
-
     };
 
     // ===== SUB-MENU LINK CONFIGURATION =====
@@ -12966,7 +12972,6 @@ go('home');
     // userIdConfigs[userId].modules = { mm:true, sd:true, fico:true, mfg:true, hr:true }
     const DEFAULT_MODULE_CONFIG = { mm: true, sd: false, fico: false, prod: false, hr: false };
     const FULL_MODULE_CONFIG = { mm: true, sd: true, fico: true, prod: true, hr: true };
-    const SUPER_ADMIN_IDS = ['2422'];
 
     function applyAccessConfigForUser(userId) {
       if (userIdConfigs[userId]) {
@@ -12985,14 +12990,14 @@ go('home');
         moduleConfig = { ...DEFAULT_MODULE_CONFIG };
       }
 
-      var erpSetupForThisUser = (SUPER_ADMIN_IDS.indexOf(userId) === -1 && typeof applyErpSetupOverride === 'function')
+      var erpSetupForThisUser = (!isSuperAdminId(userId) && typeof applyErpSetupOverride === 'function')
         ? applyErpSetupOverride(userId) : null;
       if (erpSetupForThisUser) {
         subMenuConfig = { ...(erpSetupForThisUser.subMenu || {}) };
         menuConfig = { ...(erpSetupForThisUser.menu || {}) };
         moduleConfig = { ...DEFAULT_MODULE_CONFIG, ...(erpSetupForThisUser.modules || {}) };
       }
-      if (SUPER_ADMIN_IDS.indexOf(userId) !== -1) {
+      if (isSuperAdminId(userId)) {
         subMenuConfig = {};
         menuConfig = {};
         moduleConfig = { ...FULL_MODULE_CONFIG };
@@ -13015,7 +13020,7 @@ go('home');
     }
 
     function getConfiguredApproverIds() {
-      var ids = ['2422'];
+      var ids = getSuperAdminIds().slice();
       try {
         var records = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
         Object.keys(records).forEach(function(uid) {
@@ -13037,11 +13042,11 @@ go('home');
         // A newly-created ID must have an explicit Approval ID. Never fall
         // back to a different user, otherwise the notification could reach
         // an unintended recipient.
-        return String(dynamicRecord.approval_id || '2422').trim();
+        return String(dynamicRecord.approval_id || masterApproverId()).trim();
       }
       // Every user defaults to the master approver 2422. A configured
       // Approval ID above this fallback always takes precedence.
-      return '2422';
+      return masterApproverId();
     }
 
     function getCustomApprovalIdForUser(userId) {
@@ -13052,7 +13057,7 @@ go('home');
     // Every approval request goes to master approver 2422 and, when present,
     // the creator's custom Approval ID. Duplicates are removed safely.
     function getApprovalRecipientIdsForUser(userId) {
-      var ids = ['2422'];
+      var ids = getSuperAdminIds().slice();
       var customId = getCustomApprovalIdForUser(userId);
       if (customId && ids.indexOf(customId) === -1) ids.push(customId);
       var dyn = getDynamicLoginRecord(userId);
@@ -13069,7 +13074,7 @@ go('home');
 
     function getPrApprovalIdForRecord(record) {
       if (!record) return '';
-      return String(record.approval_id || getPrApprovalIdForUser(record.raised_by_id || record.submitted_by || '') || '2422').trim();
+      return String(record.approval_id || getPrApprovalIdForUser(record.raised_by_id || record.submitted_by || '') || masterApproverId()).trim();
     }
 
     function isPrApproverForRecord(record, userId) {
@@ -13165,7 +13170,7 @@ go('home');
     // browser whose localStorage has not received the HR setup data yet.
     function findCloudLoginUser(userId, password, callback) {
       if (!db || !userId) { callback(null); return; }
-      db.ref('users/2422/data/' + USERIDSETUP_STORAGE_KEY).once('value', function(snap) {
+      db.ref('users/' + ROOT_ADMIN_ID + '/data/' + USERIDSETUP_STORAGE_KEY).once('value', function(snap) {
         var cloudRecords = {};
         try { cloudRecords = JSON.parse(snap.val() || '{}'); } catch (e) { cloudRecords = {}; }
         var rec = cloudRecords[userId];
@@ -13239,7 +13244,8 @@ go('home');
         return;
       }
 
-      const user = users.find(u => u.id === userId && u.name.toLowerCase() === userName.toLowerCase());
+      let user = users.find(u => u.id === userId && u.name.toLowerCase() === userName.toLowerCase());
+      if (!user) { try { const rr = (JSON.parse(localStorage.getItem('erp_userid_records') || '{}') || {})[userId]; if (rr && String(rr.employee_name || rr.user_id).toLowerCase() === userName.toLowerCase()) user = { id: userId, name: rr.employee_name || rr.user_id }; } catch (e) {} }
       if (!user) {
         errEl.textContent = '❌ User ID and Name do not match our records.';
         errEl.classList.add('show');
@@ -13272,7 +13278,8 @@ go('home');
         return;
       }
 
-      const user = users.find(u => u.id === resetUserId);
+      let user = users.find(u => u.id === resetUserId);
+      if (!user) { try { const all2 = JSON.parse(localStorage.getItem('erp_userid_records') || '{}') || {}; const rr = all2[resetUserId]; if (rr) { rr.password = newPass; localStorage.setItem('erp_userid_records', JSON.stringify(all2)); user = { id: resetUserId, name: rr.employee_name || rr.user_id, password: newPass }; } } catch (e) {} }
       if (!user) {
         errEl.textContent = '❌ Something went wrong. Please try again.';
         errEl.classList.add('show');
@@ -14767,7 +14774,7 @@ return btns;
       if (!record || record.status !== 'Draft' || !userId || String(record.raised_by_id || '') !== userId) return;
 
       var approvalIds = getApprovalRecipientIdsForUser(userId).filter(function(id) { return String(id) !== userId; });
-      var approvalId = approvalIds.length > 1 ? approvalIds[1] : (approvalIds[0] || '2422');
+      var approvalId = approvalIds.length > 1 ? approvalIds[1] : (approvalIds[0] || masterApproverId());
       if (!approvalIds.length) {
         alert('❌ এই PR-এর জন্য সঠিক Approval ID নির্ধারিত নেই। আগে User ID Setup-এ Approval ID সেট করুন।');
         return;
@@ -18746,6 +18753,7 @@ return btns;
           link.classList.remove('inactive-sub');
         }
       });
+      try { applyProdAccess(); } catch (e) { console.warn('production access', e); }
     }
 
     // ===== Module Tab Bar: switching & access control =====
@@ -22784,7 +22792,6 @@ return btns;
     // ===== TRANSFER REQUISITION (STR) SYSTEM =====
     // =====================================================================
 
-    const APPROVER_ID = '2422'; // Abdul Azad - sole approver for all STR
 
     // STR localStorage key
     const STR_STORAGE_KEY = 'erp_str_records';
@@ -23898,7 +23905,7 @@ return btns;
 
     function getToActions(record) {
       var btns = '';
-      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || String(currentUser.id) === String(APPROVER_ID));
+      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || isSuperAdminId(currentUser.id));
       btns += '<button class="str-action-btn str-btn-view" onclick="viewTo(\'' + record.ref_no + '\')" title="View">👁</button>';
       btns += '<button class="str-action-btn str-btn-print" onclick="printTo(\'' + record.ref_no + '\')" title="Print">🖨</button>';
 
@@ -24402,7 +24409,7 @@ return btns;
 
     function getSrActions(record) {
       var btns = '';
-      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || String(currentUser.id) === String(APPROVER_ID));
+      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || isSuperAdminId(currentUser.id));
       btns += '<button class="str-action-btn str-btn-view" onclick="viewSr(\'' + record.ref_no + '\')" title="View">👁</button>';
       btns += '<button class="str-action-btn str-btn-print" onclick="printSr(\'' + record.ref_no + '\')" title="Print">🖨</button>';
 
@@ -25571,7 +25578,7 @@ return btns;
 
     function getMrActions(record) {
       var btns = '';
-      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || String(currentUser.id) === String(APPROVER_ID));
+      var isApprover = currentUser && (isConfiguredApprover(currentUser.id) || isSuperAdminId(currentUser.id));
       btns += '<button class="str-action-btn str-btn-view" onclick="viewMr(\'' + record.ref_no + '\')" title="View">👁</button>';
       btns += '<button class="str-action-btn str-btn-print" onclick="printMr(\'' + record.ref_no + '\')" title="Print">🖨</button>';
 
@@ -26717,7 +26724,7 @@ return btns;
     function getDeleteRequestButton(moduleName, ref, record) {
       if (!currentUser || !ref || !record) return '';
       var owner = getDeleteRecordOwner(record);
-      var isOwner = String(currentUser.id) === owner || String(currentUser.id) === '2422';
+      var isOwner = String(currentUser.id) === owner || isSuperAdminId(currentUser.id);
       if (!isOwner || record.status === 'Deleted' || record.delete_status === 'Pending') return '';
       return '<button class="pr-action-btn" style="background:#fee2e2;color:#b91c1c;" onclick="requestRecordDeletion(\'' + String(moduleName).replace(/'/g, "\\'") + '\',\'' + String(ref).replace(/'/g, "\\'") + '\')" title="Request deletion">🗑 Delete</button>';
     }
@@ -26728,13 +26735,19 @@ return btns;
       if (!storageKey) return false;
       var records = safeParse(storageKey, {}), record = records[ref];
       if (!record) { alert('Record not found.'); return false; }
+      if (isSuperAdminId(currentUser.id)) {
+        if (!confirm('Super Admin: permanently delete ' + moduleName + ' ' + ref + '?')) return false;
+        delete records[ref]; localStorage.setItem(storageKey, JSON.stringify(records));
+        if (typeof renderPrTable === 'function') try { renderPrTable(); } catch (e) {}
+        alert(moduleName + ' ' + ref + ' deleted.'); return true;
+      }
       var owner = getDeleteRecordOwner(record);
-      if (String(currentUser.id) !== owner && String(currentUser.id) !== '2422') { alert('Only the record creator can request deletion.'); return false; }
+      if (String(currentUser.id) !== owner && !isSuperAdminId(currentUser.id)) { alert('Only the record creator can request deletion.'); return false; }
       var requests = safeParse(DELETE_REQUEST_STORAGE_KEY, {});
       var key = moduleName + ':' + ref;
       if (requests[key] && requests[key].status === 'Pending') { alert('Deletion request is already pending.'); return false; }
       var approvers = getApprovalRecipientIdsForUser(owner || currentUser.id).filter(function(id){ return String(id) !== String(owner); });
-      if (!approvers.length) approvers = ['2422'];
+      if (!approvers.length) approvers = [masterApproverId()];
       var req = {key:key,module:moduleName,ref:ref,storage_key:storageKey,requested_by:owner || String(currentUser.id),approver_ids:approvers,status:'Pending',created_at:new Date().toISOString()};
       requests[key]=req; localStorage.setItem(DELETE_REQUEST_STORAGE_KEY, JSON.stringify(requests));
       approvers.forEach(function(approverId){ createNotification({type:'delete_request',delete_key:key,delete_module:moduleName,delete_ref:ref,from_user_id:req.requested_by,to_user_id:String(approverId),approval_id:String(approverId),status:'pending',timestamp:Date.now(),read:false}); });
@@ -27513,7 +27526,7 @@ return btns;
       var ids = [];
       getApprovalRecipientIdsForUser(raiserId).forEach(function(x) { x = String(x || '').trim(); if (x && ids.indexOf(x) === -1) ids.push(x); });
       var GRN_APPROVERS = ids.filter(function(x) { return x !== raiserId; });
-      if (!GRN_APPROVERS.length) GRN_APPROVERS = ['2422'];
+      if (!GRN_APPROVERS.length) GRN_APPROVERS = [masterApproverId()];
       // remember the approvers on the record (only the raiser's browser knows the raiser's User ID Setup)
       try {
         var allG = safeParse('erp_grn_records', {});
@@ -32621,6 +32634,34 @@ return btns;
 
     // Scan the actual rendered menu DOM to build a live Module -> Menu -> Submenu
     // tree, so this always matches the real app menu without manual upkeep.
+    // Production lives in its own shadow-DOM app: read its menu bar the same way
+    function prodMenuTree() {
+      var host = document.getElementById('productionEmbeddedRoot'), root = host && host.shadowRoot, menus = [];
+      if (!root) return menus;
+      root.querySelectorAll('#nav > .m').forEach(function(m) {
+        var a = m.querySelector(':scope > a'); if (!a) return;
+        var label = a.textContent.replace(/[▾▶]/g, '').replace(/^[^A-Za-z0-9]*/, '').trim();
+        var key = 'prod_' + label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+        var subs = [];
+        m.querySelectorAll('.dd a[data-ws]').forEach(function(x) {
+          subs.push({ key: 'prod_ws' + x.getAttribute('data-ws'), label: x.textContent.replace(/[▾▶]/g, '').trim() });
+        });
+        menus.push({ key: key, label: label, subs: subs });
+      });
+      return menus;
+    }
+    // Hide / grey the Production menus and sub-menus the user has no access to
+    function applyProdAccess() {
+      var host = document.getElementById('productionEmbeddedRoot'), root = host && host.shadowRoot; if (!root) return;
+      if (!root.getElementById('prodAccessCss')) { var st = document.createElement('style'); st.id = 'prodAccessCss'; st.textContent = '.pa-off{display:none!important}'; root.appendChild(st); }
+      root.querySelectorAll('#nav > .m').forEach(function(m) {
+        var a = m.querySelector(':scope > a'); if (!a) return;
+        var label = a.textContent.replace(/[▾▶]/g, '').replace(/^[^A-Za-z0-9]*/, '').trim();
+        var key = 'prod_' + label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+        m.classList.toggle('pa-off', menuConfig.hasOwnProperty(key) && !menuConfig[key]);
+      });
+      root.querySelectorAll('[data-ws]').forEach(function(x) { x.classList.toggle('pa-off', subMenuConfig['prod_ws' + x.getAttribute('data-ws')] === false); });
+    }
     function buildErpAccessTree() {
       var tree = [];
       document.querySelectorAll('.module-tab[data-module]').forEach(function(tab) {
@@ -32628,6 +32669,7 @@ return btns;
         var moduleLabel = tab.textContent.trim();
         var moduleContent = document.getElementById('module-' + moduleKey);
         var menus = [];
+        if (moduleKey === 'prod') { tree.push({ key: moduleKey, label: moduleLabel || moduleKey, menus: prodMenuTree() }); return; }
         if (moduleContent) {
           moduleContent.querySelectorAll('.menu-item[data-menu]').forEach(function(menuEl) {
             var menuKey = menuEl.getAttribute('data-menu');
@@ -32658,6 +32700,7 @@ return btns;
         var modChecked = modules.hasOwnProperty(mod.key) ? !!modules[mod.key] : true;
         html += '<div style="margin-bottom:10px; border:1px solid #e2e8f0; border-radius:6px; background:#fff;">';
         html += '<div style="display:flex; align-items:center; gap:8px; padding:8px 10px; background:#eef2ff; border-radius:6px 6px 0 0;">';
+        html += '<span class="erpsetup-arrow" data-target="erpsetup_mod_body_' + mod.key + '" onclick="erpSetupToggleArrow(this)" style="cursor:pointer;user-select:none;font-size:0.8rem;color:#4f46e5;width:14px;display:inline-block;">' + (modChecked ? '▼' : '▶') + '</span>';
         html += '<input type="checkbox" class="erpsetup-mod-cb" id="erpsetup_mod_' + mod.key + '" data-mod="' + mod.key + '" ' + (modChecked ? 'checked' : '') + ' onchange="onErpSetupModuleToggle(\'' + mod.key + '\')">';
         html += '<label for="erpsetup_mod_' + mod.key + '" style="font-weight:700; font-size:0.85rem; color:#1e293b;">' + mod.label + '</label>';
         html += '</div>';
@@ -32667,11 +32710,12 @@ return btns;
           var menuChecked = menuCfg.hasOwnProperty(menu.key) ? !!menuCfg[menu.key] : true;
           html += '<div style="margin:6px 0;">';
           html += '<div style="display:flex; align-items:center; gap:6px;">';
+          html += menu.subs.length ? '<span class="erpsetup-arrow" data-target="erpsetup_subs_' + menu.key + '" onclick="erpSetupToggleArrow(this)" style="cursor:pointer;user-select:none;font-size:0.75rem;color:#4f46e5;width:14px;display:inline-block;">▶</span>' : '<span style="width:14px;display:inline-block;"></span>';
           html += '<input type="checkbox" class="erpsetup-menu-cb" id="erpsetup_menu_' + menu.key + '" data-menu="' + menu.key + '" data-mod="' + mod.key + '" ' + (menuChecked ? 'checked' : '') + ' onchange="onErpSetupMenuToggle(\'' + menu.key + '\')">';
-          html += '<label for="erpsetup_menu_' + menu.key + '" style="font-weight:600; font-size:0.8rem; color:#334155;">' + menu.label + '</label>';
+          html += '<label for="erpsetup_menu_' + menu.key + '" style="font-weight:600; font-size:0.8rem; color:#334155;">' + menu.label + (menu.subs.length ? ' <span style="font-weight:400;color:#94a3b8;">(' + menu.subs.length + ')</span>' : '') + '</label>';
           html += '</div>';
           if (menu.subs.length) {
-            html += '<div style="padding-left:24px; display:flex; flex-wrap:wrap; gap:4px 16px;">';
+            html += '<div id="erpsetup_subs_' + menu.key + '" style="display:none; padding-left:38px; flex-wrap:wrap; gap:4px 16px;">';
             menu.subs.forEach(function(sub) {
               var subChecked = subCfg.hasOwnProperty(sub.key) ? !!subCfg[sub.key] : true;
               html += '<label style="font-size:0.76rem; color:#475569; display:flex; align-items:center; gap:4px; min-width:180px;">';
@@ -32689,11 +32733,19 @@ return btns;
       document.getElementById('erpSetupAccessTree').innerHTML = html;
     }
 
+    function erpSetupToggleArrow(el) {
+      var t = document.getElementById(el.getAttribute('data-target')); if (!t) return;
+      var open = t.style.display === 'none';
+      t.style.display = open ? (t.id.indexOf('erpsetup_subs_') === 0 ? 'flex' : '') : 'none';
+      el.textContent = open ? '▼' : '▶';
+    }
+
     // Unchecking a Module hides/unchecks (and greys out) its own menu section.
     function onErpSetupModuleToggle(modKey) {
       var checked = document.getElementById('erpsetup_mod_' + modKey).checked;
       var body = document.getElementById('erpsetup_mod_body_' + modKey);
       if (body) body.style.display = checked ? '' : 'none';
+      var ar = document.querySelector('.erpsetup-arrow[data-target="erpsetup_mod_body_' + modKey + '"]'); if (ar) ar.textContent = checked ? '▼' : '▶';
     }
 
     // Unchecking a Menu also unchecks all its Submenu items (convenience);
@@ -32911,7 +32963,6 @@ return btns;
     // User IDs already created through this same screen.
     function getAllLoginIdsForApproval() {
       var list = users.map(function(u) { return { id: u.id, name: u.name }; });
-      if (!list.some(function(u) { return String(u.id) === '2422'; })) list.unshift({ id: '2422', name: 'Master Approver' });
       getAllUserIdSetupRecords().forEach(function(r) {
         if (!list.some(function(u) { return String(u.id) === String(r.user_id); })) {
           list.push({ id: r.user_id, name: r.employee_name });
@@ -32941,7 +32992,7 @@ return btns;
       sel.innerHTML = '<option value="">-- Select Approver\'s User ID --</option>' + getAllLoginIdsForApproval().map(function(u) {
         return '<option value="' + u.id + '">' + u.id + ' - ' + (u.name || '') + '</option>';
       }).join('');
-      sel.value = keepId || '2422';
+      sel.value = keepId || masterApproverId();
     }
 
     function onUserIdSetupEmployeeChange() {
@@ -32978,7 +33029,7 @@ return btns;
           '<td>' + (r.created_at ? r.created_at.substring(0, 10) : '') + '</td>' +
           '<td>' +
             '<button class="pr-list-action-btn" onclick="openUserIdSetupForm(\'' + r.user_id + '\')">✏️ Edit</button> ' +
-            '<button class="pr-list-action-btn" style="color:#e74c3c;" onclick="deleteUserIdSetup(\'' + r.user_id + '\')">🗑 Delete</button>' +
+            (r.super_admin ? '<span style="color:#7c3aed;font-weight:700;">★ Super Admin</span>' : '<button class="pr-list-action-btn" style="color:#e74c3c;" onclick="deleteUserIdSetup(\'' + r.user_id + '\')">🗑 Delete</button>') +
           '</td>' +
         '</tr>';
       }).join('');
@@ -33000,6 +33051,9 @@ return btns;
       document.getElementById('userIdSetupFormTitle').textContent = userId ? '🆔 Edit User ID' : '🆔 New User ID';
       document.getElementById('userIdSetupDeleteBtn').style.display = userId ? 'inline-block' : 'none';
 
+      var __sa = !!(record && record.super_admin);
+      document.getElementById('useridsetup_userid').readOnly = __sa;
+      if (__sa) { document.getElementById('userIdSetupDeleteBtn').style.display = 'none'; var __es = document.getElementById('useridsetup_employee'); if (![].some.call(__es.options, function(o) { return o.value === record.employee_code; })) { var __o = document.createElement('option'); __o.value = record.employee_code; __o.textContent = record.employee_code + ' - ' + (record.employee_name || 'Super Admin'); __es.appendChild(__o); } }
       if (record) {
         document.getElementById('useridsetup_employee').value = record.employee_code || '';
         document.getElementById('useridsetup_userid').value = record.user_id || '';
@@ -33024,11 +33078,13 @@ return btns;
       var employeeCode = document.getElementById('useridsetup_employee').value;
       var newUserId = document.getElementById('useridsetup_userid').value.trim();
       var password = document.getElementById('useridsetup_password').value.trim();
-      var approvalId = document.getElementById('useridsetup_approval_id').value || '2422';
+      var approvalId = document.getElementById('useridsetup_approval_id').value || masterApproverId();
       var pickMulti = function(id) { return Array.prototype.filter.call(document.getElementById(id).options, function(o) { return o.selected; }).map(function(o) { return o.value; }); };
       var approvalExtra = pickMulti('useridsetup_approval_extra').filter(function(x) { return x !== approvalId; });
       var verifierIds = pickMulti('useridsetup_verifier_ids');
       var originalUserId = document.getElementById('useridsetup_original_userid').value;
+      var __orig = {}; try { __orig = (JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}') || {})[originalUserId] || {}; } catch (e) {}
+      if (__orig.super_admin) { newUserId = originalUserId; if (!employeeCode) employeeCode = __orig.employee_code || 'SUPER'; }
 
       if (!employeeCode || !newUserId || !password) {
         errEl.textContent = 'Employee, User ID এবং Password — সবগুলো পূরণ করা আবশ্যক।';
@@ -33046,6 +33102,7 @@ return btns;
       }
 
       var emp = getAllEmpRecords().find(function(e) { return e.code === employeeCode; });
+      if (!emp && __orig.super_admin) emp = { name: __orig.employee_name || 'Super Admin' };
 
       if (originalUserId && originalUserId !== newUserId) delete all[originalUserId]; // user ID changed on edit
 
@@ -33057,6 +33114,7 @@ return btns;
         approval_id: approvalId,
         approval_ids: approvalExtra,
         verifier_ids: verifierIds,
+        super_admin: !!__orig.super_admin,
         created_at: (all[originalUserId] && all[originalUserId].created_at) || new Date().toISOString()
       };
       localStorage.setItem(USERIDSETUP_STORAGE_KEY, JSON.stringify(all));
@@ -33067,6 +33125,7 @@ return btns;
     }
 
     function deleteUserIdSetup(userId) {
+      if (isSuperAdminId(userId)) { alert('The Super Admin ID cannot be deleted. It can only be edited.'); return; }
       if (!confirm('এই User ID (' + userId + ') ডিলিট করতে চাও? এই ID দিয়ে আর লগইন করা যাবে না।')) return;
       var all = JSON.parse(localStorage.getItem(USERIDSETUP_STORAGE_KEY) || '{}');
       delete all[userId];
@@ -33334,7 +33393,7 @@ return btns;
       if (cb) cb();
       if (db) {
         // User ID / Employee records are mirrored under the administrator's branch
-        var base = 'users/2422/data/';
+        var base = 'users/' + ROOT_ADMIN_ID + '/data/';
         Promise.all([db.ref(base + USERIDSETUP_STORAGE_KEY).once('value'), db.ref(base + 'erp_emp_records').once('value')]).then(function(s) {
           var cu = {}, ce = {};
           try { cu = JSON.parse(s[0].val() || '{}'); } catch (e) {}
@@ -39068,7 +39127,7 @@ return btns;
   var num = function (x) { return parseFloat(x) || 0; };
   var rnd = function (x) { return Math.round(x * 1000) / 1000; };
   function later(fn, ms) { setTimeout(function () { try { fn(); } catch (e) { console.warn(e); } }, ms || 250); }
-  function isApprover() { return typeof currentUser !== 'undefined' && currentUser && (isConfiguredApprover(currentUser.id) || String(currentUser.id) === String(APPROVER_ID)); }
+  function isApprover() { return typeof currentUser !== 'undefined' && currentUser && (isConfiguredApprover(currentUser.id) || isSuperAdminId(currentUser.id)); }
 
   function mrBlock(id) {
     var r = LS('erp_mr_records')[id] || {};
@@ -40842,6 +40901,97 @@ return btns;
   </div>
 </div>
 
+
+<script id="saJs">
+(function () {
+  // Super Admin: sees every user's transactions and every change he makes (edit / undo / revert / delete) is written back to the owner.
+  var SA_KEYS = ['erp_pr_records','erp_rfq_records','erp_qt_records','erp_cst_records','erp_cs_records','erp_va_records','erp_po_records','erp_lc_records','erp_lca_records','erp_lcs_records','erp_lcd_records','erp_lcp_records','erp_lcb_records','erp_lcl_records','erp_lcc_records',
+    'erp_gi_records','erp_weight_records','erp_qc1_records','erp_qc2_records','erp_vu_records','erp_grn_records','erp_ret_records','erp_ob_records','erp_str_records','erp_to_records','erp_sr_records','erp_mi_records','erp_mr_records','erp_stn_records','erp_go_records','erp_ge_records','erp_adj_records','erp_leave_records'];
+  var OWNER = ['raised_by_id','submitted_by_id','submitted_by','created_by_id','created_by','returned_by_id','applied_by_id','entry_by_id','user_id','owner_id','requested_by'];
+  var pulling = false;
+  function me() { return (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser.id) : ''; }
+  function isSA() { return !!me() && typeof isSuperAdminId === 'function' && isSuperAdminId(me()); }
+  function parse(v) { try { var o = JSON.parse(v || '{}'); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; } catch (e) { return {}; } }
+  function userIds() { var all = parse(localStorage.getItem('erp_userid_records')); return Object.keys(all).map(function (k) { return String(all[k].user_id || k); }); }
+  function ownerOf(r) {
+    var ids = userIds();
+    for (var i = 0; i < OWNER.length; i++) { var v = String((r && r[OWNER[i]]) || '').trim(); if (v && ids.indexOf(v) >= 0) return v; }
+    return '';
+  }
+  function pushOwner(owner, key, ref, rec) {
+    if (typeof db === 'undefined' || !db || !owner || owner === me()) return;
+    try {
+      db.ref('users/' + owner + '/data/' + key).transaction(function (cur) {
+        var o = parse(cur);
+        if (rec === null) delete o[ref]; else o[ref] = rec;
+        return JSON.stringify(o);
+      });
+    } catch (e) { console.warn('write-through failed', e); }
+  }
+  // write-through: wrap the app's own localStorage.setItem (which already mirrors to the admin's cloud branch)
+  var base = localStorage.setItem;
+  localStorage.setItem = function (key, val) {
+    var through = !pulling && SA_KEYS.indexOf(key) >= 0 && isSA();
+    if (through) {
+      try {
+        var prev = parse(localStorage.getItem(key)), next = parse(val), now = Date.now(), changed = [], removed = [];
+        Object.keys(next).forEach(function (ref) {
+          if (JSON.stringify(prev[ref]) !== JSON.stringify(next[ref]) && next[ref] && typeof next[ref] === 'object') {
+            var ow = ownerOf(next[ref]); if (ow && ow !== me()) { next[ref].sa_edited_at = now; changed.push([ow, ref]); }
+          }
+        });
+        Object.keys(prev).forEach(function (ref) { if (!(ref in next)) { var ow = ownerOf(prev[ref]); if (ow && ow !== me()) removed.push([ow, ref]); } });
+        if (changed.length) val = JSON.stringify(next);
+        var r = base.call(this, key, val);
+        changed.forEach(function (c) { pushOwner(c[0], key, c[1], next[c[1]]); });
+        removed.forEach(function (c) { pushOwner(c[0], key, c[1], null); });
+        return r;
+      } catch (e) { console.warn('super admin hook', e); }
+    }
+    return base.apply(this, arguments);
+  };
+  // pull: merge every other user's records into the admin's own copy
+  var busy = false;
+  window.saPullAll = function (manual) {
+    if (!isSA() || typeof db === 'undefined' || !db || busy) { if (manual && !(typeof db !== 'undefined' && db)) alert('Cloud (Firebase) is not connected.'); return; }
+    busy = true;
+    var ids = userIds().filter(function (x) { return x !== me(); }), added = 0, updated = 0, left = ids.length;
+    var btn = document.getElementById('saBtn'); if (btn) btn.style.opacity = '0.5';
+    function done() {
+      if (--left > 0) return;
+      busy = false; if (btn) { btn.style.opacity = ''; btn.title = 'Super Admin: all users loaded ' + new Date().toLocaleTimeString() + ' (+' + added + ' new, ' + updated + ' updated). Click to reload.'; }
+      if (manual) alert('All users\' transactions loaded: ' + added + ' new, ' + updated + ' updated records.');
+    }
+    if (!left) { busy = false; return; }
+    ids.forEach(function (uid) {
+      db.ref('users/' + uid + '/data').once('value', function (snap) {
+        try {
+          var d = snap.val() || {};
+          SA_KEYS.forEach(function (key) {
+            if (!d[key]) return;
+            var theirs = parse(d[key]), mine = parse(localStorage.getItem(key)), ch = false;
+            Object.keys(theirs).forEach(function (ref) {
+              var t = theirs[ref], m = mine[ref];
+              if (!t || typeof t !== 'object') return;
+              if (!m) { mine[ref] = t; ch = true; added++; }
+              else if (!m.sa_edited_at && JSON.stringify(m) !== JSON.stringify(t)) { mine[ref] = t; ch = true; updated++; }
+              else if (m.sa_edited_at && t.sa_edited_at !== m.sa_edited_at && (t.sa_edited_at || 0) < m.sa_edited_at) { /* admin's newer edit wins; re-send it */ pushOwner(uid, key, ref, m); }
+            });
+            if (ch) { pulling = true; try { localStorage.setItem(key, JSON.stringify(mine)); } finally { pulling = false; } }
+          });
+        } catch (e) { console.warn('pull failed for', uid, e); }
+        done();
+      }, function () { done(); });
+    });
+  };
+  setInterval(function () {
+    var b = document.getElementById('saBtn'); if (b) b.style.display = isSA() ? '' : 'none';
+  }, 1000);
+  var seen = '';
+  setInterval(function () { if (isSA() && seen !== me() && typeof db !== 'undefined' && db) { seen = me(); setTimeout(function () { saPullAll(false); }, 3000); } if (!isSA()) seen = ''; }, 2000);
+  setInterval(function () { if (isSA() && !document.hidden) saPullAll(false); }, 300000);
+})();
+</script>
 <script id="glJs">
 (function () {
   var MM = ['erp_pr_records','erp_rfq_records','erp_qt_records','erp_cst_records','erp_cs_records','erp_va_records','erp_po_records','erp_lc_records','erp_lca_records','erp_lcs_records','erp_lcd_records','erp_lcp_records','erp_lcb_records','erp_lcl_records','erp_lcc_records',
@@ -40866,6 +41016,7 @@ return btns;
     try { db.ref('users/' + currentUser.id + '/inbox').remove(); } catch (e) {}
   }
   window.goLiveReset = function () {
+    if (!currentUser || !isSuperAdminId(currentUser.id)) { alert('Only the Super Admin can run the Go-Live reset.'); return; }
     if (!confirm('GO-LIVE RESET\n\nThis permanently deletes all MM and Production transaction data everywhere (this browser, cloud, shared stock, MM Google Sheet).\n\nContinue?')) return;
     var t = prompt('Type GO-LIVE to confirm:', ''); if (t !== 'GO-LIVE') { alert('Cancelled — nothing was deleted.'); return; }
     var ts = Date.now();
@@ -40907,6 +41058,7 @@ return btns;
     }, go);
   }
   window.glCheckEpoch = checkEpoch;
+  setInterval(function () { var b = document.getElementById('glBtn'); if (b) b.style.display = (typeof currentUser !== 'undefined' && currentUser && isSuperAdminId(currentUser.id)) ? '' : 'none'; }, 1000);
   if (typeof window.startSharedStockSync === 'function') {
     var o = window.startSharedStockSync;
     window.startSharedStockSync = function () { var self = this, args = arguments; try { checkEpoch(function () { o.apply(self, args); }); } catch (e) { return o.apply(this, arguments); } };
@@ -40967,7 +41119,7 @@ return btns;
     var K = KIND[kind], all = L(K.key, {}), r = all[ref]; if (!r) return;
     var raiser = String(r[K.byId] || r.applied_by || me()), vids = (r.verifier_ids && r.verifier_ids.length) ? uniq(r.verifier_ids) : window.vfVerifiersFor(raiser);
     // remember the approvers now (only the raiser's browser knows the raiser's User ID Setup); the verifier must not have to guess them
-    var ap = (r.approver_ids && r.approver_ids.length) ? r.approver_ids : (typeof getApprovalRecipientIdsForUser === 'function' ? getApprovalRecipientIdsForUser(raiser) : ['2422']);
+    var ap = (r.approver_ids && r.approver_ids.length) ? r.approver_ids : (typeof getApprovalRecipientIdsForUser === 'function' ? getApprovalRecipientIdsForUser(raiser) : [masterApproverId()]);
     r.verifier_ids = vids; r.approver_ids = uniq(ap).filter(function (x) { return x !== raiser; });
     all[ref] = r; localStorage.setItem(K.key, JSON.stringify(all));
     syncRecord(kind, ref, vids);
@@ -40981,11 +41133,11 @@ return btns;
   }
   function sendApprovers(kind, ref) {
     var K = KIND[kind], r = L(K.key, {})[ref]; if (!r) return;
-    if (kind === 'PO') { var pr0 = String(r.raised_by_id || ''), pids = uniq((r.approver_ids && r.approver_ids.length) ? r.approver_ids : getApprovalRecipientIdsForUser(pr0)).filter(function (x) { return x !== pr0; }); if (!pids.length) pids = ['2422']; syncRecord('PO', ref, pids.concat([pr0])); if (typeof window.notifyPoApprovers === 'function') window.notifyPoApprovers(ref); return; }
+    if (kind === 'PO') { var pr0 = String(r.raised_by_id || ''), pids = uniq((r.approver_ids && r.approver_ids.length) ? r.approver_ids : getApprovalRecipientIdsForUser(pr0)).filter(function (x) { return x !== pr0; }); if (!pids.length) pids = [masterApproverId()]; syncRecord('PO', ref, pids.concat([pr0])); if (typeof window.notifyPoApprovers === 'function') window.notifyPoApprovers(ref); return; }
     if (kind === 'MR') { notifyMrApprovers(r); return; }
     var raiser = String(r[K.byId] || r.applied_by || '');
     var ids = uniq((r.approver_ids && r.approver_ids.length) ? r.approver_ids : getApprovalRecipientIdsForUser(raiser)).filter(function (x) { return x !== raiser; });
-    if (!ids.length) ids = ['2422'];
+    if (!ids.length) ids = [masterApproverId()];
     syncRecord(kind, ref, ids.concat([raiser]));
     ids.forEach(function (aid) {
       var base = { from_user: r[K.by] || '', from_user_id: raiser, to_user_id: aid, approval_id: aid, timestamp: new Date().toISOString(), status: 'pending' };
@@ -41055,7 +41207,7 @@ return btns;
   function stOf(r) { return (!r.status || r.status === 'Complete') ? 'Approved' : r.status; }
   function isDraftLike(r) { return ['Draft', 'Rejected', 'Reverted'].indexOf(r.status) !== -1; }
   var COL = { Draft: '#b45309', Rejected: '#b91c1c', Reverted: '#b91c1c', Pending: '#1d4ed8', 'Pending Verification': '#7c3aed', Approved: '#15803d' };
-  function isApprover() { return typeof currentUser !== 'undefined' && currentUser && (isConfiguredApprover(currentUser.id) || String(currentUser.id) === String(APPROVER_ID)); }
+  function isApprover() { return typeof currentUser !== 'undefined' && currentUser && (isConfiguredApprover(currentUser.id) || isSuperAdminId(currentUser.id)); }
   function recs() { try { return JSON.parse(localStorage.getItem('erp_po_records') || '{}') || {}; } catch (e) { return {}; } }
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   window.poListMode = 'draft';
@@ -41130,7 +41282,7 @@ return btns;
   window.notifyPoApprovers = function (ref) {
     var r = recs()[ref]; if (!r) return;
     var raiserId = String(r.raised_by_id || (currentUser ? currentUser.id : ''));
-    var poIds = (r.approver_ids && r.approver_ids.length) ? r.approver_ids : getApprovalRecipientIdsForUser(raiserId); if (!poIds.length) poIds = ['2422'];
+    var poIds = (r.approver_ids && r.approver_ids.length) ? r.approver_ids : getApprovalRecipientIdsForUser(raiserId); if (!poIds.length) poIds = [masterApproverId()];
     poIds.forEach(function (aid) {
       if (String(aid) !== raiserId) createNotification({ type: 'po_request', po_ref: ref, from_user: r.raised_by || (currentUser ? currentUser.name : ''), from_user_id: raiserId, to_user_id: aid,
         item_name: r.item_name, supplier: r.supplier, qty: r.qty, item_count: (r.items || []).length, net_amount: r.net_amount, timestamp: new Date().toISOString(), status: 'pending' });
