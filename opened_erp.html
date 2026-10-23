@@ -2774,7 +2774,7 @@
         <div class="dropdown" data-parent="report">
           <a href="#" data-sub="gate_entry_report" onclick="event.preventDefault(); openReport(&#39;gate_entry&#39;); return false;"><span class="arrow">▶</span> Challan Entry Report</a>
           <a href="#" data-sub="scale_report" onclick="event.preventDefault(); openReport(&#39;scale&#39;); return false;"><span class="arrow">▶</span> Scale Report</a>
-          <a href="#" data-sub="qc_pass_report" onclick="event.preventDefault(); openReport(&#39;qc&#39;); return false;"><span class="arrow">▶</span> Deliverable Report</a>
+          <a href="#" data-sub="qc_pass_report" onclick="event.preventDefault(); openWhsRep(); return false;"><span class="arrow">▶</span> Warehouse Wise Stock</a>
           <a href="#" data-sub="vehicle_unload_report" onclick="event.preventDefault(); openReport(&#39;vehicle_unload&#39;); return false;"><span class="arrow">▶</span> Vehicle Unload Status</a>
           <a href="#" data-sub="po_summary" onclick="event.preventDefault(); openReport(&#39;po_summary&#39;); return false;"><span class="arrow">▶</span> PO Summary</a>
           <a href="#" data-sub="inventory_valuation" onclick="event.preventDefault(); openIvRep(); return false;"><span class="arrow">▶</span> Inventory Valuation Report</a>
@@ -7666,7 +7666,10 @@ go('home');
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_supplier">Supplier</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_supplier" readonly=""></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_item_name">Item Name</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_item_name" readonly=""></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_item_code">Item Code</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_item_code" readonly=""></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_profit_center">Profit Center</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_profit_center" placeholder="Auto-filled from source"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_company">Company</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_company" readonly placeholder="Auto from PO" style="background:#f1f5f9;"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_bu">Business Unit</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_bu" readonly placeholder="Auto from PO" style="background:#f1f5f9;"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_profit_center">Profit Center</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_profit_center" readonly placeholder="Auto from PO" style="background:#f1f5f9;"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="grn_warehouse">Warehouse</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_warehouse" readonly placeholder="Auto from PO" style="background:#f1f5f9;"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="grn_description">Description</label><span class="erp-info-icon">i</span></div><input type="text" id="grn_description" readonly=""></div>
             </div>
           </div>
@@ -8241,6 +8244,7 @@ go('home');
               <div class="erp-field"><div class="erp-field-label-row"><label for="po_rfq_ref">RFQ Ref.#</label><span class="erp-info-icon">i</span></div><input type="text" id="po_rfq_ref" readonly style="background:#f1f5f9;"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="po_pr_ref">PR Ref.#</label><span class="erp-info-icon">i</span></div><input type="text" id="po_pr_ref" readonly style="background:#f1f5f9;"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="po_pc">Profit Center</label><span class="erp-info-icon">i</span></div><input type="text" id="po_pc" readonly style="background:#f1f5f9;"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="po_warehouse">Warehouse</label><span class="erp-info-icon">i</span></div><input type="text" id="po_warehouse" readonly style="background:#f1f5f9;" placeholder="Auto from PR"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="po_pay_mode">Mode of Payment</label><span class="erp-info-icon">i</span></div><input type="text" id="po_pay_mode" readonly style="background:#f1f5f9;"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="po_credit_days">Credit Days</label><span class="erp-info-icon">i</span></div><input type="text" id="po_credit_days" readonly style="background:#f1f5f9;"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="po_vat_cat">VAT Category</label><span class="erp-info-icon">i</span></div><input type="text" id="po_vat_cat" readonly style="background:#f1f5f9;"></div>
@@ -12063,8 +12067,34 @@ go('home');
             _ignoreFirebaseUpdate = true;
             _origSetItem.call(localStorage, key, cloudVal);
             _ignoreFirebaseUpdate = false;
+            // a new notification (or a record behind one) arrived from another user: refresh the bell right away
+            if (key === 'erp_str_notifications' && typeof loadNotifications === 'function') { try { loadNotifications(); } catch (e) {} }
           }
         });
+      });
+      startInboxSync();
+    }
+
+    // Notifications other users send to me land in users/<me>/inbox; merge them into my list and clear them.
+    function startInboxSync() {
+      if (!currentUser || !db) return;
+      var inboxRef = db.ref('users/' + currentUser.id + '/inbox');
+      inboxRef.off();
+      inboxRef.on('child_added', function(snap) {
+        var n = snap.val();
+        try {
+          if (n && n.id) {
+            var list = [];
+            try { list = JSON.parse(_origGetItem.call(localStorage, 'erp_str_notifications') || '[]') || []; } catch (e) { list = []; }
+            if (!Array.isArray(list)) list = [];
+            if (!list.some(function(x) { return x && x.id === n.id; })) {
+              list.unshift(n);
+              localStorage.setItem('erp_str_notifications', JSON.stringify(list));
+            }
+            if (typeof loadNotifications === 'function') loadNotifications();
+          }
+        } catch (e) { console.warn('inbox merge failed', e); }
+        try { snap.ref.remove(); } catch (e2) {}
       });
     }
 
@@ -12073,6 +12103,7 @@ go('home');
       FB_SYNC_KEYS.forEach(function(key) {
         db.ref('users/' + currentUser.id + '/data/' + key).off();
       });
+      try { db.ref('users/' + currentUser.id + '/inbox').off(); } catch (e) {}
     }
 
     // ===== FIREBASE SYNC: AUTO-SAVE on key data changes =====
@@ -13036,13 +13067,14 @@ go('home');
     function isPrApproverForRecord(record, userId) {
       if (!record || !userId) return false;
       var creatorId = record.raised_by_id || record.submitted_by || record.from_user_id || '';
-      return getApprovalRecipientIdsForUser(creatorId).indexOf(String(userId)) !== -1 || getPrApprovalIdForRecord(record) === String(userId);
+      return getApprovalRecipientIdsForUser(creatorId).indexOf(String(userId)) !== -1 || getPrApprovalIdForRecord(record) === String(userId) ||
+        (record.approver_ids || []).map(String).indexOf(String(userId)) !== -1;
     }
 
     function hasPendingApprovalNotification(userId) {
       if (!userId) return false;
       var notifs = safeParse(STR_NOTIF_KEY, []);
-      var approvalTypes = ['pr_request', 'str_request', 'sr_request', 'mr_request', 'po_request', 'po_verify', 'sr_verify', 'mr_verify', 'grn_request', 'go_request', 'leave_request', 'delete_request', 'edit_request', 'undo_request'];
+      var approvalTypes = ['pr_request', 'str_request', 'sr_request', 'mr_request', 'po_request', 'po_verify', 'sr_verify', 'mr_verify', 'pr_verify', 'leave_verify', 'grn_request', 'go_request', 'leave_request', 'delete_request', 'edit_request', 'undo_request'];
       return Array.isArray(notifs) && notifs.some(function(n) {
         return n && approvalTypes.indexOf(n.type) !== -1 && n.status === 'pending' && String(n.to_user_id || '').trim() === String(userId).trim();
       });
@@ -13531,7 +13563,7 @@ go('home');
     // Everything the approved CS (and the CST / RFQ / PR behind it) already knows, shown on the PO
     function poFillCsInfo(csRef) {
       var setv = function(id, v) { var el = document.getElementById(id); if (el) el.value = (v === undefined || v === null) ? '' : v; };
-      ['po_cs_date', 'po_cst_ref', 'po_rfq_ref', 'po_pr_ref', 'po_pc', 'po_pay_mode', 'po_credit_days', 'po_vat_cat', 'po_delivery_terms', 'po_req_delivery', 'po_cs_approved_by', 'po_cs_total'].forEach(function(id) { setv(id, ''); });
+      ['po_cs_date', 'po_cst_ref', 'po_rfq_ref', 'po_pr_ref', 'po_pc', 'po_warehouse', 'po_pay_mode', 'po_credit_days', 'po_vat_cat', 'po_delivery_terms', 'po_req_delivery', 'po_cs_approved_by', 'po_cs_total'].forEach(function(id) { setv(id, ''); });
       if (!csRef) return;
       var L = function(k) { try { return JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) { return {}; } };
       var cs = L('erp_cs_records')[csRef]; if (!cs) return;
@@ -13539,6 +13571,11 @@ go('home');
       var pick = function() { for (var i = 0; i < arguments.length; i++) if (arguments[i] !== undefined && arguments[i] !== null && arguments[i] !== '') return arguments[i]; return ''; };
       setv('po_cs_date', pick(cs.date)); setv('po_cst_ref', pick(cs.cst_ref)); setv('po_rfq_ref', pick(cs.rfq_ref, cst.rfq_ref)); setv('po_pr_ref', pick(rfq.pr_ref, h.rfq_pr_ref));
       setv('po_pc', pick(h.rfq_pc, rfq.pc, cst.pc));
+      var prRec = L('erp_pr_records')[pick(rfq.pr_ref, h.rfq_pr_ref)] || {}; setv('po_warehouse', pick(prRec.warehouse, prRec.pr_warehouse));
+      if (!document.getElementById('po_pc').value) setv('po_pc', pick(prRec.pc, prRec.pr_pc));
+      var poCo = document.getElementById('po_company'), poBu = document.getElementById('po_bu');
+      if (poCo && !poCo.value) setv('po_company', pick(rfq.company, h.rfq_company, prRec.company));
+      if (poBu && !poBu.value) setv('po_bu', pick(rfq.bu, h.rfq_bu, prRec.bu));
       setv('po_pay_mode', pick(rfq.payment_mode, h.rfq_payment_mode)); setv('po_credit_days', pick(rfq.credit_days, h.rfq_credit_days));
       setv('po_vat_cat', pick(rfq.vat_category, h.rfq_vat)); setv('po_delivery_terms', pick(rfq.delivery_terms, h.rfq_delivery_terms));
       setv('po_req_delivery', pick(rfq.delivery_date, h.rfq_delivery_date));
@@ -13989,6 +14026,8 @@ go('home');
       if (data.po_origin) record.origin = data.po_origin;
       if (data.po_currency) record.currency = data.po_currency;
       if (data.po_conv_rate) record.conv_rate = data.po_conv_rate;
+      if (data.po_pc) record.pc = data.po_pc;
+      if (data.po_warehouse) record.warehouse = data.po_warehouse;
       if (data.po_contact_person) record.contact_person = data.po_contact_person;
       if (data.po_contact_number) record.contact_number = data.po_contact_number;
       if (data.po_remarks) record.remarks = data.po_remarks;
@@ -14324,7 +14363,7 @@ go('home');
         window.__giSubmitNext = false;
       }
       if (key === 'RFQ') data.status = rfqDraft ? 'Draft' : 'Complete';
-      if (key === 'PO') data.status = poDraft ? 'Draft' : vfStage(currentUser ? currentUser.id : '');
+      if (key === 'PO') data.status = poDraft ? 'Draft' : vfStage(currentUser ? currentUser.id : '', 'PO');
       // Save this record locally (keyed by its own Ref#) so the next form in the chain can hang off it
       if (cfg.refField && cfg.storageKey) {
         // PR Save always creates/updates a Draft. Approval starts only when
@@ -14567,7 +14606,7 @@ go('home');
       if (scaleReportLink) { e.preventDefault(); openReport('scale'); return; }
 
       const qcPassReportLink = e.target.closest('a[data-sub="qc_pass_report"]');
-      if (qcPassReportLink) { e.preventDefault(); openReport('qc'); return; }
+      if (qcPassReportLink) { e.preventDefault(); openWhsRep(); return; }
 
       const poSummaryLink = e.target.closest('a[data-sub="po_summary"]');
       if (poSummaryLink) { e.preventDefault(); openReport('po_summary'); return; }
@@ -14693,6 +14732,7 @@ go('home');
       if (record.status === 'Draft' && isRaiser) {
         btns += '<button class="pr-action-btn" style="background:#0ea5e9;color:#fff;" onclick="forwardPrByRef(\'' + record.ref + '\')" title="Forward to Approval">➡️ Forward</button>';
       }
+      if (typeof vfButtons === 'function') btns += vfButtons('PR', record.ref, record);
       // A rejected/reverted PR can be corrected and resubmitted only by its
       // original creator. It is never editable by the approver or other IDs.
       if ((record.status === 'Rejected' || record.status === 'Reverted') && isRaiser) {
@@ -14725,6 +14765,24 @@ return btns;
         return;
       }
 
+      var prVerifiers = (typeof vfVerifiersFor === 'function') ? vfVerifiersFor(userId) : [];
+      if (prVerifiers.length) {
+        // PR must be verified first, then approved
+        record.status = 'Pending Verification';
+        record.approval_id = approvalId;
+        record.approver_ids = approvalIds;
+        record.verifier_ids = prVerifiers;
+        record.forwarded_by = userId;
+        record.forwarded_at = new Date().toISOString();
+        records[ref] = record;
+        localStorage.setItem('erp_pr_records', JSON.stringify(records));
+        vfNotify('PR', ref);
+        renderPrTable();
+        loadNotifications();
+        alert('PR ' + ref + ' sent for verification to ' + prVerifiers.join(', ') + '. After verification it goes to the approver.');
+        return;
+      }
+
       var existingPending = safeParse(STR_NOTIF_KEY, []);
       if (Array.isArray(existingPending) && existingPending.some(function(n) {
         return n && n.type === 'pr_request' && n.pr_ref === ref && n.status === 'pending' && approvalIds.indexOf(String(n.to_user_id)) !== -1;
@@ -14735,6 +14793,7 @@ return btns;
 
       record.status = 'Pending';
       record.approval_id = approvalId;
+      record.approver_ids = approvalIds;
       record.forwarded_by = userId;
       record.forwarded_at = new Date().toISOString();
       records[ref] = record;
@@ -17887,7 +17946,7 @@ return btns;
       document.getElementById('grn_item_code_display').value = weightRecord.item_code || '';
       document.getElementById('grn_description').value = weightRecord.item_name || '';
       document.getElementById('grn_total_gross_wt').value = weightRecord.net_weight || weightRecord.gross || '';
-      document.getElementById('grn_po_number_display').value = poNo;
+      document.getElementById('grn_po_number_display').value = poNo; grnFillFromPo();
 
       // Populate no_of_bag from weight record if available
       if (weightRecord.no_of_bag) document.getElementById('grn_no_of_bag').value = weightRecord.no_of_bag;
@@ -24211,7 +24270,7 @@ return btns;
       successEl.classList.remove('show');
 
       var data = collectSrData();
-      data.status = vfStage(data.raised_by_id);
+      data.status = vfStage(data.raised_by_id, 'SR');
 
       if (!data.sr_items || data.sr_items.length === 0) {
         errEl.textContent = '❌ At least one line item with a Material Name is required.';
@@ -24364,7 +24423,7 @@ return btns;
       var records = JSON.parse(localStorage.getItem(SR_STORAGE_KEY) || '{}');
       var r = records[ref];
       if (!r) return;
-      r.status = vfStage(r.raised_by_id || '');
+      r.status = vfStage(r.raised_by_id || '', 'SR');
       localStorage.setItem(SR_STORAGE_KEY, JSON.stringify(records));
       sendMiGAS({ form: 'SR_STATUS_UPDATE', ref_no: ref, status: r.status });
       if (r.status === 'Pending Verification') { vfNotify('SR', ref); renderSrTable(); return; }
@@ -25170,7 +25229,7 @@ return btns;
         var left = (parseFloat(mi.issued_qty) || 0) - done;
         if (q > left + 0.00001) { alert('Return Qty (' + q + ') exceeds returnable qty (' + Math.max(left, 0) + '). Edit the draft.'); return; }
       } else if (q > (parseFloat(r.returnable_qty) || 0) + 0.00001) { alert('Return Qty exceeds returnable qty. Edit the draft.'); return; }
-      r.status = vfStage(r.returned_by_id || ''); r.submitted_at = new Date().toISOString();
+      r.status = vfStage(r.returned_by_id || '', 'MR'); r.submitted_at = new Date().toISOString();
       localStorage.setItem(MR_STORAGE_KEY, JSON.stringify(o));
       if (r.status === 'Pending Verification') vfNotify('MR', ref); else notifyMrApprovers(r);
       sendMiGAS(r);
@@ -25362,7 +25421,7 @@ return btns;
       }
 
       var data = collectMrData();
-      data.status = vfStage(data.returned_by_id);
+      data.status = vfStage(data.returned_by_id, 'MR');
 
       // Save MR record
       var mrRecords = JSON.parse(localStorage.getItem(MR_STORAGE_KEY) || '{}');
@@ -26623,19 +26682,20 @@ return btns;
         loadNotifications();
       }
 
-      // Always push to the target user's Firebase branch. This is the only
-      // cross-user delivery path for approval and status notifications.
+      // Cross-user delivery. Two independent paths so a notification is never lost:
+      //  1) an append-only inbox node (the receiver merges it into his list as soon as he is online), and
+      //  2) an atomic (transaction) merge into his notification list, so two senders can never overwrite each other.
       if (targetUserId && db && targetUserId !== activeUserId) {
-        var targetRef = db.ref('users/' + targetUserId + '/data/erp_str_notifications');
-        targetRef.once('value', function(snap) {
-          var targetNotifs = [];
-          try { targetNotifs = JSON.parse(snap.val()) || []; } catch(e) { targetNotifs = []; }
-          if (!Array.isArray(targetNotifs)) targetNotifs = [];
-          if (!targetNotifs.some(function(n) { return n && n.id === notif.id; })) {
-            targetNotifs.unshift(notif);
-            targetRef.set(JSON.stringify(targetNotifs));
-          }
-        });
+        try { db.ref('users/' + targetUserId + '/inbox/' + notif.id).set(notif); } catch (inboxErr) { console.warn('inbox write failed', inboxErr); }
+        try {
+          db.ref('users/' + targetUserId + '/data/erp_str_notifications').transaction(function(cur) {
+            var arr = [];
+            try { arr = JSON.parse(cur) || []; } catch (e) { arr = []; }
+            if (!Array.isArray(arr)) arr = [];
+            if (!arr.some(function(n) { return n && n.id === notif.id; })) arr.unshift(notif);
+            return JSON.stringify(arr);
+          });
+        } catch (txErr) { console.warn('notification merge failed', txErr); }
       }
       return notif.id;
     }
@@ -26707,7 +26767,7 @@ return btns;
       if (isApprover) {
         // Approvers see pending requests
         unreadCount = notifs.filter(function(n) {
-          return !n.read && (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'po_request' || n.type === 'po_verify' || n.type === 'sr_verify' || n.type === 'mr_verify' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request' || n.type === 'delete_request') && n.status === 'pending' && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim();
+          return !n.read && (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'po_request' || n.type === 'po_verify' || n.type === 'sr_verify' || n.type === 'mr_verify' || n.type === 'pr_verify' || n.type === 'leave_verify' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request' || n.type === 'delete_request') && n.status === 'pending' && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim();
         }).length;
       } else {
         // Non-approvers see status updates (approved/rejected) for their submissions
@@ -26848,7 +26908,7 @@ return btns;
 
       // Approver (2422) sees pending requests
               var pendingNotifs = notifs.filter(function(n) {
-        return (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'po_request' || n.type === 'po_verify' || n.type === 'sr_verify' || n.type === 'mr_verify' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request' || n.type === 'delete_request' || n.type === 'edit_request' || n.type === 'undo_request') && n.status === 'pending' && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim();
+        return (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'po_request' || n.type === 'po_verify' || n.type === 'sr_verify' || n.type === 'mr_verify' || n.type === 'pr_verify' || n.type === 'leave_verify' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request' || n.type === 'delete_request' || n.type === 'edit_request' || n.type === 'undo_request') && n.status === 'pending' && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim();
       }).slice(0, 20);
 
       if (pendingNotifs.length === 0) {
@@ -26864,7 +26924,7 @@ return btns;
         var isSR = n.type === 'sr_request';
         var isMR = n.type === 'mr_request';
         var isPO = n.type === 'po_request';
-        var isVF = /^(po|sr|mr)_verify$/.test(n.type);
+        var isVF = /^(po|pr|sr|mr|leave)_verify$/.test(n.type);
         var isLeave = n.type === 'leave_request';
         var isDelete = n.type === 'delete_request';
         var icon = isDelete ? '🗑️' : (isLeave ? '📝' : (isPR ? '📝' : (isGRN ? '📦' : (isGO ? '🚪' : (isMR ? '🔄' : (isSR ? '📋' : '📑'))))));
@@ -26881,7 +26941,9 @@ return btns;
         var approveFn = isDelete ? 'approveDeleteFromNotif' : (isLeave ? 'approveLeaveFromNotif' : (isPR ? 'approvePrFromNotif' : (isGRN ? 'approveGrnFromNotif' : (isGO ? 'approveGoFromNotif' : (isMR ? 'approveMrFromNotif' : (isSR ? 'approveSrFromNotif' : 'approveFromNotif'))))));
         var rejectFn = isDelete ? 'rejectDeleteFromNotif' : (isLeave ? 'rejectLeaveFromNotif' : (isPR ? 'rejectPrFromNotif' : (isGRN ? 'rejectGrnFromNotif' : (isGO ? 'rejectGoFromNotif' : (isMR ? 'rejectMrFromNotif' : (isSR ? 'rejectSrFromNotif' : 'rejectFromNotif'))))));
         if (isPO) { icon = '🛒'; label = n.po_ref; itemName = n.item_name || ''; detail = 'Supplier: ' + (n.supplier || '') + ' | Items: ' + (n.item_count || '') + ' | Net: ' + (n.net_amount || ''); approveFn = 'approvePoFromNotif'; rejectFn = 'rejectPoFromNotif'; }
-        if (isVF) { var vk = n.type.split('_')[0], VK = vk.toUpperCase(); icon = '🔎'; label = n[vk + '_ref']; itemName = n.item_name || n.material_name || ''; detail = 'Qty: ' + (n.qty || n.return_qty || '') + (n.supplier ? ' | Supplier: ' + n.supplier : ''); approveFn = 'verify' + VK + 'FromNotif'; rejectFn = 'return' + VK + 'FromNotif'; }
+        if (isVF) { var vk = n.type.split('_')[0], VK = vk.toUpperCase(); icon = '🔎'; label = n[vk + '_ref']; itemName = n.item_name || n.material_name || ''; detail = 'Qty: ' + (n.qty || n.return_qty || '') + (n.supplier ? ' | Supplier: ' + n.supplier : ''); approveFn = 'verify' + VK + 'FromNotif'; rejectFn = 'return' + VK + 'FromNotif';
+          if (n.type === 'pr_verify') { icon = '📝'; detail = 'Company: ' + (n.company || '') + ' | Qty: ' + (n.qty || '') + ' ' + (n.uom || ''); }
+          if (n.type === 'leave_verify') { icon = '📝'; itemName = n.leave_type || ''; detail = 'Employee: ' + (n.emp_code || '') + ' | From: ' + (n.from_date || '') + ' | To: ' + (n.to_date || '') + ' | Days: ' + (n.days || ''); } }
         return '<div class="notification-item unread">' +
           '<div class="notification-icon pending">' + icon + '</div>' +
           '<div class="notification-content">' +
@@ -27625,6 +27687,32 @@ return btns;
       renderGrnTable();
     }
 
+    // Company / BU / Profit Center / Warehouse come from the PO (Warehouse from the PR behind it: PO -> CS -> RFQ -> PR)
+    function grnPoContext(poNo) {
+      var L = function(k) { try { return JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) { return {}; } };
+      var out = { company: '', bu: '', pc: '', warehouse: '' };
+      var po = L('erp_po_records')[poNo];
+      if (!po) return out;
+      var f = po.form || {}, cs = L('erp_cs_records')[po.cs_ref || f.po_cs_ref] || {}, cst = L('erp_cst_records')[cs.cst_ref] || {};
+      var rfq = L('erp_rfq_records')[cs.rfq_ref || cst.rfq_ref] || {}, h = rfq.hdr || {};
+      var prRef = f.po_pr_ref || po.pr_ref || rfq.pr_ref || h.rfq_pr_ref || '';
+      var pr = L('erp_pr_records')[prRef] || {};
+      var pick = function() { for (var i = 0; i < arguments.length; i++) if (arguments[i] !== undefined && arguments[i] !== null && String(arguments[i]).trim() !== '') return String(arguments[i]).trim(); return ''; };
+      out.company = pick(po.company, f.po_company, rfq.company, h.rfq_company, pr.company);
+      out.bu = pick(po.bu, f.po_bu, rfq.bu, h.rfq_bu, pr.bu);
+      out.pc = pick(po.pc, f.po_pc, h.rfq_pc, rfq.pc, cst.pc, pr.pc, pr.pr_pc);
+      out.warehouse = pick(po.warehouse, f.po_warehouse, pr.warehouse, pr.pr_warehouse);
+      return out;
+    }
+    function grnFillFromPo() {
+      var g = function(i) { return document.getElementById(i); };
+      var c = grnPoContext((g('grn_po_no') || {}).value || '');
+      if (g('grn_company')) g('grn_company').value = c.company;
+      if (g('grn_bu')) g('grn_bu').value = c.bu;
+      if (c.pc && g('grn_profit_center')) g('grn_profit_center').value = c.pc;
+      if (g('grn_warehouse')) g('grn_warehouse').value = c.warehouse;
+    }
+
     function openGrnForm(isViewMode) {
       try {
         var form = document.getElementById('grnForm');
@@ -27745,7 +27833,7 @@ return btns;
 
       // Auto-fill weight from 2nd weight record (net weight)
       document.getElementById('grn_total_gross_wt').value = weightRecord.net_weight || weightRecord.gross || '';
-      document.getElementById('grn_po_number_display').value = poNo;
+      document.getElementById('grn_po_number_display').value = poNo; grnFillFromPo();
 
       // Auto-fill no_of_bag from weight record if available
       if (weightRecord.no_of_bag) document.getElementById('grn_no_of_bag').value = weightRecord.no_of_bag;
@@ -27833,6 +27921,9 @@ return btns;
         item_name: document.getElementById('grn_item_name').value,
         item_code: document.getElementById('grn_item_code').value,
         profit_center: document.getElementById('grn_profit_center').value.trim(),
+        company: document.getElementById('grn_company').value.trim(),
+        bu: document.getElementById('grn_bu').value.trim(),
+        warehouse: document.getElementById('grn_warehouse').value.trim(),
         description: document.getElementById('grn_description').value,
         batch_no: document.getElementById('grn_batch_no').value.trim(),
         no_of_bag: document.getElementById('grn_no_of_bag').value,
@@ -27894,6 +27985,10 @@ return btns;
         document.getElementById('grn_item_name').value = r.item_name || '';
         document.getElementById('grn_item_code').value = r.item_code || '';
         document.getElementById('grn_profit_center').value = r.profit_center || '';
+        document.getElementById('grn_company').value = r.company || '';
+        document.getElementById('grn_bu').value = r.bu || '';
+        document.getElementById('grn_warehouse').value = r.warehouse || '';
+        if (!r.company && !r.bu && !r.warehouse) grnFillFromPo();
         document.getElementById('grn_batch_no').value = r.batch_no || '';
         document.getElementById('grn_description').value = r.description || '';
         document.getElementById('grn_no_of_bag').value = r.no_of_bag || '';
@@ -34558,7 +34653,7 @@ return btns;
       var records = JSON.parse(localStorage.getItem('erp_leave_records') || '{}');
       var existing = records[ref] || {};
       var creatorId = String(document.getElementById('lv_applied_by').value.trim() || (currentUser ? currentUser.id : '')).trim();
-      if (existing.status === 'Pending' || existing.status === 'Approved') {
+      if (existing.status === 'Pending' || existing.status === 'Pending Verification' || existing.status === 'Approved') {
         errEl.textContent = '❌ This leave application is already under approval or completed. It cannot be edited here.';
         errEl.classList.add('show');
         return false;
@@ -34591,11 +34686,14 @@ return btns;
         approval_date: '',
         forwarded_at: new Date().toISOString()
       };
+      var lvVerifiers = (typeof vfVerifiersFor === 'function') ? vfVerifiersFor(creatorId) : [];
+      leaveRecord.approver_ids = getApprovalRecipientIdsForUser(creatorId).filter(function(x) { return String(x) !== creatorId; });
+      if (lvVerifiers.length) { leaveRecord.status = 'Pending Verification'; leaveRecord.verifier_ids = lvVerifiers; }
       records[ref] = leaveRecord;
       localStorage.setItem('erp_leave_records', JSON.stringify(records));
-      sendLeaveForApproval(leaveRecord);
+      if (leaveRecord.status === 'Pending Verification') vfNotify('LEAVE', ref); else sendLeaveForApproval(leaveRecord);
 
-      successEl.textContent = '✅ Leave Application sent for approval! (Ref: ' + ref + ')';
+      successEl.textContent = leaveRecord.status === 'Pending Verification' ? '✅ Leave Application sent for verification! (Ref: ' + ref + ')' : '✅ Leave Application sent for approval! (Ref: ' + ref + ')';
       successEl.classList.add('show');
       setTimeout(closeLeaveForm, 1400);
       return false;
@@ -34612,7 +34710,8 @@ return btns;
       var record = records[ref];
       if (!record || record.status !== 'Pending') return false;
       var allowedApprovers = getApprovalRecipientIdsForUser(record.applied_by || record.raised_by_id || '');
-      if (allowedApprovers.indexOf(String(currentUser.id)) === -1 && String(record.approval_id || '') !== String(currentUser.id)) return false;
+      if (allowedApprovers.indexOf(String(currentUser.id)) === -1 && String(record.approval_id || '') !== String(currentUser.id) &&
+          (record.approver_ids || []).map(String).indexOf(String(currentUser.id)) === -1) return false;
       var notifs = safeParse(STR_NOTIF_KEY, []);
       return Array.isArray(notifs) && notifs.some(function(n) {
         return n && n.id === notifId && n.type === 'leave_request' && n.leave_ref === ref &&
@@ -34732,13 +34831,14 @@ return btns;
       if (filtered.length === 0) { tbody.innerHTML = ''; emptyMsg.style.display = 'block'; return; }
       emptyMsg.style.display = 'none';
 
-      var statusColors = { Pending: '#f59e0b', Approved: '#16a34a', Rejected: '#dc2626' };
+      var statusColors = { Pending: '#f59e0b', 'Pending Verification': '#7c3aed', Approved: '#16a34a', Rejected: '#dc2626' };
 
       tbody.innerHTML = filtered.map(function(r, i) {
         var empLabel = r.emp_code + (employees[r.emp_code] ? ' - ' + employees[r.emp_code].name : '');
         var color = statusColors[r.status] || '#64748b';
         var actions = '<button class="pr-action-btn pr-btn-view" onclick="viewLeave(\'' + r.ref + '\')" title="View / Edit">👁 View</button>';
         actions += '<button class="pr-action-btn pr-btn-print" onclick="printLeave(\'' + r.ref + '\')" title="Print">🖨</button>';
+        if (typeof vfButtons === 'function') actions += vfButtons('LEAVE', r.ref, r);
         actions += getDeleteRequestButton('LEAVE', r.ref, r);
         return '<tr>' +
           '<td>' + (i + 1) + '</td>' +
@@ -38524,7 +38624,7 @@ return btns;
 <script id="mmInlinePagesJs">
 (function () {
   // MM module pages open inline (like the Production module) instead of as pop-up windows.
-  var IDS = ["w1ListOverlay", "w2ListOverlay", "weightFormOverlay", "qc1FormOverlay", "qc1ListOverlay", "qc2FormOverlay", "qc2ListOverlay", "reportOverlay", "prListOverlay", "strListOverlay", "strFormOverlay", "srListOverlay", "srFormOverlay", "miListOverlay", "miFormOverlay", "mrListOverlay", "mrFormOverlay", "stockReportOverlay", "toListOverlay", "toFormOverlay", "stnListOverlay", "stnFormOverlay", "grnListOverlay", "grnFormOverlay", "vuListOverlay", "vuFormOverlay", "prFormOverlay", "rfqFormOverlay", "csFormOverlay", "poFormOverlay", "gateInFormOverlay", "giListOverlay", "goListOverlay", "goFormOverlay", "geListOverlay", "geFormOverlay", "adjListOverlay", "adjFormOverlay", "geReportOverlay", "adjReportOverlay", "mvReportOverlay", "fcrListOverlay", "fcrFormOverlay", "obListOverlay", "obFormOverlay", "ivReportOverlay", "ivBatchOverlay", "poRcvOverlay", "vmListOverlay", "vmFormOverlay", "imListOverlay", "imFormOverlay", "rtListOverlay", "rtFormOverlay", "qtListOverlay", "qtFormOverlay", "rfqListOverlay", "cstListOverlay", "cstFormOverlay", "csReviewOverlay", "vaListOverlay", "vaFormOverlay", "poListOverlay", "lcListOverlay", "lcFormOverlay", "lcmListOverlay", "lcmFormOverlay"];
+  var IDS = ["whsReportOverlay", "w1ListOverlay", "w2ListOverlay", "weightFormOverlay", "qc1FormOverlay", "qc1ListOverlay", "qc2FormOverlay", "qc2ListOverlay", "reportOverlay", "prListOverlay", "strListOverlay", "strFormOverlay", "srListOverlay", "srFormOverlay", "miListOverlay", "miFormOverlay", "mrListOverlay", "mrFormOverlay", "stockReportOverlay", "toListOverlay", "toFormOverlay", "stnListOverlay", "stnFormOverlay", "grnListOverlay", "grnFormOverlay", "vuListOverlay", "vuFormOverlay", "prFormOverlay", "rfqFormOverlay", "csFormOverlay", "poFormOverlay", "gateInFormOverlay", "giListOverlay", "goListOverlay", "goFormOverlay", "geListOverlay", "geFormOverlay", "adjListOverlay", "adjFormOverlay", "geReportOverlay", "adjReportOverlay", "mvReportOverlay", "fcrListOverlay", "fcrFormOverlay", "obListOverlay", "obFormOverlay", "ivReportOverlay", "ivBatchOverlay", "poRcvOverlay", "vmListOverlay", "vmFormOverlay", "imListOverlay", "imFormOverlay", "rtListOverlay", "rtFormOverlay", "qtListOverlay", "qtFormOverlay", "rfqListOverlay", "cstListOverlay", "cstFormOverlay", "csReviewOverlay", "vaListOverlay", "vaFormOverlay", "poListOverlay", "lcListOverlay", "lcFormOverlay", "lcmListOverlay", "lcmFormOverlay"];
   var stack = [];
   function mmRoot() { return document.getElementById('module-mm'); }
   function host() {
@@ -40713,21 +40813,30 @@ return btns;
 </div>
 <script id="vfJs">
 (function () {
+  // Verify -> Approve is required for PR, SR and HR (Leave). Every other module goes straight to the approver.
+  var VERIFY_KINDS = ['PR', 'SR', 'LEAVE', 'PO'];
   var KIND = {
-    PO: { key: 'erp_po_records', ref: 'po_ref', render: 'renderPoList', label: 'Purchase Order', by: 'raised_by', byId: 'raised_by_id' },
+    PR: { key: 'erp_pr_records', ref: 'pr_ref', render: 'renderPrTable', label: 'Purchase Requisition', by: 'raised_by', byId: 'raised_by_id' },
     SR: { key: 'erp_sr_records', ref: 'sr_ref', render: 'renderSrTable', label: 'Store Requisition', by: 'raised_by', byId: 'raised_by_id' },
+    LEAVE: { key: 'erp_leave_records', ref: 'leave_ref', render: 'renderLeaveTable', label: 'Leave Application', by: 'applied_by', byId: 'raised_by_id' },
+    PO: { key: 'erp_po_records', ref: 'po_ref', render: 'renderPoList', label: 'Purchase Order', by: 'raised_by', byId: 'raised_by_id' },
     MR: { key: 'erp_mr_records', ref: 'mr_ref', render: 'renderMrTable', label: 'Materials Return', by: 'returned_by', byId: 'returned_by_id' }
   };
   function L(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } }
   function me() { return String((typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : ''); }
   function uniq(a) { var o = []; a.forEach(function (x) { x = String(x || '').trim(); if (x && o.indexOf(x) < 0) o.push(x); }); return o; }
+  function fb() { return (typeof db !== 'undefined' && db) ? db : null; }
 
   // verifiers configured on the raiser's User ID Setup record (never the raiser himself)
   window.vfVerifiersFor = function (uid) {
     var r = (typeof getDynamicLoginRecord === 'function') ? getDynamicLoginRecord(uid) : null;
     return uniq((r && r.verifier_ids) || []).filter(function (x) { return x !== String(uid); });
   };
-  window.vfStage = function (uid) { return window.vfVerifiersFor(uid).length ? 'Pending Verification' : 'Pending'; };
+  // 'Pending Verification' only for PR / SR / Leave (and only when the raiser has a verifier); everything else is a direct approval
+  window.vfStage = function (uid, kind) {
+    if (VERIFY_KINDS.indexOf(kind || 'SR') < 0) return 'Pending';
+    return window.vfVerifiersFor(uid).length ? 'Pending Verification' : 'Pending';
+  };
   window.vfIsVerifier = function (rec) { return !!rec && rec.status === 'Pending Verification' && (rec.verifier_ids || []).map(String).indexOf(me()) >= 0; };
 
   function closeNotifs(type, refField, ref) {
@@ -40737,24 +40846,50 @@ return btns;
   }
   window.vfCloseNotifs = closeNotifs;
 
+  // The verifier / approver only has his own copy of the data, so push the record itself into their branch
+  // (atomic merge by Ref#, other records untouched). Without this the verifier gets a bell with nothing behind it.
+  function syncRecord(kind, ref, uids) {
+    var K = KIND[kind], rec = L(K.key, {})[ref], d = fb(); if (!rec || !d) return;
+    uniq(uids).filter(function (x) { return x !== me(); }).forEach(function (uid) {
+      try {
+        d.ref('users/' + uid + '/data/' + K.key).transaction(function (cur) {
+          var o = {}; try { o = JSON.parse(cur) || {}; } catch (e) { o = {}; }
+          if (!o || typeof o !== 'object' || Array.isArray(o)) o = {};
+          o[ref] = rec; return JSON.stringify(o);
+        });
+      } catch (e) { console.warn('record sync failed', e); }
+    });
+  }
+
   function sendVerify(kind, ref) {
     var K = KIND[kind], all = L(K.key, {}), r = all[ref]; if (!r) return;
-    var raiser = String(r[K.byId] || me()), vids = window.vfVerifiersFor(raiser);
-    r.verifier_ids = vids; all[ref] = r; localStorage.setItem(K.key, JSON.stringify(all));
+    var raiser = String(r[K.byId] || r.applied_by || me()), vids = (r.verifier_ids && r.verifier_ids.length) ? uniq(r.verifier_ids) : window.vfVerifiersFor(raiser);
+    // remember the approvers now (only the raiser's browser knows the raiser's User ID Setup); the verifier must not have to guess them
+    var ap = (r.approver_ids && r.approver_ids.length) ? r.approver_ids : (typeof getApprovalRecipientIdsForUser === 'function' ? getApprovalRecipientIdsForUser(raiser) : ['2422']);
+    r.verifier_ids = vids; r.approver_ids = uniq(ap).filter(function (x) { return x !== raiser; });
+    all[ref] = r; localStorage.setItem(K.key, JSON.stringify(all));
+    syncRecord(kind, ref, vids);
     vids.forEach(function (vid) {
-      var n = { type: kind.toLowerCase() + '_verify', from_user: r[K.by] || '', from_user_id: raiser, to_user_id: vid, item_name: r.item_name || r.material_name || '', material_name: r.material_name || '',
-        qty: r.qty, return_qty: r.return_qty, supplier: r.supplier, action_header: 'Verification Request', timestamp: new Date().toISOString(), status: 'pending' };
+      var n = { type: kind.toLowerCase() + '_verify', from_user: r[K.by] || '', from_user_id: raiser, to_user_id: vid, item_name: r.item_name || r.material_name || r.pr_item_name || '', material_name: r.material_name || '',
+        qty: r.qty || r.pr_qty, uom: r.uom, company: r.company, return_qty: r.return_qty, supplier: r.supplier,
+        emp_code: r.emp_code, leave_type: r.leave_type, from_date: r.from_date, to_date: r.to_date, days: r.days,
+        action_header: 'Verification Request', timestamp: new Date().toISOString(), status: 'pending' };
       n[K.ref] = ref; createNotification(n);
     });
   }
   function sendApprovers(kind, ref) {
     var K = KIND[kind], r = L(K.key, {})[ref]; if (!r) return;
-    if (kind === 'PO') { if (typeof window.notifyPoApprovers === 'function') window.notifyPoApprovers(ref); return; }
+    if (kind === 'PO') { var pr0 = String(r.raised_by_id || ''), pids = uniq((r.approver_ids && r.approver_ids.length) ? r.approver_ids : getApprovalRecipientIdsForUser(pr0)).filter(function (x) { return x !== pr0; }); if (!pids.length) pids = ['2422']; syncRecord('PO', ref, pids.concat([pr0])); if (typeof window.notifyPoApprovers === 'function') window.notifyPoApprovers(ref); return; }
     if (kind === 'MR') { notifyMrApprovers(r); return; }
-    var raiser = String(r.raised_by_id || '');
-    getApprovalRecipientIdsForUser(raiser).forEach(function (aid) {
-      if (aid !== raiser) createNotification({ type: 'sr_request', sr_ref: ref, from_user: r.raised_by, from_user_id: r.raised_by_id, to_user_id: aid, material_name: r.material_name, qty: r.qty,
-        warehouse: r.warehouse, plant: r.plant, department: r.department, priority: r.priority, timestamp: new Date().toISOString(), status: 'pending' });
+    var raiser = String(r[K.byId] || r.applied_by || '');
+    var ids = uniq((r.approver_ids && r.approver_ids.length) ? r.approver_ids : getApprovalRecipientIdsForUser(raiser)).filter(function (x) { return x !== raiser; });
+    if (!ids.length) ids = ['2422'];
+    syncRecord(kind, ref, ids.concat([raiser]));
+    ids.forEach(function (aid) {
+      var base = { from_user: r[K.by] || '', from_user_id: raiser, to_user_id: aid, approval_id: aid, timestamp: new Date().toISOString(), status: 'pending' };
+      if (kind === 'SR') createNotification(Object.assign(base, { type: 'sr_request', sr_ref: ref, material_name: r.material_name, qty: r.qty, warehouse: r.warehouse, plant: r.plant, department: r.department, priority: r.priority }));
+      else if (kind === 'PR') createNotification(Object.assign(base, { type: 'pr_request', pr_ref: ref, company: r.company || r.pr_company || '', item_name: r.item_name || r.pr_item_name || '', item_code: r.item_code || r.pr_item_code || '', qty: r.qty || r.pr_qty || '', uom: r.uom || r.pr_uom || '' }));
+      else if (kind === 'LEAVE') createNotification(Object.assign(base, { type: 'leave_request', leave_ref: ref, emp_code: r.emp_code || '', leave_type: r.leave_type || '', from_date: r.from_date || '', to_date: r.to_date || '', days: r.days || 0, reason: r.reason || '', read: false }));
     });
   }
   // called right after a submit: goes to the verifiers first when the raiser has any, else straight to the approvers
@@ -40763,19 +40898,23 @@ return btns;
     var r = L(KIND[kind].key, {})[ref]; if (!r) return;
     if (r.status === 'Pending Verification') sendVerify(kind, ref); else sendApprovers(kind, ref);
   };
+  function gasUpdate(kind, ref, status, extra) {
+    if (kind === 'PR' || kind === 'LEAVE') return;
+    try { sendMiGAS(Object.assign({ form: kind + '_STATUS_UPDATE', ref_no: ref, status: status }, extra || {})); } catch (e) {}
+  }
   window.vfVerify = function (kind, ref, viaNotif) {
-    var K = KIND[kind], all = L(K.key, {}), r = all[ref]; if (!r) return;
+    var K = KIND[kind], all = L(K.key, {}), r = all[ref]; if (!r) { alert('The record ' + ref + ' has not reached this device yet. Please wait a few seconds and try again.'); return; }
     if (r.status !== 'Pending Verification') { alert(ref + ' is not waiting for verification.'); return; }
     if (!viaNotif && (r.verifier_ids || []).map(String).indexOf(me()) < 0) { alert('Only a verifier can verify this request.'); return; }
     r.status = 'Pending'; r.verified_by = currentUser ? currentUser.name : ''; r.verified_by_id = me(); r.verified_at = new Date().toISOString();
     all[ref] = r; localStorage.setItem(K.key, JSON.stringify(all));
     closeNotifs(kind.toLowerCase() + '_verify', K.ref, ref);
-    try { sendMiGAS({ form: kind + '_STATUS_UPDATE', ref_no: ref, status: 'Pending', verified_by: r.verified_by }); } catch (e) {}
+    gasUpdate(kind, ref, 'Pending', { verified_by: r.verified_by });
     sendApprovers(kind, ref);
     if (typeof window[K.render] === 'function') window[K.render]();
   };
   window.vfReturn = function (kind, ref, viaNotif) {
-    var K = KIND[kind], all = L(K.key, {}), r = all[ref]; if (!r) return;
+    var K = KIND[kind], all = L(K.key, {}), r = all[ref]; if (!r) { alert('The record ' + ref + ' has not reached this device yet. Please wait a few seconds and try again.'); return; }
     if (r.status !== 'Pending Verification') { alert(ref + ' is not waiting for verification.'); return; }
     if (!viaNotif && (r.verifier_ids || []).map(String).indexOf(me()) < 0) { alert('Only a verifier can return this request.'); return; }
     var why = prompt('Remark for returning ' + ref + ' (required):', ''); if (why === null) return;
@@ -40783,8 +40922,10 @@ return btns;
     r.status = 'Rejected'; r.reject_reason = String(why).trim(); r.rejected_stage = 'verification'; r.rejected_by = currentUser ? currentUser.name : ''; r.rejected_by_id = me(); r.rejected_at = new Date().toISOString();
     all[ref] = r; localStorage.setItem(K.key, JSON.stringify(all));
     closeNotifs(kind.toLowerCase() + '_verify', K.ref, ref);
-    try { sendMiGAS({ form: kind + '_STATUS_UPDATE', ref_no: ref, status: 'Rejected' }); } catch (e) {}
-    var n = { type: kind.toLowerCase() + '_rejected', from_user: r.rejected_by, to_user: r[K.by], to_user_id: r[K.byId], item_name: r.item_name || r.material_name || '', material_name: r.material_name || '', remark: r.reject_reason, status: 'info', timestamp: new Date().toISOString() };
+    gasUpdate(kind, ref, 'Rejected');
+    var raiser = String(r[K.byId] || r.applied_by || '');
+    syncRecord(kind, ref, [raiser]);
+    var n = { type: kind.toLowerCase() + '_rejected', from_user: r.rejected_by, to_user: r[K.by], to_user_id: raiser, item_name: r.item_name || r.material_name || '', material_name: r.material_name || '', remark: r.reject_reason, status: 'info', timestamp: new Date().toISOString() };
     n[K.ref] = ref; createNotification(n);
     if (typeof window[K.render] === 'function') window[K.render]();
   };
@@ -40887,13 +41028,15 @@ return btns;
   window.notifyPoApprovers = function (ref) {
     var r = recs()[ref]; if (!r) return;
     var raiserId = String(r.raised_by_id || (currentUser ? currentUser.id : ''));
-    getApprovalRecipientIdsForUser(raiserId).forEach(function (aid) {
+    var poIds = (r.approver_ids && r.approver_ids.length) ? r.approver_ids : getApprovalRecipientIdsForUser(raiserId); if (!poIds.length) poIds = ['2422'];
+    poIds.forEach(function (aid) {
       if (String(aid) !== raiserId) createNotification({ type: 'po_request', po_ref: ref, from_user: r.raised_by || (currentUser ? currentUser.name : ''), from_user_id: raiserId, to_user_id: aid,
         item_name: r.item_name, supplier: r.supplier, qty: r.qty, item_count: (r.items || []).length, net_amount: r.net_amount, timestamp: new Date().toISOString(), status: 'pending' });
     });
   };
   window.changePoStatus = function (ref, newStatus) {
     var all = recs(), r = all[ref]; if (!r) return;
+    if (r.status === 'Pending Verification') { alert('This PO is not verified yet. It can be approved only after verification.'); return; }
     if (newStatus === 'Rejected') { var why = prompt('Reason for rejecting ' + ref + ' (optional):', ''); if (why === null) return; r.reject_reason = String(why || '').trim(); }
     vfCloseNotifs('po_request', 'po_ref', ref);
     r.status = newStatus; r.approved_by = currentUser ? currentUser.name : ''; r.approved_by_id = currentUser ? currentUser.id : ''; r.approved_at = new Date().toISOString();
@@ -42158,4 +42301,74 @@ return btns;
   };
 })();
 </script>
+<!-- ===================== Warehouse Wise Stock Report (MM) — closing qty from the Inventory Valuation Report ===================== -->
+<div class="str-list-overlay" id="whsReportOverlay" onclick="if(event.target===this) closeWhsRep()">
+  <div class="str-list-outer" style="max-width:1100px; border-radius:8px; border:2px solid #1f618d; overflow:auto;">
+    <div style="background:linear-gradient(135deg,#154360,#2980b9); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #f39c12;">
+      <h2 style="color:#fff;font-size:1.2rem;font-weight:700;margin:0;">🏬 Warehouse Wise Stock</h2>
+      <button class="str-close-list-btn" onclick="closeWhsRep()" style="font-size:1rem;width:28px;height:28px;">X</button>
+    </div>
+    <div style="background:#eef2f3;padding:8px 16px;border-bottom:1px solid #bdc3c7;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:0.78rem;">
+      <label>Stock as on <input type="date" id="whsTo" onchange="renderWhsRep()"></label>
+      <select id="whsWh" onchange="renderWhsRep()"><option value="">All Warehouses</option></select>
+      <input type="text" id="whsQ" placeholder="🔍 Item / Code..." oninput="renderWhsRep()" style="padding:5px 10px;min-width:200px;">
+      <label><input type="checkbox" id="whsZero" checked onchange="renderWhsRep()"> Hide zero stock</label>
+      <span style="margin-left:auto;">Items: <b id="whsCount">0</b></span>
+      <button onclick="exportWhsRep()" style="background:#27ae60;color:#fff;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;">⬇ Excel</button>
+      <button onclick="printWhsRep()" style="background:#8e44ad;color:#fff;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;">🖨 Print</button>
+    </div>
+    <div style="overflow-x:auto;background:#fff;padding:8px 12px;" id="whsWrap"></div>
+    <div style="padding:6px 16px;font-size:0.72rem;color:#64748b;">Closing Stock Qty is taken from the Inventory Valuation Report (same stock movements), shown warehouse by warehouse. "Stock as on" empty = latest.</div>
+  </div>
+</div>
+<script id="whsJs">
+(function(){
+  var $=function(i){return document.getElementById(i);};
+  function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function lc(x){return String(x||'').trim().toLowerCase();}
+  function f3(v){return (Math.round(v*1000)/1000).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:3});}
+  function data(){
+    var ev=(window.__ivBuild?window.__ivBuild():[]),to=$('whsTo').value,wf=$('whsWh').value,q=lc($('whsQ').value),hz=$('whsZero').checked,m={},whs={};
+    ev.forEach(function(e){
+      if(to&&e.date>to)return;
+      var w=e.wh||'—';whs[w]=1;var k=lc(w)+'||'+e.key,r=m[k]||(m[k]={wh:w,code:e.code,name:e.name,uom:e.uom,q:0});
+      if(!r.uom&&e.uom)r.uom=e.uom;r.q+=e.d;
+    });
+    var list=Object.keys(m).map(function(k){return m[k];}).filter(function(r){
+      if(wf&&r.wh!==wf)return false;if(q&&(lc(r.name)+' '+lc(r.code)).indexOf(q)<0)return false;
+      if(hz&&Math.abs(r.q)<0.0005)return false;return true;});
+    list.sort(function(a,b){return a.wh<b.wh?-1:a.wh>b.wh?1:lc(a.name)<lc(b.name)?-1:1;});
+    return {list:list,whs:Object.keys(whs).sort()};
+  }
+  function table(list){
+    if(!list.length)return '<div style="padding:30px;text-align:center;color:#64748b;">No stock found for the selected filters.</div>';
+    var th='border:1px solid #999;padding:5px 8px;background:#1f618d;color:#fff;text-align:left;',td='border:1px solid #bbb;padding:3px 8px;';
+    var h='<table style="border-collapse:collapse;font-size:12.5px;width:100%;"><thead><tr><th style="'+th+'">Item Code</th><th style="'+th+'">Item Name</th><th style="'+th+'">UOM</th><th style="'+th+'text-align:right;">Closing Stock Qty</th></tr></thead><tbody>';
+    var cur=null,sub=0,tot=0;
+    function close(){if(cur!==null)h+='<tr><td colspan="3" style="'+td+'text-align:right;font-weight:700;background:#e2e8f0;">Warehouse Total — '+esc(cur)+'</td><td style="'+td+'text-align:right;font-weight:700;background:#e2e8f0;">'+f3(sub)+'</td></tr>';sub=0;}
+    list.forEach(function(r){
+      if(r.wh!==cur){close();cur=r.wh;h+='<tr><td colspan="4" style="background:#d6eaf8;font-weight:700;padding:4px 8px;border:1px solid #bbb;">Warehouse: '+esc(r.wh)+'</td></tr>';}
+      h+='<tr><td style="'+td+'">'+esc(r.code)+'</td><td style="'+td+'">'+esc(r.name)+'</td><td style="'+td+'">'+esc(r.uom)+'</td><td style="'+td+'text-align:right;font-weight:700;'+(r.q<0?'color:#c0392b;':'')+'">'+f3(r.q)+'</td></tr>';
+      sub+=r.q;tot+=r.q;
+    });
+    close();
+    return h+'</tbody></table>';
+  }
+  window.renderWhsRep=function(){var d=data();$('whsWrap').innerHTML=table(d.list);$('whsCount').textContent=d.list.length;};
+  window.openWhsRep=function(){
+    var d=data(),sel=$('whsWh'),cur=sel.value;
+    sel.innerHTML='<option value="">All Warehouses</option>'+d.whs.map(function(w){return '<option>'+esc(w)+'</option>';}).join('');sel.value=cur;
+    renderWhsRep();$('whsReportOverlay').classList.add('active');
+  };
+  window.closeWhsRep=function(){$('whsReportOverlay').classList.remove('active');};
+  window.exportWhsRep=function(){
+    var t=$('whsWrap').querySelector('table');if(!t){alert('No data to export.');return;}
+    var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><h3>Warehouse Wise Stock</h3>'+t.outerHTML+'</body></html>';
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+html],{type:'application/vnd.ms-excel;charset=utf-8'}));a.download='warehouse_wise_stock.xls';document.body.appendChild(a);a.click();a.remove();
+  };
+  window.printWhsRep=function(){var w=window.open('','_blank');if(!w){alert('Pop-up blocked.');return;}
+    w.document.write('<html><head><title>Warehouse Wise Stock</title><style>body{font-family:Arial;padding:16px}</style></head><body><h3>Opened ERP — Warehouse Wise Stock'+($('whsTo').value?' (as on '+esc($('whsTo').value)+')':'')+'</h3>'+$('whsWrap').innerHTML+'<script>window.print()<\/script></body></html>');w.document.close();};
+})();
+</script>
+
 </body></html>
