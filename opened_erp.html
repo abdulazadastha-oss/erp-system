@@ -2794,33 +2794,48 @@
     </nav>
 
     <!-- Dashboard Content -->
-    <main class="dashboard-container">
-      <h3>
-        📌 ERP Dashboard 
-        <small>— Quick Links</small>
-      </h3>
-
-      <!-- ── 4 Quick Links ── -->
-      <div class="grid-layout ql-grid" style="grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 8px;">
-        <div class="card ql-card" onclick="openPrList()">
-          <span class="card-icon">📝</span>
-          <div class="card-title">Purchase Requisition</div>
-          <div class="card-desc">View / New PR</div>
-          <div class="ql-badge ql-blue">PR</div>
+    <main class="dashboard-container" id="mmHome">
+      <div class="topbar mmh-top">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 36 36"><path d="M8 8h20v21H8z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 13h12M12 18h12M12 23h7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M25.5 4.5v7M22 8h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div><h1>Inventory Management</h1><p>Stock Tracking <span class="dot-separator">•</span> Movements <span class="dot-separator">•</span> Alerts <span class="dot-separator">•</span> Performance</p></div>
         </div>
-        <div class="card ql-card" onclick="openSrList()">
-          <span class="card-icon">📦</span>
-          <div class="card-title">Store Requisition</div>
-          <div class="card-desc">View / New SR</div>
-          <div class="ql-badge ql-green">SR</div>
-        </div>
-        <div class="card ql-card" onclick="openGenericForm(&#39;GATE_IN&#39;)">
-          <span class="card-icon">🚪</span>
-          <div class="card-title">Gate Entry (Challan)</div>
-          <div class="card-desc">New Challan / Gate Entry</div>
-          <div class="ql-badge ql-orange">GATE</div>
+        <div class="header-controls">
+          <label class="period-control" for="mmhPeriod"><span>Period:</span><select id="mmhPeriod" onchange="mmHomeRender()"></select><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></label>
+          <div class="updated-stamp"><span class="status-pulse"></span> Last updated: <strong id="mmhStamp">—</strong></div>
+          <button class="icon-button" type="button" onclick="mmHomeRender(true)" aria-label="Refresh dashboard" title="Refresh dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-14.2-4.9L4 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4v4h4M4 13a8.1 8.1 0 0 0 14.2 4.9L20 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 20v-4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
       </div>
+
+      <section class="kpi-grid" id="mmhKpis"></section>
+
+      <section class="visual-grid">
+        <article class="panel trend-panel"><div class="panel-header"><h2>Inventory Value Trend (6 months)</h2></div><div id="mmhTrend"></div></article>
+        <article class="panel category-panel"><div class="panel-header"><h2>Inventory Distribution by Category</h2></div><div class="donut-layout" id="mmhDonut"></div></article>
+        <article class="panel threshold-panel"><div class="panel-header"><h2>Stock Levels vs. Minimum / Reorder Level</h2></div><div id="mmhThr"></div></article>
+      </section>
+
+      <section class="lower-grid">
+        <article class="panel table-panel inventory-table-panel">
+          <div class="panel-header"><h2>Stock Status by Item</h2><div class="table-tools"><select id="mmhFilter" onchange="mmHomeTable()" style="height:27px;border:1px solid #dfeaea;border-radius:5px;font-size:10px;padding:0 4px"><option value="">All items</option><option value="alerts">Alerts only (Low + Out)</option><option value="low">Low stock</option><option value="out">Out of stock</option><option value="ok">OK</option></select><label class="search-box"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m12.5 12.5 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><input id="mmhSearch" type="search" placeholder="Search items" oninput="mmHomeTable()"></label><button class="export-button" type="button" onclick="mmHomeExport()">⬇ Export</button></div></div>
+          <div class="table-scroll"><table id="mmhTable"></table></div>
+          <div class="table-footer"><span>Showing <strong id="mmhCount">0</strong> of <strong id="mmhTotal">0</strong> items</span></div>
+        </article>
+        <article class="panel best-panel table-panel"><div class="panel-header"><h2>Top 5 Most Issued Items</h2></div><div class="table-scroll" id="mmhTop"></div></article>
+        <article class="panel movement-panel"><div class="panel-header"><h2>Stock Movements — Selected Month</h2></div><div id="mmhMove"></div></article>
+        <article class="panel attention-panel"><div class="panel-header"><h2>Attention Points</h2><span class="alert-chip" id="mmhOpen">0 open</span></div><ul class="attention-list" id="mmhAttn"></ul><div id="mmhReorder"></div><button class="text-button" type="button" onclick="mmHomeAlerts()">View all alerts <span>→</span></button></article>
+        <article class="panel objective-panel"><div class="panel-header"><h2>Objective</h2></div><p>Maintain optimal inventory levels and prevent stockouts.</p><div class="progress-track"><span id="mmhHealthBar" style="width:0%"></span></div><div class="objective-meta"><span>Inventory health</span><strong id="mmhHealth">0%</strong></div><div class="objective-foot">Items at or above their minimum level</div></article>
+      </section>
+
+      <section class="reference-panels">
+        <article class="reference-card slow-items-card"><div class="reference-card-heading"><span class="ref-icon hourglass">⌛</span><h2>Top 5 Slow / Non-Moving Items</h2></div><div class="reference-table-wrap" id="mmhSlow"></div></article>
+        <article class="reference-card ageing-card"><div class="reference-card-heading" style="background:#167485"><span class="ref-icon">⏳</span><h2>Stock Ageing Analysis</h2></div><div class="reference-table-wrap" id="mmhAge"></div></article>
+        <article class="reference-card pending-card"><div class="reference-card-heading" style="background:#c0612b"><span class="ref-icon">📌</span><h2>Pending Actions</h2></div><div class="reference-table-wrap" id="mmhPend"></div></article>
+        <article class="reference-card transactions-card"><div class="reference-card-heading"><span class="ref-icon transaction-icon">☷</span><h2>Recent Transactions</h2></div><div class="reference-table-wrap" id="mmhTx"></div></article>
+        <article class="reference-card space-card"><div class="reference-card-heading"><span class="ref-icon">▦</span><h2>Space Utilization by Warehouse</h2></div><div class="space-list" id="mmhWh"></div></article>
+        <article class="reference-card performance-card"><div class="reference-card-heading"><span class="ref-icon target-icon-ref">◎</span><h2>Department Performance (KPI)</h2></div><div class="reference-table-wrap" id="mmhPerf"></div></article>
+      </section>
+      <div class="mmh-flow">Store Process Flow: <b>Receipt &amp; GRN</b> → Quality Inspection → Put Away &amp; Storage → Inventory Control → <b>Material Issue</b> → Transfer / Return → Stock Verification → Documentation</div>
     </main>
     </div>
     <!-- ===== /MODULE: Materials Management ===== -->
@@ -12142,7 +12157,7 @@ go('home');
 
     // ===== FIREBASE SYNC: AUTO-SAVE on key data changes =====
     var FB_SYNC_KEYS = [
-      'erpProd1','erp_batch_alloc','erp_ob_records','erp_ob_serial','erp_vendor_records','erp_vendor_serial','erp_qt_records','erp_qt_serial','erp_cst_records','erp_cst_serial','erp_va_records','erp_va_serial','erp_lc_records','erp_lc_serial','erp_lca_records','erp_lca_serial','erp_lcs_records','erp_lcs_serial','erp_lcd_records','erp_lcd_serial','erp_lcp_records','erp_lcp_serial','erp_lcb_records','erp_lcb_serial','erp_lcl_records','erp_lcl_serial','erp_lcc_records','erp_lcc_serial','erp_item_master','erp_item_serial','erp_ret_records','erp_ret_serial',
+      'erp_wh_capacity','erpProd1','erp_batch_alloc','erp_ob_records','erp_ob_serial','erp_vendor_records','erp_vendor_serial','erp_qt_records','erp_qt_serial','erp_cst_records','erp_cst_serial','erp_va_records','erp_va_serial','erp_lc_records','erp_lc_serial','erp_lca_records','erp_lca_serial','erp_lcs_records','erp_lcs_serial','erp_lcd_records','erp_lcd_serial','erp_lcp_records','erp_lcp_serial','erp_lcb_records','erp_lcb_serial','erp_lcl_records','erp_lcl_serial','erp_lcc_records','erp_lcc_serial','erp_item_master','erp_item_serial','erp_ret_records','erp_ret_serial',
       'erp_pr_records','erp_pr_serial',
       'erp_rfq_records','erp_rfq_serial',
       'erp_cs_records','erp_cs_serial',
@@ -38475,7 +38490,7 @@ return btns;
       'erp_sdpick_serial','erp_sdra_records','erp_sdra_serial','erp_sdso_records',
       'erp_sdso_serial','erp_sdsr_records','erp_sdsr_serial','erp_sdtarget_records',
       'erp_sr_records','erp_sr_serial','erp_stn_records','erp_stn_serial',
-      'erp_stock_records','erp_stock_transactions','erp_str_notifications','erp_str_records',
+      'erp_wh_capacity','erp_stock_records','erp_stock_transactions','erp_str_notifications','erp_str_records',
       'erp_str_serial','erp_to_records','erp_to_serial','erp_trcal_records',
       'erp_trcal_serial','erp_trenr_records','erp_trenr_serial','erp_trfb_records',
       'erp_trfb_serial','erp_vu_records','erp_vu_serial','erp_weight_records',
@@ -40991,6 +41006,607 @@ return btns;
   setInterval(function () { if (isSA() && seen !== me() && typeof db !== 'undefined' && db) { seen = me(); setTimeout(function () { saPullAll(false); }, 3000); } if (!isSA()) seen = ''; }, 2000);
   setInterval(function () { if (isSA() && !document.hidden) saPullAll(false); }, 300000);
 })();
+</script>
+<style id="mmhCss">
+#mmHome{
+  --ink: #12343b;
+  --muted: #6d8287;
+  --line: #dfe9e9;
+  --surface: #ffffff;
+  --canvas: #f3f7f7;
+  --teal: #0a867a;
+  --teal-dark: #056e68;
+  --blue: #1785c5;
+  --orange: #f49a32;
+  --red: #ea6671;
+  --purple: #7666af;
+  --shadow: 0 5px 18px rgba(29, 82, 86, .055);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+#mmHome *{box-sizing:border-box}
+#mmHome button,#mmHome input,#mmHome select{font:inherit}
+#mmHome .mmh-shell{ min-height: 100vh; }
+#mmHome .topbar{ min-height: 82px; padding: 13px clamp(18px, 3vw, 46px); display: flex; align-items: center; justify-content: space-between; gap: 24px; color: white; background: linear-gradient(101deg, #087f77 0%, #0c8c7b 56%, #159a89 100%); box-shadow: 0 3px 15px rgba(5, 95, 87, .16); }
+#mmHome .brand-lockup{ display: flex; align-items: center; gap: 12px; min-width: 0; }
+#mmHome .brand-mark{ width: 39px; height: 39px; display: grid; place-items: center; color: #0b887b; flex: none; background: #e7f5f1; border-radius: 9px; box-shadow: 0 2px 5px rgba(0,0,0,.08); }
+#mmHome .brand-mark svg{ width: 29px; height: 29px; }
+#mmHome .brand-lockup h1{ margin: 0; font-size: clamp(17px, 2vw, 22px); line-height: 1.05; font-weight: 760; letter-spacing: -.035em; }
+#mmHome .brand-lockup p{ margin: 5px 0 0; color: rgba(235, 255, 250, .82); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; }
+#mmHome .dot-separator{ margin: 0 5px; color: #afe6da; }
+#mmHome .header-controls{ display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+#mmHome .period-control{ display: flex; align-items: center; gap: 7px; color: #e4fffa; font-size: 11px; font-weight: 650; white-space: nowrap; }
+#mmHome .period-control select{ appearance: none; min-width: 104px; padding: 8px 24px 8px 10px; border: 1px solid rgba(224, 255, 249, .38); border-radius: 6px; color: white; background: rgba(0, 74, 67, .24); outline: none; font-size: 11px; font-weight: 700; }
+#mmHome .period-control select option{ color: var(--ink); background: white; }
+#mmHome .period-control{ position: relative; }
+#mmHome .period-control svg{ width: 14px; height: 14px; margin-left: -27px; pointer-events: none; }
+#mmHome .updated-stamp{ padding-left: 16px; border-left: 1px solid rgba(226, 255, 249, .25); color: rgba(235, 255, 250, .72); font-size: 10px; white-space: nowrap; }
+#mmHome .updated-stamp strong{ color: white; font-weight: 650; }
+#mmHome .status-pulse{ width: 6px; height: 6px; display: inline-block; margin-right: 6px; vertical-align: 1px; background: #baf2ce; border-radius: 99px; box-shadow: 0 0 0 3px rgba(188, 242, 206, .14); }
+#mmHome .icon-button{ width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid rgba(228, 255, 249, .25); border-radius: 8px; color: white; background: rgba(0, 73, 66, .22); transition: background .2s, transform .2s; }
+#mmHome .icon-button:hover{ background: rgba(0, 73, 66, .42); transform: rotate(15deg); }
+#mmHome .icon-button svg{ width: 16px; height: 16px; }
+#mmHome .dashboard-main{ max-width: 1540px; margin: 0 auto; padding: 25px clamp(18px, 3vw, 46px) 35px; }
+#mmHome .kpi-grid{ display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; }
+#mmHome .kpi-card,#mmHome .panel{ background: var(--surface); border: 1px solid var(--line); border-radius: 7px; box-shadow: var(--shadow); }
+#mmHome .kpi-card{ position: relative; min-height: 105px; padding: 14px 16px 13px; overflow: hidden; }
+#mmHome .kpi-card::before{ position: absolute; top: 0; left: 0; right: 0; height: 4px; content: ""; background: var(--accent); }
+#mmHome .accent-teal{ --accent: var(--teal); --soft: #e7f6f2; }
+#mmHome .accent-blue{ --accent: var(--blue); --soft: #e8f3fb; }
+#mmHome .accent-orange{ --accent: var(--orange); --soft: #fff4e3; }
+#mmHome .accent-red{ --accent: var(--red); --soft: #fff0f1; }
+#mmHome .accent-teal2{ --accent: #2a9d8f; --soft: #e3f5f2; }
+#mmHome .accent-purple{ --accent: var(--purple); --soft: #f0eef9; }
+#mmHome .kpi-heading{ display: flex; align-items: center; gap: 7px; color: #6c8589; font-size: 10.5px; font-weight: 700; }
+#mmHome .kpi-icon{ width: 20px; height: 20px; display: grid; place-items: center; color: var(--accent); background: var(--soft); border-radius: 5px; }
+#mmHome .kpi-icon svg{ width: 14px; height: 14px; }
+#mmHome .more-button,#mmHome .panel-action{ margin-left: auto; padding: 0 2px; border: 0; color: #98abad; background: transparent; letter-spacing: 2px; font-weight: 800; }
+#mmHome .more-button:hover,#mmHome .panel-action:hover{ color: var(--teal); }
+#mmHome .kpi-value{ margin-top: 8px; color: #163e45; font-size: 28px; line-height: 1; font-weight: 760; letter-spacing: -.045em; }
+#mmHome .kpi-value.money{ color: #237eae; font-size: 23px; }
+#mmHome .currency{ font-size: 14px; font-weight: 700; vertical-align: 2px; }
+#mmHome .kpi-foot{ margin-top: 7px; color: #8a9a9c; font-size: 9.5px; }
+#mmHome .kpi-foot span{ white-space: nowrap; }
+#mmHome .trend-positive{ color: #72a399; }
+#mmHome .trend-positive span{ color: #26886e; font-weight: 700; }
+#mmHome .split-foot{ display: flex; gap: 15px; }
+#mmHome .split-foot strong{ color: #74898c; }
+#mmHome .low-stock-text{ color: #d85c61; font-weight: 700; }
+#mmHome .foot-separator{ margin: 0 5px; color: #bbc6c7; }
+#mmHome .visual-grid{ display: grid; grid-template-columns: 1.02fr 1.08fr 1.13fr; gap: 14px; margin-top: 15px; }
+#mmHome .panel{ min-width: 0; }
+#mmHome .panel-header{ min-height: 49px; display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px 9px; border-bottom: 1px solid #edf2f2; }
+#mmHome .panel-header h2{ margin: 3px 0 0; color: #23474e; font-size: 13px; line-height: 1.15; font-weight: 760; letter-spacing: -.02em; }
+#mmHome .eyebrow{ color: #91a4a6; font-size: 8.5px; font-weight: 760; letter-spacing: .12em; text-transform: uppercase; }
+#mmHome .panel-action{ font-size: 12px; line-height: 14px; }
+#mmHome .chart-wrap{ height: 218px; display: flex; padding: 20px 15px 13px 12px; }
+#mmHome .y-axis-labels{ width: 73px; display: flex; flex-direction: column; justify-content: space-between; padding: 0 8px 19px 0; color: #8da1a3; font-size: 8px; text-align: right; }
+#mmHome .plot-area{ position: relative; flex: 1; padding: 0 8px; }
+#mmHome .grid-line{ position: absolute; right: 0; left: 0; border-top: 1px dashed #dce8e8; }
+#mmHome .line-top{ top: 0; }
+#mmHome .line-mid{ top: 33.33%; }
+#mmHome .line-low{ top: 66.66%; }
+#mmHome .line-base{ bottom: 19px; border-top-style: solid; border-color: #cbdada; }
+#mmHome .bars{ height: calc(100% - 4px); display: flex; align-items: end; justify-content: space-around; gap: 10px; position: relative; z-index: 1; }
+#mmHome .bar-item{ height: 100%; min-width: 42px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
+#mmHome .bar{ width: min(47px, 68%); height: var(--bar-height); min-height: 2px; background: linear-gradient(180deg, #1889ca, #1680bf); border-radius: 3px 3px 0 0; transform-origin: bottom; animation: mmhgrow .75s cubic-bezier(.2,.75,.25,1) both; }
+#mmHome .bar-item:nth-child(2) .bar{ animation-delay: .1s; }
+#mmHome .bar-item:nth-child(3) .bar{ animation-delay: .18s; }
+#mmHome .bar-item:nth-child(4) .bar{ animation-delay: .25s; }
+#mmHome .bar-value{ color: #5c7f85; font-size: 7.5px; white-space: nowrap; }
+#mmHome .bar-label{ position: static; margin-top: 2px; color: #7c9092; font-size: 9px; }
+@keyframes mmhgrow{ from { transform: scaleY(0); } to { transform: scaleY(1); } }
+#mmHome .donut-layout{ height: 218px; display: flex; align-items: center; justify-content: center; gap: clamp(12px, 2vw, 26px); padding: 16px 14px; }
+#mmHome .donut-chart{ width: clamp(124px, 38%, 158px); aspect-ratio: 1; position: relative; flex: none; border-radius: 50%; background: #e3ecec; box-shadow: inset 0 0 0 1px rgba(13, 91, 122, .05); animation: mmhreveal-donut 1s ease both; }
+#mmHome .donut-chart::after{ position: absolute; inset: 22%; content: ""; border-radius: 50%; background: white; box-shadow: 0 0 0 1px #edf2f2; }
+#mmHome .donut-hole{ position: absolute; inset: 22%; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#mmHome .donut-hole strong{ color: #23617a; font-size: 26px; line-height: 1; }
+#mmHome .donut-hole span{ margin-top: 4px; color: #94a5a7; font-size: 9px; }
+@keyframes mmhreveal-donut{ from { transform: scale(.84) rotate(-45deg); opacity: .2; } to { transform: scale(1) rotate(0); opacity: 1; } }
+#mmHome .legend{ min-width: 130px; flex: 1; }
+#mmHome .legend > div{ display: grid; grid-template-columns: 9px 1fr auto; gap: 5px; align-items: center; margin: 6px 0; color: #687e82; font-size: 8.5px; }
+#mmHome .legend strong{ color: #5f7e83; font-weight: 760; }
+#mmHome .legend-dot{ width: 7px; height: 7px; display: inline-block; border-radius: 2px; }
+#mmHome .dot-blue{ background: #1d82c9; }
+#mmHome .dot-red{ background: #e06a71; }
+#mmHome .dot-green{ background: #4ba37f; }
+#mmHome .dot-yellow{ background: #e9b63e; }
+#mmHome .dot-purple{ background: #7965ab; }
+#mmHome .dot-grey{ background: #99a8aa; }
+#mmHome .legend small{ display: block; margin-top: 11px; padding-top: 8px; border-top: 1px solid #edf2f2; color: #95a5a7; font-size: 8px; }
+#mmHome .legend small b{ display: block; margin-top: 3px; color: #52747a; }
+#mmHome .threshold-legend{ display: flex; justify-content: flex-end; gap: 12px; padding: 10px 14px 0; color: #768b8e; font-size: 8px; }
+#mmHome .threshold-legend span{ display: flex; align-items: center; gap: 4px; }
+#mmHome .threshold-chart{ height: 184px; display: flex; padding: 11px 15px 14px 13px; }
+#mmHome .threshold-y{ width: 25px; display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 25px; color: #9aa9aa; font-size: 8px; text-align: right; }
+#mmHome .threshold-plot{ position: relative; flex: 1; padding-left: 8px; }
+#mmHome .threshold-grid{ position: absolute; inset: 0 0 25px; background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(33.33% - 1px), #e5eeee calc(33.33% - 1px), #e5eeee 33.33%); border-bottom: 1px solid #cadadb; }
+#mmHome .threshold-bars{ position: relative; z-index: 1; height: 100%; display: flex; align-items: end; justify-content: space-around; gap: 9px; }
+#mmHome .threshold-item{ height: 100%; min-width: 40px; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 7px; }
+#mmHome .pair{ height: calc(100% - 25px); display: flex; align-items: end; gap: 3px; }
+#mmHome .pair i,#mmHome .pair b{ width: 12px; display: block; border-radius: 2px 2px 0 0; animation: mmhgrow .75s cubic-bezier(.2,.75,.25,1) both; }
+#mmHome .pair i{ background: #42a46e; }
+#mmHome .pair b{ background: #e0646d; animation-delay: .18s; }
+#mmHome .threshold-item span{ color: #788e91; font-size: 8.5px; white-space: nowrap; }
+#mmHome .lower-grid{ display: grid; grid-template-columns: minmax(0, 2.15fr) minmax(230px, 1.02fr) minmax(190px, .94fr); grid-template-areas: "inventory best movement" "inventory attention objective"; gap: 14px; margin-top: 15px; align-items: stretch; }
+#mmHome .inventory-table-panel{ grid-area: inventory; }
+#mmHome .best-panel{ grid-area: best; }
+#mmHome .movement-panel{ grid-area: movement; }
+#mmHome .attention-panel{ grid-area: attention; }
+#mmHome .objective-panel{ grid-area: objective; }
+#mmHome .table-panel .panel-header{ align-items: center; }
+#mmHome .table-tools{ display: flex; align-items: center; gap: 7px; margin-left: auto; }
+#mmHome .search-box{ width: 132px; height: 27px; display: flex; align-items: center; gap: 5px; padding: 0 7px; color: #7d9698; border: 1px solid #dfeaea; border-radius: 5px; background: #fbfdfd; }
+#mmHome .search-box svg{ width: 14px; flex: none; }
+#mmHome .search-box input{ width: 100%; min-width: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 9px; }
+#mmHome .search-box input::placeholder{ color: #a5b4b5; }
+#mmHome .export-button{ height: 27px; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; border: 1px solid #dfeaea; border-radius: 5px; color: #5d7a7f; background: #fff; font-size: 9px; font-weight: 700; }
+#mmHome .export-button:hover{ border-color: #9bcfc6; color: var(--teal); background: #f2fbf8; }
+#mmHome .export-button svg{ width: 13px; }
+#mmHome .table-scroll{ overflow-x: auto; }
+#mmHome .table-panel table{ width: 100%; min-width: 600px; border-collapse: collapse; }
+#mmHome .table-panel th{ padding: 8px 8px 7px; color: #819698; background: #f7fafa; border-bottom: 1px solid #e6efef; font-size: 8px; font-weight: 760; letter-spacing: .025em; text-align: left; white-space: nowrap; }
+#mmHome .table-panel td{ padding: 7px 8px; color: #5d7478; border-bottom: 1px solid #edf3f3; font-size: 8.5px; white-space: nowrap; }
+#mmHome .table-panel tbody tr{ transition: background .15s; }
+#mmHome .table-panel tbody tr:hover{ background: #f4fbf9; }
+#mmHome .inventory-table-panel .table-scroll{ max-height: 380px; }
+#mmHome .code{ color: #8ca4a6 !important; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px !important; }
+#mmHome .item-name{ color: #365960 !important; font-weight: 700; }
+#mmHome .status-badge{ display: inline-flex; min-width: 47px; justify-content: center; padding: 4px 6px; border-radius: 3px; font-size: 7.5px; font-weight: 760; }
+#mmHome .status-badge.ok{ color: #227955; background: #dbf2e7; }
+#mmHome .status-badge.low{ color: #fff; background: #eda721; }
+#mmHome .table-footer{ display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; color: #98a7a9; border-top: 1px solid #edf2f2; font-size: 8.5px; }
+#mmHome .table-footer strong{ color: #55787c; }
+#mmHome .pagination{ display: flex; align-items: center; gap: 4px; }
+#mmHome .pagination button{ width: 20px; height: 20px; padding: 0; border: 1px solid #e0eaea; border-radius: 4px; color: #8ca1a3; background: white; font-size: 10px; }
+#mmHome .pagination button.active{ color: white; border-color: var(--teal); background: var(--teal); }
+#mmHome .pagination button:disabled{ opacity: .48; cursor: default; }
+#mmHome .best-panel .panel-header{ min-height: 48px; }
+#mmHome .best-panel table{ min-width: 0; }
+#mmHome .best-panel th,#mmHome .best-panel td{ padding-left: 13px; padding-right: 13px; }
+#mmHome .best-panel th:last-child,#mmHome .best-panel td:last-child{ text-align: right; }
+#mmHome .rank{ width: 18px; height: 18px; display: inline-grid; place-items: center; border-radius: 50%; color: #71898c; background: #eef4f4; font-size: 8px; font-weight: 800; }
+#mmHome .rank-1{ color: #9a711a; background: #fff2c6; }
+#mmHome .rank-2{ color: #5d7277; background: #e6eeee; }
+#mmHome .rank-3{ color: #9c6548; background: #f6e5d8; }
+#mmHome .align-right{ text-align: right; font-weight: 700; }
+#mmHome .insight-note{ display: flex; align-items: center; gap: 7px; margin: 11px 13px 13px; padding: 9px 10px; color: #688186; background: #f2fbf8; border: 1px solid #dcefea; border-radius: 5px; font-size: 8.5px; line-height: 1.35; }
+#mmHome .note-icon{ width: 16px; height: 16px; display: grid; place-items: center; color: #16846e; background: #d8f0e6; border-radius: 50%; font-weight: 800; }
+#mmHome .insight-note strong{ color: #26836d; }
+#mmHome .movement-panel,#mmHome .attention-panel,#mmHome .objective-panel{ min-height: 144px; }
+#mmHome .neutral-chip,#mmHome .alert-chip{ margin-left: auto; padding: 4px 7px; border-radius: 99px; font-size: 8px; font-weight: 760; }
+#mmHome .neutral-chip{ color: #718a8e; background: #f0f5f5; }
+#mmHome .alert-chip{ color: #cd5e62; background: #fff0f0; }
+#mmHome .empty-state{ min-height: 115px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+#mmHome .empty-icon{ width: 30px; height: 30px; display: grid; place-items: center; color: #9aafb0; background: #f2f7f7; border-radius: 50%; }
+#mmHome .empty-icon svg{ width: 17px; height: 17px; }
+#mmHome .empty-state p{ margin: 8px 0 2px; color: #6c8589; font-size: 10px; font-weight: 700; }
+#mmHome .empty-state span{ color: #a5b3b4; font-size: 8px; }
+#mmHome .attention-list{ padding: 5px 14px 0; margin: 0; list-style: none; }
+#mmHome .attention-list li{ display: flex; align-items: flex-start; gap: 7px; margin: 7px 0; color: #688084; font-size: 8.5px; line-height: 1.25; }
+#mmHome .attention-list strong{ color: #365e64; }
+#mmHome .bullet{ width: 6px; height: 6px; margin-top: 3px; border-radius: 50%; flex: none; }
+#mmHome .bullet.red{ background: #e3686d; }
+#mmHome .bullet.orange{ background: #edaa34; }
+#mmHome .bullet.blue{ background: #368fc3; }
+#mmHome .text-button{ margin: 3px 14px 11px; padding: 0; border: 0; color: #18816f; background: transparent; font-size: 8.5px; font-weight: 760; }
+#mmHome .text-button:hover{ color: #075b53; }
+#mmHome .text-button span{ margin-left: 2px; font-size: 12px; vertical-align: -1px; }
+#mmHome .target-icon{ margin-left: auto; color: #5ea58e; }
+#mmHome .target-icon svg{ width: 26px; height: 26px; }
+#mmHome .objective-panel > p{ margin: 4px 14px 12px; color: #607a7e; font-size: 9px; line-height: 1.45; }
+#mmHome .progress-track{ height: 7px; margin: 0 14px; overflow: hidden; border-radius: 99px; background: #e5efec; }
+#mmHome .progress-track span{ height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg, #42a983, #75c49b); }
+#mmHome .objective-meta{ display: flex; justify-content: space-between; margin: 6px 14px 0; color: #92a4a5; font-size: 8px; }
+#mmHome .objective-meta strong{ color: #318b73; }
+#mmHome .objective-foot{ margin: 10px 14px 12px; padding-top: 8px; color: #9ba9aa; border-top: 1px solid #edf2f2; font-size: 8px; }
+#mmHome .objective-foot strong{ color: #5c7f80; }
+#mmHome .toast{ position: fixed; right: 22px; bottom: 22px; z-index: 20; max-width: 280px; padding: 10px 14px; color: white; background: #173f46; border-radius: 7px; box-shadow: 0 8px 25px rgba(21, 68, 72, .2); font-size: 10px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .2s, transform .2s; }
+#mmHome .toast.show{ opacity: 1; transform: translateY(0); }
+@media (max-width: 1180px){#mmHome .kpi-grid{ grid-template-columns: repeat(3, 1fr); }#mmHome .visual-grid{ grid-template-columns: repeat(2, 1fr); }#mmHome .threshold-panel{ grid-column: span 2; }#mmHome .lower-grid{ grid-template-columns: 1.6fr 1fr; grid-template-areas: "inventory inventory" "best movement" "attention objective"; }}
+@media (max-width: 760px){#mmHome .topbar{ align-items: flex-start; flex-direction: column; gap: 14px; }#mmHome .header-controls{ width: 100%; justify-content: flex-start; gap: 10px; }#mmHome .updated-stamp{ padding-left: 10px; }#mmHome .dashboard-main{ padding-top: 18px; }#mmHome .kpi-grid,#mmHome .visual-grid{ grid-template-columns: 1fr; }#mmHome .threshold-panel{ grid-column: auto; }#mmHome .lower-grid{ grid-template-columns: 1fr; grid-template-areas: "inventory" "best" "movement" "attention" "objective"; }#mmHome .kpi-card{ min-height: 100px; }#mmHome .donut-layout{ justify-content: space-evenly; }#mmHome .inventory-table-panel .table-scroll{ max-height: none; }#mmHome .table-tools{ flex-wrap: wrap; justify-content: flex-end; }#mmHome .search-box{ width: 110px; }}
+@media (max-width: 440px){#mmHome .period-control{ flex: 1; }#mmHome .updated-stamp{ width: 100%; padding: 0; border: 0; }#mmHome .topbar{ padding: 14px 16px; }#mmHome .dashboard-main{ padding-left: 12px; padding-right: 12px; }#mmHome .donut-layout{ gap: 10px; padding-left: 9px; padding-right: 9px; }#mmHome .donut-chart{ width: 120px; }#mmHome .legend{ min-width: 116px; }#mmHome .kpi-grid{ gap: 10px; }#mmHome .visual-grid,#mmHome .lower-grid{ gap: 10px; }}
+#mmHome .panel{ border-radius: 3px; border-color: #c3d5d5; box-shadow: 0 1px 2px rgba(24, 74, 78, .05); }
+#mmHome .panel-header{ min-height: 33px; padding: 7px 9px 6px; background: #117b82; border-bottom: 0; }
+#mmHome .panel-header h2{ margin: 0; color: #fff; font-size: 10.5px; letter-spacing: -.01em; }
+#mmHome .panel-header .eyebrow{ display: none; }
+#mmHome .panel-action{ color: rgba(255,255,255,.72); font-size: 10px; }
+#mmHome .trend-panel .panel-header{ background: #0d718d; }
+#mmHome .category-panel .panel-header{ background: #078277; }
+#mmHome .threshold-panel .panel-header{ background: #167485; }
+#mmHome .inventory-table-panel .panel-header{ background: #0b7d73; }
+#mmHome .best-panel .panel-header{ background: #2b8bb0; }
+#mmHome .movement-panel .panel-header{ background: #147985; }
+#mmHome .attention-panel .panel-header{ background: #278d7d; }
+#mmHome .objective-panel .panel-header{ background: #7364a4; }
+#mmHome .panel-header .neutral-chip,#mmHome .panel-header .alert-chip{ color: #fff; background: rgba(255,255,255,.18); }
+#mmHome .panel-header .target-icon{ color: #fff; }
+#mmHome .panel-header .target-icon svg{ width: 22px; height: 22px; }
+#mmHome .visual-grid,#mmHome .lower-grid{ gap: 9px; }
+#mmHome .dashboard-main{ padding-top: 18px; }
+#mmHome .kpi-grid{ gap: 9px; }
+#mmHome .kpi-card{ border-radius: 3px; box-shadow: 0 1px 2px rgba(24, 74, 78, .05); }
+#mmHome .reference-panels{ display: grid; grid-template-columns: 1fr 1.02fr 1fr 1fr; gap: 14px; margin-top: 15px; }
+#mmHome .reference-card{ min-width: 0; overflow: hidden; border: 1px solid #cbd9df; border-radius: 8px; background: #fff; box-shadow: 0 2px 7px rgba(38, 73, 83, .06); }
+#mmHome .reference-card-heading{ min-height: 59px; display: flex; align-items: center; gap: 10px; padding: 0 18px; color: #31404d; border-bottom: 1px solid #edf1f4; }
+#mmHome .reference-card-heading h2{ margin: 0; font-size: 16px; font-weight: 760; letter-spacing: -.025em; }
+#mmHome .ref-icon{ width: 23px; display: inline-flex; justify-content: center; align-items: center; font-size: 21px; font-weight: 800; line-height: 1; }
+#mmHome .hourglass{ color: #df4b68; font-size: 20px; }
+#mmHome .transaction-icon{ color: #2870d2; font-size: 26px; }
+#mmHome .target-icon-ref{ color: #168e89; font-size: 27px; }
+#mmHome .reference-table-wrap{ overflow-x: auto; padding: 0 10px 8px; }
+#mmHome .reference-table{ width: 100%; min-width: 410px; border-collapse: collapse; color: #35424e; }
+#mmHome .reference-table th{ height: 40px; padding: 0 10px; color: #526171; background: #f3f6fa; font-size: 13px; font-weight: 760; text-align: left; white-space: nowrap; }
+#mmHome .reference-table td{ height: 37px; padding: 0 10px; border-bottom: 1px solid #edf0f2; font-size: 13px; white-space: nowrap; }
+#mmHome .reference-table tbody tr:last-child td{ border-bottom: 0; }
+#mmHome .slow-items-table th:nth-child(3),#mmHome .slow-items-table th:nth-child(4),#mmHome .slow-items-table td:nth-child(3),#mmHome .slow-items-table td:nth-child(4){ text-align: center; }
+#mmHome .slow-items-table td:first-child{ font-variant-numeric: tabular-nums; }
+#mmHome .slow-items-table td:nth-child(2){ min-width: 145px; }
+#mmHome .days-pill{ display: inline-grid; min-width: 40px; height: 29px; place-items: center; border-radius: 5px; font-weight: 760; }
+#mmHome .days-red{ color: #b6324d; background: #f9dfe5; }
+#mmHome .days-orange{ color: #a64a16; background: #fde8ca; }
+#mmHome .days-yellow{ color: #8e7d18; background: #fff5c3; }
+#mmHome .days-grey{ color: #566875; background: #eef2f4; }
+#mmHome .transaction-table{ min-width: 505px; }
+#mmHome .transaction-table td,#mmHome .transaction-table th{ padding-left: 10px; padding-right: 10px; }
+#mmHome .type-pill{ display: inline-flex; padding: 5px 7px; border-radius: 4px; font-size: 12px; }
+#mmHome .type-receipt{ color: #2868b7; background: #dceafa; }
+#mmHome .type-issue{ color: #7941a8; background: #f0e1fb; }
+#mmHome .type-transfer{ color: #936d13; background: #fff1c3; }
+#mmHome .completed{ color: #168c68; font-weight: 760; }
+#mmHome .performance-table{ min-width: 430px; }
+#mmHome .performance-table th:nth-child(2),#mmHome .performance-table th:nth-child(3),#mmHome .performance-table td:nth-child(2),#mmHome .performance-table td:nth-child(3){ text-align: left; }
+#mmHome .kpi-good{ color: #188b69; font-weight: 760; }
+#mmHome .performance-table td:last-child{ color: #687584; }
+@media (max-width: 1180px){#mmHome .reference-panels{ grid-template-columns: 1fr 1fr; }#mmHome .performance-card{ grid-column: span 2; }}
+@media (max-width: 760px){#mmHome .reference-panels{ grid-template-columns: 1fr; }#mmHome .performance-card{ grid-column: auto; }#mmHome .reference-card-heading{ min-height: 50px; padding: 0 14px; }#mmHome .reference-card-heading h2{ font-size: 14px; }#mmHome .reference-table th,#mmHome .reference-table td{ font-size: 11px; }}
+#mmHome .reference-card-heading{ min-height: 33px; padding: 7px 9px 6px; gap: 7px; color: #fff; background: #117b82; border-bottom: 0; }
+#mmHome .reference-card-heading h2{ margin: 0; color: #fff; font-family: inherit; font-size: 10.5px; line-height: 1.15; font-weight: 760; letter-spacing: -.01em; }
+#mmHome .ref-icon{ width: 17px; font-size: 14px; line-height: 1; }
+#mmHome .hourglass{ font-size: 13px; }
+#mmHome .transaction-icon{ font-size: 17px; }
+#mmHome .target-icon-ref{ font-size: 18px; }
+#mmHome .slow-items-card .reference-card-heading{ background: #117b82; }
+#mmHome .transactions-card .reference-card-heading{ background: #2b8bb0; }
+#mmHome .performance-card .reference-card-heading{ background: #147985; }
+#mmHome .reference-table-wrap{ padding: 0 7px 6px; }
+#mmHome .reference-table{ font-family: inherit; min-width: 0; }
+#mmHome .reference-table th{ height: 28px; padding: 0 7px; font-size: 8px; line-height: 1.15; font-weight: 760; }
+#mmHome .reference-table td{ height: 28px; padding: 0 7px; font-size: 8.5px; line-height: 1.15; }
+#mmHome .days-pill{ min-width: 31px; height: 21px; border-radius: 3px; font-size: 8px; }
+#mmHome .type-pill{ padding: 3px 5px; border-radius: 3px; font-size: 8px; }
+#mmHome .completed{ font-size: 8.5px; }
+#mmHome .space-card .reference-card-heading{ background: #7364a4; }
+#mmHome .space-list{ padding: 8px 12px 12px; }
+#mmHome .space-row{ margin: 10px 0; }
+#mmHome .space-row .top{ display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 9.5px; color: #4d6469; }
+#mmHome .space-row .top b{ color: #23474e; }
+#mmHome .space-track{ height: 9px; overflow: hidden; border-radius: 99px; background: #e5efec; }
+#mmHome .space-track i{ display: block; height: 100%; border-radius: inherit; transition: width .6s; }
+#mmHome .space-ok{ background: #42a983; }
+#mmHome .space-warn{ background: #f49a32; }
+#mmHome .space-high{ background: #ea6671; }
+#mmHome .space-total{ margin-top: 12px; padding-top: 8px; border-top: 1px solid #edf2f2; font-size: 9px; color: #6c8589; display: flex; justify-content: space-between; }
+#mmHome{padding:2px 0 24px;color:var(--ink)}
+#mmHome .mmh-top{margin-bottom:12px;border-radius:4px}
+#mmHome .topbar{min-height:62px;padding:10px 18px;border-radius:4px}
+#mmHome .panel-header h2{margin:0}
+#mmHome .panel-header{align-items:center}
+#mmHome .kpi-grid{margin-top:0}
+#mmHome .empty-note{padding:26px 10px;text-align:center;color:#9aabad;font-size:11px}
+#mmHome .reference-panels{grid-template-columns:repeat(auto-fit,minmax(310px,1fr))}
+#mmHome .mmh-flow{margin-top:12px;padding:10px 14px;background:#e8f3f1;border:1px solid #c3d5d5;border-radius:4px;font-size:11px;color:#365960}
+#mmHome .bar-value{font-size:9px}
+#mmHome .bar-label{font-size:10px}
+#mmHome .mv-list{padding:8px 12px 12px}
+#mmHome .mv-row{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px dashed #e3ecec;color:#52747a}
+#mmHome .mv-big{display:flex;gap:10px;padding:10px 12px 0}
+#mmHome .mv-big div{flex:1;text-align:center;padding:8px;border-radius:5px;font-size:10px;color:#52747a}
+#mmHome .mv-big b{display:block;font-size:20px;color:#163e45}
+#mmHome .type-adj{color:#936d13;background:#fff1c3}
+#mmHome .kpi-foot em{font-style:normal}
+#mmHome .dn{color:#d85c61;font-weight:700}#mmHome .up{color:#26886e;font-weight:700}
+#mmHome .table-panel td,#mmHome .table-panel th{font-size:10.5px}
+#mmHome .table-panel td.n,#mmHome .table-panel th.n{text-align:right}
+#mmHome .kpi-card{cursor:default;transition:box-shadow .15s}#mmHome .kpi-card.click{cursor:pointer}#mmHome .kpi-card.click:hover{box-shadow:0 3px 10px rgba(24,74,78,.18)}
+#mmHome .kpi-sub{margin-top:3px;font-size:9px;color:#9aabad}
+#mmHome .table-panel th.sort{cursor:pointer;user-select:none}#mmHome .table-panel th.sort:hover{color:#0b7d73}
+#mmHome .age-row{display:grid;grid-template-columns:70px 1fr auto;gap:8px;align-items:center;font-size:10.5px;margin:9px 4px;color:#52747a}#mmHome .age-row i{display:block;height:9px;border-radius:99px}#mmHome .age-bar{background:#e5efec;border-radius:99px;overflow:hidden}
+#mmHome .pend-row{display:flex;align-items:center;gap:8px;padding:7px 6px;border-bottom:1px solid #edf0f2;font-size:11px;color:#35424e}#mmHome .pend-row span{flex:1}#mmHome .pend-row b{min-width:26px;text-align:center;padding:2px 6px;border-radius:99px;background:#eef2f4;color:#566875;font-size:11px}#mmHome .pend-row b.hot{background:#fde8ca;color:#a64a16}#mmHome .pend-row button{border:1px solid #cfe0e0;background:#fff;border-radius:4px;font-size:10px;padding:2px 8px;cursor:pointer;color:#0b7d73}
+#mmHome .reo{margin:2px 14px 4px;font-size:10px;color:#52747a}#mmHome .reo div{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #e3ecec}#mmHome .reo h5{margin:6px 0 2px;font-size:10px;color:#c0612b}
+#mmHome .mv-bar{height:6px;border-radius:99px;background:#1785c5;margin-top:3px}
+@media(max-width:1180px){#mmHome .reference-panels{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){#mmHome .reference-panels{grid-template-columns:1fr}}
+
+</style>
+<script id="mmhJs">
+(function () {
+  var $ = function (i) { return document.getElementById(i); };
+  function P(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } }
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function lc(x) { return String(x || '').trim().toLowerCase(); }
+  function n(v) { return parseFloat(v) || 0; }
+  function fmt(v, d) { return (Math.round(v * Math.pow(10, d || 0)) / Math.pow(10, d || 0)).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+  function pad(x) { return String(x).padStart(2, '0'); }
+  var COLORS = ['#1d82c9', '#e06a71', '#4ba37f', '#e9b63e', '#7965ab', '#2a9d8f', '#99a8aa'];
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var alertsOnly = false, lastRows = [];
+
+  function periods() {
+    var out = [], d = new Date();
+    for (var i = 0; i < 6; i++) {
+      var y = d.getFullYear(), m = d.getMonth();
+      var ny = m === 11 ? y + 1 : y, nm = (m + 1) % 12;
+      out.push({ y: y, m: m, label: MON[m] + ' ' + y, start: y + '-' + pad(m + 1) + '-01', end: ny + '-' + pad(nm + 1) + '-01' });
+      d = new Date(y, m - 1, 1);
+    }
+    return out;
+  }
+  function addMonths(p, k) { var d = new Date(p.y, p.m + k, 1), e = new Date(p.y, p.m + k + 1, 1); return { y: d.getFullYear(), m: d.getMonth(), label: MON[d.getMonth()], start: d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-01', end: e.getFullYear() + '-' + pad(e.getMonth() + 1) + '-01' }; }
+  function daysBetween(a, b) { return Math.max(0, Math.round((new Date(b) - new Date(a)) / 86400000)); }
+  function today() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+
+  function events() {
+    try { if (typeof window.__ivBuild === 'function') { var e = window.__ivBuild(); return Array.isArray(e) ? e : []; } } catch (x) { console.warn('dashboard build', x); }
+    return [];
+  }
+  function sumVal(ev, endExcl) { var s = 0; ev.forEach(function (e) { if (e.date < endExcl) s += e.val || 0; }); return s; }
+
+  function master() {
+    var m = P('erp_item_master', {}), byCode = {}, byName = {}, list = [];
+    Object.keys(m).forEach(function (k) { var r = m[k]; if (!r) return; list.push(r); byCode[lc(r.code)] = r; byName[lc(r.name)] = r; });
+    return { list: list, byCode: byCode, byName: byName };
+  }
+
+  window.mmHomeRender = function (manual) {
+    var host = $('mmHome'); if (!host) return;
+    var sel = $('mmhPeriod'), ps = periods();
+    if (!sel.options.length) sel.innerHTML = ps.map(function (p, i) { return '<option value="' + i + '">' + p.label + '</option>'; }).join('');
+    var per = ps[parseInt(sel.value || '0', 10) || 0];
+    var ev = events(), M = master();
+    var endExcl = per.end, startM = per.start;
+    var asOf = endExcl > today() ? today() : endExcl;
+
+    // ---- per item state as of end of the period
+    var items = {}, wh = {}, lots = {};
+    var c90 = (function () { var d = new Date(asOf); d.setDate(d.getDate() - 90); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); })();
+    ev.forEach(function (e) {
+      if (e.date >= endExcl) return;
+      var key = e.key; if (!key) return;
+      var it = items[key] || (items[key] = { key: key, code: e.code || '', name: e.name || e.code || '', uom: e.uom || '', qty: 0, val: 0, lastOut: '', firstIn: '', out90: 0 });
+      it.qty += e.d || 0; it.val += e.val || 0;
+      var lk = key + '||' + (e.wh || ''), L = lots[lk] || (lots[lk] = { key: key, q: [] });
+      if ((e.d || 0) > 0) L.q.push({ date: e.date, q: e.d });
+      else if ((e.d || 0) < 0) { var need = -e.d; while (need > 1e-9 && L.q.length) { var f = L.q[0]; if (f.q <= need + 1e-9) { need -= f.q; L.q.shift(); } else { f.q -= need; need = 0; } } if (e.date >= c90 && !/reversal/.test(e.type)) it.out90 += -e.d; }
+      if (e.code && !it.code) it.code = e.code;
+      if ((e.d || 0) < 0) it.lastOut = e.date; else if ((e.d || 0) > 0 && !it.firstIn) it.firstIn = e.date;
+      var w = e.wh || '—'; wh[w] = (wh[w] || 0) + (e.d || 0);
+    });
+    var rows = Object.keys(items).map(function (k) {
+      var it = items[k], mr = M.byCode[lc(it.code)] || M.byName[lc(it.name)] || {};
+      it.cat = mr.group || mr.type || 'Uncategorized';
+      it.thr = n(mr.min) || n(mr.reorder) || 0; it.max = n(mr.max);
+      it.lead = n(mr.lead);
+      if (mr.name && !it.name) it.name = mr.name;
+      it.qty = Math.abs(it.qty) < 1e-9 ? 0 : it.qty;
+      it.avg = it.qty > 0 ? it.val / it.qty : 0;
+      it.status = it.qty <= 0 ? 'out' : (it.thr && it.qty <= it.thr ? 'low' : 'ok');
+      it.cover = it.qty > 0 && it.out90 > 0 ? it.qty / (it.out90 / 90) : null;
+      return it;
+    });
+    var inStock = rows.filter(function (r) { return r.qty > 0; });
+    var totalVal = Math.max(0, inStock.reduce(function (s, r) { return s + Math.max(0, r.val); }, 0));
+    var valStart = Math.max(0, sumVal(ev, startM)), valEnd = Math.max(0, sumVal(ev, endExcl));
+    var chg = valStart > 0 ? (valEnd - valStart) / valStart * 100 : null;
+
+    // ---- month activity
+    var mEv = ev.filter(function (e) { return e.date >= startM && e.date < endExcl; });
+    var inb = mEv.filter(function (e) { return e.d > 0; }), outb = mEv.filter(function (e) { return e.d < 0; });
+    var inQty = inb.reduce(function (s, e) { return s + e.d; }, 0), outQty = outb.reduce(function (s, e) { return s - e.d; }, 0);
+    var issueVal = -outb.reduce(function (s, e) { return s + (e.val || 0); }, 0);
+    var avgInv = (valStart + valEnd) / 2, turn = avgInv > 0 ? issueVal / avgInv : 0;
+    var prev = addMonths(per, -1), pEv = ev.filter(function (e) { return e.date >= prev.start && e.date < prev.end; });
+    var pIssue = -pEv.filter(function (e) { return e.d < 0; }).reduce(function (s, e) { return s + (e.val || 0); }, 0);
+    var pAvg = (Math.max(0, sumVal(ev, prev.start)) + valStart) / 2, pTurn = pAvg > 0 ? pIssue / pAvg : 0;
+
+    // ---- attention
+    var low = rows.filter(function (r) { return r.status === 'low'; }).length;
+    var mInactive = M.list.filter(function (r) { return (r.status || 'Active') === 'Active'; });
+    var outList = mInactive.filter(function (r) { var it = items[lc(r.code)] || items[lc(r.name)]; return !it || it.qty <= 0; });
+    var out = outList.length;
+
+    // ---- warehouse capacity (editable)
+    var capMap = P('erp_wh_capacity', {}), spaceTot = { used: 0, cap: 0, hot: 0 };
+    Object.keys(capMap).forEach(function (w) { var c = n(capMap[w]); if (c > 0) { spaceTot.cap += c; var u = Math.max(0, wh[w] || 0); spaceTot.used += u; if (u / c > 0.9) spaceTot.hot++; } });
+    // ---- KPI cards
+    function trend(cur, pre, unit) {
+      if (pre == null || !isFinite(pre) || pre === 0) return '<span>— vs previous month</span>';
+      var d = (cur - pre) / Math.abs(pre) * 100;
+      return '<span class="' + (d >= 0 ? 'up' : 'dn') + '">' + (d >= 0 ? '▲ +' : '▼ ') + fmt(d, 1) + '%</span> vs previous month';
+    }
+    var svg = function (d) { return '<span class="kpi-icon"><svg viewBox="0 0 24 24"><path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'; };
+    var K = [
+      ['accent-teal', 'M4 7h16M6 4h12v17H6zM9 11h6M9 15h4', 'Items in Stock', fmt(inStock.length), 'Registered: ' + fmt(M.list.length || rows.length) + ' <span class="foot-separator">|</span> No stock: ' + fmt(Math.max(0, (M.list.length || rows.length) - inStock.length)), 'Items with quantity above zero as of the end of the selected month', 'all'],
+      ['accent-blue', 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 7v10', 'Inventory Value', fmt(valEnd), trend(valEnd, valStart) + '<div class="kpi-sub">Start of month: ' + fmt(valStart) + ' (' + (valEnd - valStart >= 0 ? '+' : '') + fmt(valEnd - valStart) + ')</div>', 'Moving-average value of all stock at month end', ''],
+      ['accent-orange', 'M5 6h14M5 12h14M5 18h8', 'Monthly Movements', fmt(mEv.length), 'Inbound: <strong>' + fmt(inb.length) + '</strong> (' + fmt(inQty, 0) + ') &nbsp; Outbound: <strong>' + fmt(outb.length) + '</strong> (' + fmt(outQty, 0) + ')', 'Number of stock entries in the selected month (quantity in brackets)', ''],
+      ['accent-red', 'M12 4 21 20H3L12 4zM12 9v5M12 17h.01', 'Items Requiring Attention', fmt(low + out), '<span class="low-stock-text">Low stock: ' + low + '</span><span class="foot-separator">|</span>Out of stock: ' + out + '<div class="kpi-sub">Click to see the alert list</div>', 'Items at or below Minimum / Reorder level, plus active items with no stock', 'alerts'],
+      ['accent-purple', 'M5 19V9M12 19V5M19 19v-7M3 19h18', 'Inventory Turnover Rate', fmt(turn, 2), trend(turn, pTurn) + '<div class="kpi-sub">Days on hand: ' + (turn > 0 ? fmt(30 / turn, 0) + ' days' : '—') + '</div>', 'Issue value of the month ÷ average inventory value. Days on hand = 30 ÷ turnover', ''],
+      ['accent-teal2', 'M3 10 12 4l9 6v10H3zM9 20v-6h6v6', 'Space Utilization', spaceTot.cap > 0 ? fmt(spaceTot.used / spaceTot.cap * 100, 1) + '%' : 'N/A', spaceTot.cap > 0 ? 'Used ' + fmt(spaceTot.used, 0) + ' of ' + fmt(spaceTot.cap, 0) + (spaceTot.hot ? '<div class="kpi-sub" style="color:#d85c61">' + spaceTot.hot + ' warehouse(s) above 90%</div>' : '') : 'Set warehouse capacity below', 'Total stock qty ÷ total warehouse capacity (edit capacity in the Space card)', '']
+    ];
+    $('mmhKpis').innerHTML = K.map(function (k) {
+      return '<article class="kpi-card ' + k[0] + (k[6] ? ' click' : '') + '" title="' + esc(k[5]) + '"' + (k[6] ? ' onclick="mmHomeKpi(\'' + k[6] + '\')"' : '') + '><div class="kpi-heading">' + svg(k[1]) + '<span>' + k[2] + '</span></div><div class="kpi-value' + (k[2] === 'Inventory Value' ? ' money' : '') + '">' + k[3] + '</div><div class="kpi-foot' + (k[2] === 'Inventory Value' || k[2] === 'Inventory Turnover Rate' ? ' trend-positive' : '') + '">' + k[4] + '</div></article>';
+    }).join('');
+
+    // ---- trend (6 months to selected period)
+    var tr = []; for (var i = 5; i >= 0; i--) { var pp = addMonths(per, -i); tr.push({ l: pp.label, v: Math.max(0, sumVal(ev, pp.end)) }); }
+    var mx = Math.max.apply(null, tr.map(function (t) { return t.v; }).concat([1]));
+    $('mmhTrend').innerHTML = '<div class="chart-wrap bar-chart"><div class="y-axis-labels"><span>' + fmt(mx) + '</span><span>' + fmt(mx * 2 / 3) + '</span><span>' + fmt(mx / 3) + '</span><span>0</span></div><div class="plot-area"><div class="grid-line line-top"></div><div class="grid-line line-mid"></div><div class="grid-line line-low"></div><div class="grid-line line-base"></div><div class="bars">' +
+      tr.map(function (t) { return '<div class="bar-item"><span class="bar-value">' + fmt(t.v) + '</span><div class="bar" style="--bar-height:' + (t.v / mx * 78) + '%"></div><span class="bar-label">' + t.l + '</span></div>'; }).join('') + '</div></div></div>';
+
+    // ---- donut by category (value share)
+    var cat = {}; inStock.forEach(function (r) { cat[r.cat] = (cat[r.cat] || 0) + Math.max(0, r.val); });
+    var cats = Object.keys(cat).sort(function (a, b) { return cat[b] - cat[a]; }), ctot = cats.reduce(function (s, c) { return s + cat[c]; }, 0);
+    var shown = cats.slice(0, 6), rest = cats.slice(6).reduce(function (s, c) { return s + cat[c]; }, 0);
+    var parts = shown.map(function (c) { return [c, cat[c]]; }); if (rest > 0) parts.push(['Others', rest]);
+    if (!ctot) { $('mmhDonut').innerHTML = '<div class="empty-note" style="width:100%">No stock data</div>'; }
+    else {
+      var acc = 0, grad = parts.map(function (p, i) { var s = acc / ctot * 100; acc += p[1]; return COLORS[i % COLORS.length] + ' ' + s + '% ' + (acc / ctot * 100) + '%'; }).join(',');
+      $('mmhDonut').innerHTML = '<div class="donut-chart" style="background:conic-gradient(' + grad + ');animation:none"><div class="donut-hole"><strong>' + fmt(inStock.length) + '</strong><span>items</span></div></div><div class="legend">' +
+        parts.map(function (p, i) { return '<div><i class="legend-dot" style="background:' + COLORS[i % COLORS.length] + '"></i><span>' + esc(p[0]) + '</span><strong>' + fmt(p[1] / ctot * 100, 1) + '%</strong></div>'; }).join('') + '<small>Total inventory value: <b>' + fmt(ctot) + '</b></small></div>';
+    }
+
+    // ---- threshold chart
+    var th = rows.filter(function (r) { return r.thr > 0; }).sort(function (a, b) { return (a.qty / a.thr) - (b.qty / b.thr); }).slice(0, 5);
+    if (!th.length) $('mmhThr').innerHTML = '<div class="empty-note" style="height:184px;display:flex;align-items:center;justify-content:center">Set Minimum Stock / Reorder Level in Item Master to see this chart</div>';
+    else {
+      var tm = Math.max.apply(null, th.map(function (r) { return Math.max(r.qty, r.thr); }).concat([1]));
+      $('mmhThr').innerHTML = '<div class="threshold-legend"><span><i class="legend-dot dot-green"></i>Current Stock</span><span><i class="legend-dot dot-red"></i>Minimum / Reorder</span></div><div class="threshold-chart"><div class="threshold-y"><span>' + fmt(tm) + '</span><span>' + fmt(tm * 2 / 3) + '</span><span>' + fmt(tm / 3) + '</span><span>0</span></div><div class="threshold-plot"><div class="threshold-grid"></div><div class="threshold-bars">' +
+        th.map(function (r) { return '<div class="threshold-item"><div class="pair"><i style="height:' + Math.max(2, r.qty / tm * 100) + '%"></i><b style="height:' + Math.max(2, r.thr / tm * 100) + '%"></b></div><span title="' + esc(r.name) + '">' + esc(String(r.name).slice(0, 9)) + '</span></div>'; }).join('') + '</div></div></div>';
+    }
+
+    // ---- table rows
+    lastRows = rows.slice().sort(function (a, b) { return b.val - a.val; });
+    $('mmhTotal').textContent = lastRows.length;
+    window.mmHomeTable();
+
+    // ---- most issued
+    var iss = {}; outb.forEach(function (e) { if (/reversal/.test(e.type)) return; var k = e.key; iss[k] = iss[k] || { name: e.name || e.code, q: 0, u: e.uom, v: 0 }; iss[k].q -= e.d; iss[k].v -= (e.val || 0); });
+    var issTot = Object.keys(iss).reduce(function (s, k) { return s + iss[k].v; }, 0);
+    var top = Object.keys(iss).map(function (k) { return iss[k]; }).sort(function (a, b) { return b.q - a.q; }).slice(0, 5);
+    $('mmhTop').innerHTML = top.length ? '<table><thead><tr><th>Rank</th><th>Item</th><th>Qty Issued</th><th>Value</th><th>Share</th></tr></thead><tbody>' + top.map(function (t, i) { return '<tr><td><span class="rank rank-' + (i + 1) + '">' + (i + 1) + '</span></td><td class="item-name">' + esc(t.name) + '</td><td class="align-right">' + fmt(t.q, 2) + ' ' + esc(t.u) + '</td><td class="align-right">' + fmt(t.v) + '</td><td class="align-right">' + (issTot > 0 ? fmt(t.v / issTot * 100, 1) + '%' : '—') + '</td></tr>'; }).join('') + '</tbody></table>' : '<div class="empty-note">No issues in ' + per.label + '</div>';
+    $('mmhTop').querySelectorAll('th:nth-child(n+3),td:nth-child(n+3)').forEach(function (c) { c.style.textAlign = 'right'; });
+
+    // ---- movements
+    var byType = {}; mEv.forEach(function (e) { byType[e.type] = (byType[e.type] || 0) + 1; });
+    var tl = Object.keys(byType).sort(function (a, b) { return byType[b] - byType[a]; }).slice(0, 6);
+    $('mmhMove').innerHTML = '<div class="mv-big"><div style="background:#e8f3fb">Inbound<b>' + fmt(inQty, 2) + '</b>' + fmt(inb.length) + ' entries</div><div style="background:#fff0f1">Outbound<b>' + fmt(outQty, 2) + '</b>' + fmt(outb.length) + ' entries</div></div>' +
+      (tl.length ? '<div class="mv-list">' + tl.map(function (t) { return '<div class="mv-row" style="display:block"><div style="display:flex;justify-content:space-between"><span>' + esc((window.__ivLabel && window.__ivLabel(t)) || t) + '</span><b>' + byType[t] + '</b></div><div class="mv-bar" style="width:' + (byType[t] / byType[tl[0]] * 100) + '%"></div></div>'; }).join('') + '</div>' : '<div class="empty-note">No stock movements recorded in ' + per.label + '</div>');
+
+    // ---- attention + health
+    var tracked = rows.filter(function (r) { return r.thr > 0 && r.qty > 0 || r.status === 'low'; }).length;
+    var okTracked = rows.filter(function (r) { return r.thr > 0 && r.status === 'ok'; }).length;
+    var health = (okTracked + low) ? Math.round(okTracked / (okTracked + low) * 100) : (rows.length ? 100 : 0);
+    var noThr = inStock.filter(function (r) { return !r.thr; }).length;
+    $('mmhOpen').textContent = (low + out) + ' open';
+    $('mmhAttn').innerHTML = '<li><span class="bullet red"></span><span><strong>' + low + ' item(s)</strong> are at or below minimum level</span></li><li><span class="bullet orange"></span><span><strong>' + out + ' item(s)</strong> are out of stock</span></li><li><span class="bullet blue"></span><span>Inventory value is <strong>' + (chg == null ? '—' : (chg >= 0 ? '+' : '') + fmt(chg, 1) + '%') + '</strong> vs start of month</span></li>' + (noThr ? '<li><span class="bullet blue"></span><span><strong>' + noThr + ' item(s)</strong> have no Minimum Stock set in Item Master</span></li>' : '');
+    $('mmhHealthBar').style.width = health + '%'; $('mmhHealth').textContent = health + '%';
+
+    // ---- reorder suggestions
+    var reo = rows.filter(function (r) { return r.thr > 0 && r.qty <= r.thr; }).map(function (r) { var target = r.max > 0 ? r.max : r.thr * 2; return { name: r.name, q: Math.max(0, target - r.qty), u: r.uom, lead: r.lead }; }).sort(function (a, b) { return b.q - a.q; }).slice(0, 5);
+    $('mmhReorder').innerHTML = reo.length ? '<div class="reo"><h5>Suggested reorder (up to Max / 2× Min)</h5>' + reo.map(function (r) { return '<div><span>' + esc(r.name) + (r.lead ? ' <small style="color:#9aabad">· lead ' + r.lead + ' d</small>' : '') + '</span><b>+' + fmt(r.q, 2) + ' ' + esc(r.u) + '</b></div>'; }).join('') + '</div>' : '';
+
+    // ---- ageing (FIFO lots still on hand)
+    var B = [['0–30 days', 0, 30, '#42a46e'], ['31–60 days', 31, 60, '#e9b63e'], ['61–90 days', 61, 90, '#f49a32'], ['> 90 days', 91, 1e9, '#e0646d']], bq = [0, 0, 0, 0];
+    Object.keys(lots).forEach(function (k) { lots[k].q.forEach(function (l) { var dd = daysBetween(l.date, asOf); for (var j = 0; j < 4; j++) if (dd >= B[j][1] && dd <= B[j][2]) { bq[j] += l.q; break; } }); });
+    var bt = bq.reduce(function (a, b) { return a + b; }, 0);
+    $('mmhAge').innerHTML = bt > 0 ? B.map(function (b, j) { return '<div class="age-row"><span>' + b[0] + '</span><div class="age-bar"><i style="width:' + (bq[j] / bt * 100) + '%;background:' + b[3] + '"></i></div><b>' + fmt(bq[j], 0) + ' <small style="color:#9aabad;font-weight:400">' + fmt(bq[j] / bt * 100, 0) + '%</small></b></div>'; }).join('') + '<div class="space-total"><span>Total on hand (by receipt date, FIFO)</span><strong>' + fmt(bt, 0) + '</strong></div>' : '<div class="empty-note">No stock data</div>';
+
+    // ---- pending actions
+    var cnt = function (key, sts) { var r = P(key, {}); return Object.keys(r).filter(function (k) { return r[k] && sts.indexOf(r[k].status) >= 0; }).length; };
+    var PA = [
+      ['Purchase Requisitions awaiting verification / approval', cnt('erp_pr_records', ['Pending', 'Pending Verification']), 'openPrList'],
+      ['Purchase Orders awaiting verification / approval', cnt('erp_po_records', ['Pending', 'Pending Verification']), 'openPoList'],
+      ['GRNs awaiting approval', cnt('erp_grn_records', ['Pending']), 'openGrnList'],
+      ['Store Requisitions awaiting approval', cnt('erp_sr_records', ['Pending', 'Pending Verification']), 'openSrList'],
+      ['Draft PR / PO / GRN / SR (not submitted)', cnt('erp_pr_records', ['Draft']) + cnt('erp_po_records', ['Draft']) + cnt('erp_grn_records', ['Draft']) + cnt('erp_sr_records', ['Draft']), '']
+    ];
+    $('mmhPend').innerHTML = PA.map(function (a) { return '<div class="pend-row"><span>' + a[0] + '</span><b class="' + (a[1] > 0 && a[2] ? 'hot' : '') + '">' + a[1] + '</b>' + (a[2] && typeof window[a[2]] === 'function' ? '<button type="button" onclick="' + a[2] + '()">Open</button>' : '') + '</div>'; }).join('');
+
+    // ---- slow moving
+    var ref = asOf;
+    var slow = inStock.map(function (r) { var base = r.lastOut || r.firstIn || ref; return { code: r.code, name: r.name, qty: r.qty, days: daysBetween(base, ref), u: r.uom, v: r.val }; }).sort(function (a, b) { return b.days - a.days; }).slice(0, 5);
+    $('mmhSlow').innerHTML = slow.length ? '<table class="reference-table slow-items-table"><thead><tr><th>Item Code</th><th>Description</th><th>Qty</th><th>Days</th></tr></thead><tbody>' + slow.map(function (s) { var c = s.days >= 120 ? 'days-red' : s.days >= 90 ? 'days-orange' : s.days >= 60 ? 'days-yellow' : 'days-grey'; return '<tr><td>' + esc(s.code) + '</td><td>' + esc(s.name) + '</td><td><strong>' + fmt(s.qty, 2) + '</strong></td><td><span class="days-pill ' + c + '">' + s.days + '</span></td></tr>'; }).join('') + '</tbody></table>' : '<div class="empty-note">No stock data</div>';
+
+    // ---- recent transactions
+    var rec = ev.filter(function (e) { return e.date < endExcl; }).slice().sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : b.i - a.i; }).slice(0, 5);
+    function tcls(e) { return /transfer|sto_/.test(e.type) ? ['Transfer', 'type-transfer'] : /adjust/.test(e.type) ? ['Adjust', 'type-adj'] : e.d > 0 ? ['Receipt', 'type-receipt'] : ['Issue', 'type-issue']; }
+    $('mmhTx').innerHTML = rec.length ? '<table class="reference-table transaction-table"><thead><tr><th>Date</th><th>Type</th><th>Material</th><th>Ref</th><th>Status</th></tr></thead><tbody>' + rec.map(function (e) { var t = tcls(e); var d = String(e.date).split('-'); return '<tr><td>' + (d[2] || '') + ' ' + (MON[(parseInt(d[1], 10) || 1) - 1] || '') + '</td><td><span class="type-pill ' + t[1] + '">' + t[0] + '</span></td><td>' + esc(e.name) + '</td><td>' + esc(e.ref) + '</td><td><span class="completed">✓ Completed</span></td></tr>'; }).join('') + '</tbody></table>' : '<div class="empty-note">No transactions</div>';
+
+    // ---- warehouse space (capacity is editable)
+    var wnames = {}; Object.keys(wh).forEach(function (w) { wnames[w] = 1; }); Object.keys(capMap).forEach(function (w) { wnames[w] = 1; });
+    var sr = P('erp_stock_records', {}); Object.keys(sr).forEach(function (k) { if (sr[k] && sr[k].warehouse) wnames[sr[k].warehouse] = 1; });
+    var wl = Object.keys(wnames).filter(function (w) { return w && w !== '—'; }).sort(function (a, b) { return (wh[b] || 0) - (wh[a] || 0); });
+    $('mmhWh').innerHTML = wl.length ? wl.map(function (w) {
+      var used = Math.max(0, wh[w] || 0), cap = n(capMap[w]), pct = cap > 0 ? used / cap * 100 : 0, cls = pct > 90 ? 'space-high' : pct > 70 ? 'space-warn' : 'space-ok';
+      return '<div class="space-row"><div class="top"><span>' + esc(w) + '</span><span class="cap-cell">' + fmt(used, 2) + ' / ' + (cap > 0 ? '<b style="font-weight:600">' + fmt(cap, 0) + '</b> <b>' + fmt(pct, 1) + '%</b>' : '<span style="color:#9aabad">no capacity</span>') + ' <button type="button" class="cap-edit" data-wh="' + esc(w) + '" data-cap="' + (cap > 0 ? cap : '') + '" onclick="mmHomeEditCap(this)" title="Edit capacity of ' + esc(w) + '" style="border:0;background:#eef4f4;border-radius:4px;cursor:pointer;padding:1px 5px;font-size:11px;margin-left:4px">✏️</button></span></div><div class="space-track"><i class="' + cls + '" style="width:' + Math.min(100, pct) + '%"></i></div></div>';
+    }).join('') + '<div class="space-total"><span>Total used / capacity</span><strong>' + fmt(spaceTot.used, 0) + ' / ' + (spaceTot.cap > 0 ? fmt(spaceTot.cap, 0) : '—') + '</strong></div><div style="margin-top:6px;font-size:9px;color:#9aabad">Click ✏️ beside a warehouse to edit its capacity (in stock qty units). Saved for everyone.</div>' : '<div class="empty-note">No warehouse stock</div>';
+
+    // ---- KPI table
+    var adj = mEv.filter(function (e) { return /adjust/.test(e.type); }), adjQty = adj.reduce(function (s, e) { return s + Math.abs(e.d); }, 0);
+    var totQty = inStock.reduce(function (s, r) { return s + r.qty; }, 0);
+    var variance = totQty > 0 ? adjQty / totQty * 100 : null;
+    var deadVal = inStock.filter(function (r) { return daysBetween(r.lastOut || r.firstIn || ref, ref) > 90; }).reduce(function (s, r) { return s + Math.max(0, r.val); }, 0);
+    var dead = totalVal > 0 ? deadVal / totalVal * 100 : null;
+    function hours(recs, s1, s2) { var a = [], f1 = s1, f2 = s2; Object.keys(recs).forEach(function (k) { var r = recs[k], t1 = null, t2 = null; f1.forEach(function (f) { if (!t1 && r[f]) t1 = new Date(r[f]); }); f2.forEach(function (f) { if (!t2 && r[f]) t2 = new Date(r[f]); }); if (t1 && t2 && !isNaN(t1) && !isNaN(t2) && t2 >= t1 && String(t2.toISOString()).slice(0, 10) >= startM && String(t2.toISOString()).slice(0, 10) < endExcl) a.push((t2 - t1) / 3600000); }); return a.length ? a.reduce(function (s, x) { return s + x; }, 0) / a.length : null; }
+    var grnH = hours(P('erp_grn_records', {}), ['submitted_at', 'created_at', 'timestamp'], ['approved_date', 'approved_at']);
+    var miH = hours(P('erp_mi_records', {}), ['submitted_at', 'created_at', 'timestamp'], ['approved_at', 'approved_date', 'issued_at']);
+    var KP = [
+      ['Inventory Accuracy', variance == null ? null : 100 - variance, '%', '≥ 98%', function (v) { return v >= 98; }, 1],
+      ['Stock Variance', variance, '%', '≤ 1%', function (v) { return v <= 1; }, 2],
+      ['Dead / Non-Moving Stock (>90 d)', dead, '%', '≤ 5%', function (v) { return v <= 5; }, 1],
+      ['GRN Processing Time', grnH, ' hrs', '≤ 4 hrs', function (v) { return v <= 4; }, 1],
+      ['Material Issue Turnaround', miH, ' hrs', '≤ 3 hrs', function (v) { return v <= 3; }, 1]
+    ];
+    $('mmhPerf').innerHTML = '<table class="reference-table performance-table"><thead><tr><th>KPI Name</th><th>Current</th><th>Target</th></tr></thead><tbody>' + KP.map(function (k) {
+      var has = k[1] != null && isFinite(k[1]);
+      return '<tr><td>' + k[0] + '</td><td class="' + (has ? (k[4](k[1]) ? 'kpi-good' : 'dn') : '') + '">' + (has ? fmt(k[1], k[5]) + k[2] : 'N/A') + '</td><td>' + k[3] + '</td></tr>';
+    }).join('') + '</tbody></table>';
+
+    var now = new Date(); $('mmhStamp').textContent = pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear() + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+  };
+
+  var sortK = 'val', sortDir = -1;
+  window.mmHomeSort = function (k) { if (sortK === k) sortDir = -sortDir; else { sortK = k; sortDir = (k === 'name' || k === 'code' || k === 'cat') ? 1 : -1; } window.mmHomeTable(); };
+  window.mmHomeTable = function () {
+    var q = lc(($('mmhSearch') || {}).value), f = ($('mmhFilter') || {}).value || '', tbl = $('mmhTable'); if (!tbl) return;
+    var list = lastRows.filter(function (r) {
+      if (f === 'alerts' && r.status === 'ok') return false; if ((f === 'low' || f === 'out' || f === 'ok') && r.status !== f) return false;
+      return !q || (lc(r.code) + ' ' + lc(r.name) + ' ' + lc(r.cat)).indexOf(q) >= 0;
+    }).sort(function (a, b) { var x = a[sortK], y = b[sortK]; if (x == null) x = -1e18; if (y == null) y = -1e18; if (typeof x === 'string') return x.localeCompare(y) * sortDir; return (x - y) * sortDir; });
+    $('mmhCount').textContent = list.length;
+    var H = [['code', 'Item Code', ''], ['name', 'Description / Category', ''], ['qty', 'Current Stock', 'n'], ['thr', 'Min / Reorder', 'n'], ['val', 'Inventory Value', 'n'], ['cover', 'Cover (days)', 'n'], ['lastOut', 'Last Issue', ''], ['status', 'Status', '']];
+    tbl.innerHTML = '<thead><tr>' + H.map(function (h) { return '<th class="sort ' + h[2] + '" onclick="mmHomeSort(\'' + h[0] + '\')" title="Sort">' + h[1] + (sortK === h[0] ? (sortDir > 0 ? ' ▲' : ' ▼') : '') + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      (list.length ? list.map(function (r) {
+        var b = r.status === 'out' ? '<span class="status-badge low" style="background:#e0646d">Out of Stock</span>' : r.status === 'low' ? '<span class="status-badge low">Low Stock</span>' : '<span class="status-badge ok">OK</span>';
+        var cv = r.cover == null ? '—' : fmt(r.cover, 0), cvc = r.cover != null && r.cover < 15 ? ' style="color:#d85c61;font-weight:700"' : '';
+        return '<tr><td class="code">' + esc(r.code) + '</td><td class="item-name">' + esc(r.name) + '<div style="font-weight:400;color:#9aabad;font-size:9px">' + esc(r.cat) + '</div></td><td class="n">' + fmt(r.qty, 2) + ' ' + esc(r.uom) + '</td><td class="n">' + (r.thr ? fmt(r.thr, 2) : '—') + '</td><td class="n" title="Average rate ' + fmt(r.avg, 2) + '">' + fmt(Math.max(0, r.val), 2) + '</td><td class="n"' + cvc + ' title="Stock ÷ average daily issue of the last 90 days">' + cv + '</td><td>' + (r.lastOut || '—') + '</td><td>' + b + '</td></tr>';
+      }).join('') : '<tr><td colspan="8" style="text-align:center;padding:22px;color:#9aabad;">No stock data</td></tr>') + '</tbody>';
+  };
+  window.mmHomeAlerts = function () { var f = $('mmhFilter'); f.value = f.value === 'alerts' ? '' : 'alerts'; window.mmHomeTable(); var t = $('mmhTable'); if (t && f.value) t.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  window.mmHomeKpi = function (k) { var f = $('mmhFilter'); f.value = k === 'alerts' ? 'alerts' : ''; window.mmHomeTable(); $('mmhTable').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  var editingCap = false;
+  window.mmHomeEditCap = function (btn) {
+    var cell = btn.parentNode, w = btn.getAttribute('data-wh'), cur = btn.getAttribute('data-cap');
+    editingCap = true;
+    cell.innerHTML = '<input type="number" min="0" step="any" value="' + esc(cur) + '" placeholder="capacity" style="width:84px;padding:1px 4px;font-size:10px;border:1px solid #0b7d73;border-radius:3px;text-align:right"> <button type="button" style="border:0;background:#dbf2e7;border-radius:4px;cursor:pointer;padding:1px 6px" title="Save">✔</button> <button type="button" style="border:0;background:#fde2e4;border-radius:4px;cursor:pointer;padding:1px 6px" title="Cancel">✖</button>';
+    var inp = cell.querySelector('input'), bs = cell.querySelectorAll('button');
+    function done(save) { editingCap = false; if (save) { inp.setAttribute('data-wh', w); window.mmHomeSetCap(inp); } else window.mmHomeRender(); }
+    bs[0].onclick = function () { done(true); }; bs[1].onclick = function () { done(false); };
+    inp.onkeydown = function (e) { if (e.key === 'Enter') done(true); else if (e.key === 'Escape') done(false); };
+    inp.focus(); inp.select();
+  };
+  window.mmHomeSetCap = function (el) {
+    var w = el.getAttribute('data-wh'), v = parseFloat(el.value), m = P('erp_wh_capacity', {});
+    if (isNaN(v) || v <= 0) delete m[w]; else m[w] = v;
+    localStorage.setItem('erp_wh_capacity', JSON.stringify(m));
+    window.mmHomeRender();
+  };
+  window.mmHomeExport = function () {
+    var t = $('mmhTable'); if (!t) return;
+    var csv = [].map.call(t.querySelectorAll('tr'), function (r) { return [].map.call(r.querySelectorAll('th,td'), function (c) { return '"' + c.textContent.replace(/\s+/g, ' ').trim().replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); a.download = 'inventory-dashboard.csv'; a.click(); URL.revokeObjectURL(a.href);
+  };
+
+  function safe() { try { var h = $('mmHome'); if (h && h.offsetParent !== null && !editingCap) window.mmHomeRender(); } catch (e) { console.warn('dashboard', e); } }
+  function boot() {
+    try { window.mmHomeRender(); } catch (e) { console.warn('dashboard', e); }
+    setTimeout(safe, 2500); setTimeout(safe, 8000);
+    setInterval(safe, 30000);
+    var orig = window.switchModule;
+    if (typeof orig === 'function') window.switchModule = function (k) { var r = orig.apply(this, arguments); if (k === 'mm') setTimeout(safe, 150); return r; };
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+
 </script>
 <script id="glJs">
 (function () {
