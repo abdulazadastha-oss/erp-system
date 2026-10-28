@@ -45104,4 +45104,161 @@ return btns;
 })();
 </script>
 
+<script id="setupSyncJs">
+(function(){
+ if(window.__ssInit)return;window.__ssInit=1;
+ /* ====== Company-wise Setup Sheet Sync ====== */
+ var DEFAULT_URL='https://script.google.com/macros/s/AKfycbx_qrH8J1d4-xJ8ELBmspWQHFTelBdEjr22TalaIcKAzCwVcsYK_zPdTTkTBANzSx-L/exec';   // optional: paste the Apps Script Web App URL (…/exec) here; or set it in the panel
+ var CFGK='erp_setup_cfg',IDXK='erp_setup_idx',ISSK='erp_setup_issues';
+ var J=function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+ var E=function(i){return document.getElementById(i)};
+ var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
+ var N=function(x){return parseFloat(x)};
+ var lc=function(x){return String(x==null?'':x).trim().toLowerCase()};
+ var ost=localStorage.setItem.bind(localStorage);
+ function hash(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return String(h)}
+ function cfg(){var c=J(CFGK,{});if(!c.url)c.url=DEFAULT_URL;return c}
+ function setCfg(c){ost(CFGK,JSON.stringify(c))}
+ var DS=function(r){return(r&&r.doc_state)||'Complete'};
+ // ---- registry: [tab, storage key, options] ----
+ var REG=[
+  {t:'Company',k:'erp_fsetup_company',req:['name'],u:['name']},
+  {t:'Business Unit',k:'erp_fsetup_bu',req:['company','name'],u:['company','name']},
+  {t:'Profit Center',k:'erp_fsetup_pc',req:['company','bu','name'],u:['company','bu','name']},
+  {t:'Plant',k:'erp_fsetup_plant',req:['company','name'],u:['company','name']},
+  {t:'Warehouse',k:'erp_fsetup_warehouse',req:['company','name'],u:['company','name']},
+  {t:'Chart of Accounts',k:'erp_coa_records',req:['code','name','group'],coa:1},
+  {t:'Cost Center',k:'erp_cc_records',req:['code']},
+  {t:'Budget Allocation',k:'erp_budget_alloc_records'},
+  {t:'Cost Allocation',k:'erp_cost_alloc_records'},
+  {t:'Item Master',k:'erp_item_master',req:['name'],u:['name']},
+  {t:'Vendor Master',k:'erp_vendor_records',req:['name'],u:['name']},
+  {t:'Vendor Agreement',k:'erp_va_records'},
+  {t:'Customer Master',k:'erp_sdcustomer_records',req:['name'],u:['name']},
+  {t:'Price List',k:'erp_sdplist_records',req:['name']},
+  {t:'Discount Scheme',k:'erp_sddisc_records',req:['name']},
+  {t:'Tax Configuration',k:'erp_sdtax_records',req:['name','type']},
+  {t:'Salary Structure',k:'erp_salstruct_records'},
+  {t:'KPI Setup',k:'erp_kpi_records'},
+  {t:'Employee ERP Setup',k:'erp_erpsetup_records'},
+  {t:'User ID Setup',k:'erp_userid_records',strip:/pass|pwd|secret|token/i},
+  {t:'Auto-Posting Map',k:'erp_fpost_map',single:1},
+  {t:'Production Recipes',k:'erpProd1',sub:'recipes',idf:'id',pushOnly:1},
+  {t:'Production QC Standard',k:'erpProd1',sub:'qcstd',idf:'fg',pushOnly:1}
+ ];
+ var SERIAL=/^(erp_(item|vendor|va|sdcustomer|kpi|budget_alloc|cost_alloc|salstruct|cc|coa|erpsetup|userid)_serial|erp_fsx_[a-z0-9_]+_serial|erp_fsetup_[a-z_]*serial)$/;
+ var DATAKEYS={};REG.forEach(function(R){DATAKEYS[R.k]=1});
+ function rawMap(R){var v=J(R.k,R.sub?{}:{});if(R.sub){var a=(v&&v[R.sub])||[],o={};a.forEach(function(r,i){if(r&&typeof r==='object')o[r[R.idf]||('#'+i)]=r});return o}
+  if(R.single){return Object.keys(v||{}).length?{map:v}:{}}return v&&typeof v==='object'?v:{}}
+ function companies(){var m={};Object.values(J('erp_fsetup_company',{})).forEach(function(r){if(r&&r.name&&DS(r)!=='Draft')m[r.name.trim()]=1});return Object.keys(m)}
+ function activeCompany(){var c=cfg().company;if(c)return c;var l=companies();return l[0]||''}
+ function recCompany(R,r){var c=R.t==='Company'?r.name:(r&&r.company);return (c&&String(c).trim())||activeCompany()}
+ // ---- validation ----
+ var GL={Assets:[100000,199999],Liabilities:[200000,299999],Equity:[300000,399999],Income:[400000,499999],Expenses:[500000,599999]};
+ function ctx(){var X={co:{},bu:{},pc:{},pl:{},wh:{}};
+  [['co','erp_fsetup_company'],['bu','erp_fsetup_bu'],['pc','erp_fsetup_pc'],['pl','erp_fsetup_plant'],['wh','erp_fsetup_warehouse']].forEach(function(p){Object.values(J(p[1],{})).forEach(function(r){if(!r||DS(r)==='Draft')return;
+   if(p[0]==='co')X.co[lc(r.name)]=1;else if(p[0]==='bu')X.bu[lc(r.company)+'|'+lc(r.name)]=1;else if(p[0]==='pc')X.pc[lc(r.company)+'|'+lc(r.bu)+'|'+lc(r.name)]=1;else if(p[0]==='pl')X.pl[lc(r.company)+'|'+lc(r.name)]=1;else X.wh[lc(r.company)+'|'+lc(r.name)]=1})});
+  try{var H=PR_ORG_DATA;(H.companies||[]).forEach(function(c){X.co[lc(c)]=1;var h=H.hierarchy[c]||{};(h.bus||[]).forEach(function(b){X.bu[lc(c)+'|'+lc(b)]=1;((h.buMap||{})[b]||[]).forEach(function(p){X.pc[lc(c)+'|'+lc(b)+'|'+lc(p)]=1})});(h.plants||[]).forEach(function(p){X.pl[lc(c)+'|'+lc(p)]=1})})}catch(e){}
+  return X}
+ function validate(R,id,r,X,seen){var m=[],G=function(f){return String(r[f]==null?'':r[f]).trim()};
+  (R.req||[]).forEach(function(f){if(!G(f))m.push('"'+f+'" is required')});
+  if(R.t!=='Company'&&r.company&&!X.co[lc(r.company)])m.push('Company "'+r.company+'" is not in Company setup');
+  if(R.t==='Profit Center'&&G('company')&&G('bu')&&!X.bu[lc(r.company)+'|'+lc(r.bu)])m.push('Business Unit "'+r.bu+'" not found under company "'+r.company+'"');
+  if((R.t==='Warehouse'||R.t==='Plant')&&G('bu')&&G('company')&&!X.bu[lc(r.company)+'|'+lc(r.bu)])m.push('Business Unit "'+r.bu+'" not found under company "'+r.company+'"');
+  if(R.t==='Warehouse'&&G('plant')&&G('company')&&!X.pl[lc(r.company)+'|'+lc(r.plant)])m.push('Plant "'+r.plant+'" not found under company "'+r.company+'"');
+  if(R.coa){var cd=G('code'),g=GL[G('group')];if(cd&&!/^\d{6}$/.test(cd))m.push('GL code must be 6 digits');else if(cd&&g&&(+cd<g[0]||+cd>g[1]))m.push('GL code '+cd+' is outside the '+G('group')+' range '+g[0]+'-'+g[1])}
+  Object.keys(r).forEach(function(f){var v=r[f];if(v===''||v==null||typeof v==='object')return;
+   if(/(^|_)(qty|rate|amount|limit|days|price|disc|discount|cost|budget|salary|basic|gross)(_|$)/i.test(f)&&!isNaN(N(v))&&N(v)<0)m.push('"'+f+'" cannot be negative');
+   if(/(_pct|percent)$/i.test(f)&&!isNaN(N(v))&&(N(v)<0||N(v)>100))m.push('"'+f+'" must be between 0 and 100');
+   if(/email/i.test(f)&&String(v).trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v).trim()))m.push('"'+f+'" is not a valid email');
+   if(/^(mobile|phone)$/i.test(f)&&String(v).trim()&&!/^[0-9+\-\s()]{6,20}$/.test(String(v).trim()))m.push('"'+f+'" is not a valid phone number')});
+  if(R.u){var k=R.u.map(function(f){return lc(G(f))}).join('|');if(k.replace(/\|/g,'')){var sk=R.t+'|'+k;if(seen[sk]&&seen[sk]!==id)m.push('Duplicate '+R.u.join(' + ')+' "'+R.u.map(G).join(' / ')+'"');else seen[sk]=id}}
+  return m}
+ // ---- build rows ----
+ function clean(R,r){var o={};Object.keys(r).forEach(function(f){if(R.strip&&R.strip.test(f))return;var v=r[f];if(typeof v==='string'&&v.length>10000)return;o[f]=v});return o}
+ function rowOf(R,id,r){var c=clean(R,r),flat={};Object.keys(c).forEach(function(f){var v=c[f];if(v==null||typeof v==='object')return;flat[f]=v});
+  return Object.assign(flat,{_id:id,_company:recCompany(R,r),_json:JSON.stringify(c)})}
+ function collect(){var X=ctx(),seen={},rows={},issues=[],total=0;
+  REG.forEach(function(R){var map=rawMap(R);Object.keys(map).forEach(function(id){var r=map[id];if(!r||typeof r!=='object')return;if(R.sub||R.single){}else if(DS(r)==='Draft')return;
+   var m=R.single?[]:validate(R,id,r,X,seen);total++;
+   if(m.length){issues.push({tab:R.t,id:id,name:r.name||r.code||r.ref_no||id,msgs:m});return}
+   (rows[R.t]=rows[R.t]||[]).push(rowOf(R,id,r))})});
+  return {rows:rows,issues:issues,total:total}}
+ // ---- network ----
+ function qs(o){return Object.keys(o).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(o[k])}).join('&')}
+ function api(method,body){var c=cfg();if(!c.url)return Promise.reject(new Error('Web App URL is not set'));
+  if(method==='GET')return fetch(c.url+(c.url.indexOf('?')<0?'?':'&')+qs(Object.assign({token:c.token||''},body))).then(function(r){return r.json()});
+  return fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({token:c.token||''},body))}).then(function(r){return r.json()})}
+ var busy=0,last={at:'',msg:'Not synced yet',ok:true};
+ function status(msg,ok){last={at:new Date().toLocaleTimeString(),msg:msg,ok:ok!==false};var s=E('ssStatus');if(s){s.textContent=last.at+' - '+msg;s.style.color=last.ok?'#065f46':'#b91c1c'}}
+ // ---- PUSH ----
+ function push(){var C=collect();ost(ISSK,JSON.stringify(C.issues));var cos={};companies().forEach(function(c){cos[c]=1});if(activeCompany())cos[activeCompany()]=1;
+  Object.keys(C.rows).forEach(function(t){C.rows[t].forEach(function(r){if(r._company)cos[r._company]=1})});
+  var names=Object.keys(cos);if(!names.length)return Promise.resolve({n:0,issues:C.issues.length,none:1});
+  var idx=J(IDXK,{}),jobs=[];
+  names.forEach(function(co){var tabs={};REG.forEach(function(R){tabs[R.t]=(C.rows[R.t]||[]).filter(function(r){return r._company===co}).map(function(r){return Object.assign({},r,{_updated:new Date().toISOString(),_by:(typeof currentUser!=='undefined'&&currentUser)?(currentUser.name||currentUser.id):''})})});
+   if(co===activeCompany()){tabs['Counters']=Object.keys(localStorage).filter(function(k){return SERIAL.test(k)}).map(function(k){return {_id:k,_company:co,value:localStorage.getItem(k),_json:JSON.stringify(localStorage.getItem(k))}})}
+   jobs.push(api('POST',{action:'setupSave',company:co,tabs:tabs}).then(function(r){if(!r.ok)throw new Error(co+': '+r.error);REG.forEach(function(R){(tabs[R.t]||[]).forEach(function(row){idx[R.t+'|'+row._id]=hash(row._json)})});return r}))});
+  return Promise.all(jobs).then(function(){ost(IDXK,JSON.stringify(idx));return {n:names.length,issues:C.issues.length}})}
+ // ---- PULL / auto-load ----
+ function pull(){var cs=companies(),a=activeCompany();if(a&&cs.indexOf(a)<0)cs.push(a);
+  return api('GET',{action:'listCompanies'}).then(function(r){(r.companies||[]).forEach(function(c){if(cs.indexOf(c)<0)cs.push(c)});return cs},function(){return cs}).then(function(list){
+   return Promise.all(list.map(function(co){return api('GET',{action:'setupLoad',company:co}).then(function(r){return r.ok?r:{ok:true,tabs:{},company:co}})}))}).then(function(res){
+   var idx=J(IDXK,{}),added=0,upd=0,del=0;
+   REG.forEach(function(R){if(R.pushOnly)return;var local=rawMap(R),changed=false,seenIds={};
+    res.forEach(function(rs){var rows=(rs.tabs&&rs.tabs[R.t])||[];rows.forEach(function(row){var id=String(row._id),rec;try{rec=JSON.parse(row._json)}catch(e){return}if(rec==null)return;seenIds[id]=1;
+     var h=hash(row._json),k=R.t+'|'+id,lr=local[id];
+     if(R.single){if(!Object.keys(J(R.k,{})).length||idx[k]===hash(JSON.stringify(clean(R,J(R.k,{}))))){if(JSON.stringify(rec)!==JSON.stringify(J(R.k,{}))){ost(R.k,JSON.stringify(rec));upd++}}idx[k]=h;return}
+     if(!lr){if(idx[k]!==undefined)return;local[id]=rec;idx[k]=h;changed=true;added++;return}
+     var lh=hash(JSON.stringify(clean(R,lr)));
+     if(lh===h){idx[k]=h;return}
+     if(idx[k]===lh||idx[k]===undefined&&0){local[id]=Object.assign({},lr,rec);idx[k]=h;changed=true;upd++}})});
+    // remote deletions: local row previously synced, unchanged, absent from sheet
+    if(!R.single&&res.some(function(rs){return rs.exists!==false})){Object.keys(local).forEach(function(id){var k=R.t+'|'+id;if(!seenIds[id]&&idx[k]!==undefined&&idx[k]===hash(JSON.stringify(clean(R,local[id])))){delete local[id];delete idx[k];changed=true;del++}})}
+    if(changed)ost(R.k,JSON.stringify(local))});
+   // counters
+   res.forEach(function(rs){((rs.tabs&&rs.tabs.Counters)||[]).forEach(function(row){if(SERIAL.test(row._id)){var v=parseInt(row.value,10)||0,l=parseInt(localStorage.getItem(row._id)||'0',10)||0;if(v>l)ost(row._id,String(v))}})});
+   ost(IDXK,JSON.stringify(idx));return {added:added,updated:upd,deleted:del,companies:res.length}})}
+ function syncNow(mode){if(busy)return Promise.resolve();busy=1;status('Syncing...');var p=(mode==='push')?push():(mode==='pull')?pull():pull().then(function(a){return push().then(function(b){return Object.assign(a,b)})});
+  return p.then(function(r){var m=(r.none?'Nothing to push (no company defined yet). ':'')+(r.added!=null?('Loaded: +'+r.added+' new, '+r.updated+' updated, '+r.deleted+' removed. '):'')+(r.n!=null&&!r.none?('Pushed to '+r.n+' company sheet(s). '):'')+(r.issues?(r.issues+' record(s) skipped (validation)'):'');status(m||'Done',true);refresh()}).catch(function(e){status('Failed: '+(e&&e.message||e),false)}).then(function(){busy=0;draw()})}
+ // ---- auto push on setup writes ----
+ var tm=null;localStorage.setItem=function(k,v){var r=ost(k,v);if(DATAKEYS[k]&&cfg().url&&cfg().auto!==false&&!busy){clearTimeout(tm);tm=setTimeout(function(){if(typeof currentUser!=='undefined'&&currentUser)syncNow('push')},4000)}return r};
+ // ---- startup pull (once per session) + periodic ----
+ var started=0;setInterval(function(){if(!started&&typeof currentUser!=='undefined'&&currentUser&&cfg().url){started=1;syncNow()}},2500);
+ setInterval(function(){if(started&&cfg().url&&cfg().auto!==false&&!busy&&document.visibilityState==='visible')syncNow('pull')},180000);
+ // ---- field auto-load (datalists) + validation on forms ----
+ var LISTS={};function dl(id,vals){var d=E(id);if(!d){d=document.createElement('datalist');d.id=id;document.body.appendChild(d)}var h=vals.map(function(v){return '<option value="'+esc(v)+'">'}).join('');if(d.getAttribute('data-h')!==h){d.innerHTML=h;d.setAttribute('data-h',h)}}
+ function names(k,f){var m={};Object.values(J(k,{})).forEach(function(r){if(r&&DS(r)!=='Draft'&&(r.status||'Active')!=='Inactive'&&r[f||'name'])m[r[f||'name']]=1});return Object.keys(m).sort()}
+ function kindOf(id){id=String(id||'');if(/(^|_)company$/i.test(id))return 'co';if(/(^|_)bu$/i.test(id))return 'bu';if(/(^|_)(pc|profit_center)$/i.test(id))return 'pc';if(/(^|_)(warehouse|wh)$/i.test(id))return 'wh';return ''}
+ function enhance(){var L={co:names('erp_fsetup_company'),bu:names('erp_fsetup_bu'),pc:names('erp_fsetup_pc'),wh:names('erp_fsetup_warehouse')};
+  try{var H=PR_ORG_DATA;(H.companies||[]).forEach(function(c){if(L.co.indexOf(c)<0)L.co.push(c)})}catch(e){}
+  Object.keys(L).forEach(function(k){dl('ssDl_'+k,L[k])});LISTS=L;var ac=activeCompany();
+  [].forEach.call(document.querySelectorAll('input[type=text],input:not([type])'),function(inp){if(inp.__ss)return;var k=kindOf(inp.id);if(!k||inp.readOnly||inp.disabled)return;inp.__ss=1;inp.setAttribute('list','ssDl_'+k);inp.setAttribute('autocomplete','off');
+   inp.addEventListener('change',function(){var v=inp.value.trim(),bad=v&&LISTS[k]&&LISTS[k].length&&LISTS[k].map(lc).indexOf(lc(v))<0;if(bad){inp.setAttribute('data-ssbad','1');inp.style.outline='2px solid #dc2626';inp.title='"'+v+'" is not in Setup ('+(k==='co'?'Company':k==='bu'?'Business Unit':k==='pc'?'Profit Center':'Warehouse')+'). Pick a value from the list.'}else{inp.removeAttribute('data-ssbad');inp.style.outline='';inp.title=''}})});
+  if(ac)[].forEach.call(document.querySelectorAll('input'),function(inp){if(kindOf(inp.id)==='co'&&!inp.value&&!inp.readOnly&&!inp.disabled&&inp.offsetParent&&!inp.__ssf&&(inp.type==='text'||!inp.type)){inp.__ssf=1;inp.value=ac;inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}))}})}
+ setInterval(enhance,1500);
+ document.addEventListener('submit',function(e){var f=e.target,bad=f&&f.querySelector&&f.querySelector('[data-ssbad]');if(bad){e.preventDefault();e.stopImmediatePropagation();alert('Validation: '+bad.title+'\nCorrect the highlighted field and save again.');bad.focus()}},true);
+ // ---- panel ----
+ var CSS='<style>.ss-ov{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:99995;display:none;align-items:flex-start;justify-content:center;padding:24px;overflow:auto}.ss-ov.on{display:flex}.ss-box{background:#fff;border-radius:8px;width:min(1050px,100%);box-shadow:0 10px 40px rgba(0,0,0,.3)}.ss-h{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#0f766e,#14b8a6);color:#fff;padding:12px 16px;border-radius:8px 8px 0 0}.ss-h h2{margin:0;font-size:17px;flex:1}.ss-x{background:#fff2;border:0;color:#fff;font-size:18px;border-radius:4px;cursor:pointer;padding:2px 10px}.ss-b{padding:14px 16px;font-size:13px}.ss-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}.ss-g label{display:block;font-size:12px;color:#475569;margin-bottom:3px}.ss-g input,.ss-g select{width:100%;padding:6px;border:1px solid #cbd5e1;border-radius:4px;box-sizing:border-box}.ss-btn{background:#0f766e;color:#fff;border:0;border-radius:5px;padding:7px 14px;cursor:pointer;font-size:13px;margin-right:6px}.ss-btn.g{background:#475569}.ss-b table{width:100%;border-collapse:collapse;margin-top:10px}.ss-b th{background:#f1f5f9;text-align:left;padding:6px 8px;border-bottom:2px solid #cbd5e1}.ss-b td{padding:5px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top}.ss-bad{color:#b91c1c}.ss-ok{color:#166534}</style>';
+ function refresh(){}
+ function draw(){var o=E('ssOv');if(!o)return;var c=cfg(),C=collect(),cos=companies(),b=E('ssBody');
+  var sum=REG.map(function(R){var m=rawMap(R),n=Object.keys(m).filter(function(i){return R.sub||R.single||DS(m[i])!=='Draft'}).length,bad=C.issues.filter(function(x){return x.tab===R.t}).length;return '<tr><td>'+R.t+(R.pushOnly?' <span style="color:#94a3b8;font-size:11px">(push only)</span>':'')+'</td><td>'+n+'</td><td class="'+(bad?'ss-bad':'ss-ok')+'">'+(bad?bad+' invalid':'OK')+'</td></tr>'}).join('');
+  b.innerHTML='<div class="ss-g"><div><label>Apps Script Web App URL</label><input id="ssUrl" value="'+esc(c.url||'')+'" placeholder="https://script.google.com/macros/s/.../exec"></div><div><label>Token (optional, = ERP_TOKEN)</label><input id="ssTok" type="password" value="'+esc(c.token||'')+'"></div><div><label>Active Company (sheet for rows without a company)</label><input id="ssCo" list="ssCoL" value="'+esc(c.company||activeCompany())+'"><datalist id="ssCoL">'+cos.map(function(x){return '<option value="'+esc(x)+'">'}).join('')+'</datalist></div></div>'
+  +'<div style="margin-bottom:8px"><label><input type="checkbox" id="ssAuto" '+(c.auto!==false?'checked':'')+'> Auto-sync (push on every setup save, pull every 3 min and at login)</label></div>'
+  +'<div><button class="ss-btn g" onclick="__ssync.save()">💾 Save Settings</button><button class="ss-btn g" onclick="__ssync.test()">🔌 Test Connection</button><button class="ss-btn" onclick="__ssync.sync()">🔄 Sync Now (Load + Save)</button><button class="ss-btn g" onclick="__ssync.pull()">⬇ Load from Sheet</button><button class="ss-btn g" onclick="__ssync.push()">⬆ Save to Sheet</button></div>'
+  +'<div id="ssStatus" style="margin:10px 0;font-weight:600;color:'+(last.ok?'#065f46':'#b91c1c')+'">'+(last.at?esc(last.at+' - '+last.msg):'')+'</div>'
+  +(C.issues.length?'<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:8px 12px"><b class="ss-bad">⚠ '+C.issues.length+' record(s) failed validation and are NOT synced:</b><table><tr><th>Setup</th><th>Record</th><th>Problem</th></tr>'+C.issues.slice(0,60).map(function(x){return '<tr><td>'+esc(x.tab)+'</td><td>'+esc(x.name)+'</td><td>'+x.msgs.map(esc).join('<br>')+'</td></tr>'}).join('')+'</table></div>':'<div class="ss-ok" style="font-weight:600">✔ All setup records passed validation.</div>')
+  +'<table><tr><th>Setup master (Sheet tab)</th><th>Local rows</th><th>Validation</th></tr>'+sum+'</table>'}
+ function open(){if(!E('ssOv')){var d=document.createElement('div');d.id='ssOv';d.className='ss-ov';d.onclick=function(e){if(e.target===d)d.classList.remove('on')};d.innerHTML=CSS+'<div class="ss-box"><div class="ss-h"><h2>☁️ Setup Sheet Sync — Company-wise Google Sheet</h2><button class="ss-x" onclick="document.getElementById(\'ssOv\').classList.remove(\'on\')">✕</button></div><div class="ss-b" id="ssBody"></div></div>';document.body.appendChild(d)}E('ssOv').classList.add('on');draw()}
+ function saveCfg(){var c=cfg();c.url=(E('ssUrl')||{value:c.url}).value.trim();c.token=(E('ssTok')||{value:c.token}).value;c.company=(E('ssCo')||{value:c.company}).value.trim();c.auto=E('ssAuto')?E('ssAuto').checked:true;setCfg(c);return c}
+ window.__ssync={open:open,save:function(){saveCfg();status('Settings saved');draw()},
+  test:function(){saveCfg();status('Testing...');api('GET',{action:'ping'}).then(function(r){status(r.ok?'Connection OK':'Failed: '+r.error,!!r.ok)}).catch(function(e){status('Failed: '+e.message,false)})},
+  sync:function(){saveCfg();syncNow()},pull:function(){saveCfg();syncNow('pull')},push:function(){saveCfg();syncNow('push')},validate:collect,
+  _pull:pull,_push:push};
+ // ---- menu entries ----
+ function menu(){[['setup','item_master'],['sd_setup','sd_customer_master'],['fico_setup','fico_coa'],['hr_employee','hr_erp_setup']].forEach(function(p){var d=document.querySelector('.dropdown[data-parent="'+p[0]+'"]');if(d&&!d.querySelector('[data-sub="setup_sheet_sync"]')){var a=document.createElement('a');a.href='#';a.setAttribute('data-sub','setup_sheet_sync');a.innerHTML='<span class="arrow">☁</span> Setup Sheet Sync';a.onclick=function(e){e.preventDefault();open();return false};d.appendChild(a)}})}
+ setInterval(menu,1000);menu();
+})();
+</script>
+
 </body></html>
