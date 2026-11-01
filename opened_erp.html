@@ -3253,7 +3253,7 @@ root.querySelectorAll('.m>a').forEach(a=>a.addEventListener('click',()=>{
 
 
 
-const K='erpProd1',$=s=>root.querySelector(s),pad=n=>String(n).padStart(7,'0'),td=()=>new Date().toISOString().slice(0,10);
+const K='erpProd1',PALL=k=>{let a=(D&&D[k])||[];try{const h=window.__prodHidden&&window.__prodHidden(k);if(h&&h.length)a=a.concat(h)}catch(e){}return a},$=s=>root.querySelector(s),pad=n=>String(n).padStart(7,'0'),td=()=>new Date().toISOString().slice(0,10);
 let D;try{D=JSON.parse(localStorage.getItem(K))}catch(e){}
 if(!D)D={seq:{dpp:0,bat:0},plans:[],batches:[],cons:[],
 recipes:[],
@@ -3265,12 +3265,13 @@ if(!D.rmSampleBom){D.rmSampleBom=1;const SB={'R-001':'Meat Pellet-Shofol-25 Kg B
  D.recipes=D.recipes.filter(r=>!(SB[r.id]&&String(r.fg).trim()==SB[r.id]&&!D.batches.some(b=>b.rc==r.id)));
  try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}}
 D.rcv=D.rcv||[];
-const nextRfp=()=>'RFP-'+String(D.rcv.reduce((a,r)=>Math.max(a,/^RFP-\\d+$/.test(r.no)?+r.no.slice(4):0),0)+1).padStart(6,'0');
+const nextRfp=()=>'RFP-'+String(PALL('rcv').reduce((a,r)=>Math.max(a,/^RFP-\\d+$/.test(r.no)?+r.no.slice(4):0),0)+1).padStart(6,'0');
 D.batches.filter(b=>b.rq&&!D.rcv.some(r=>r.bn==b.no)).forEach(b=>{D.rcv.push({no:nextRfp(),date:b.rdate||b.date,bn:b.no,fg:b.fg,wh:b.fgwh,qty:b.rq,sq:b.qty,pq:b.plc??null,last:false,rem:'',st:'Received'})});
 D.rcv.filter(r=>!/^RFP-\\d+$/.test(r.no)).forEach(r=>{r.no=nextRfp()});
-const nextPro=()=>'PRO-'+String(D.batches.reduce((a,b)=>Math.max(a,+String(b.pro||'').slice(4)||0),0)+1).padStart(6,'0');
+const nextPro=()=>'PRO-'+String(PALL('batches').reduce((a,b)=>Math.max(a,+String(b.pro||'').slice(4)||0),0)+1).padStart(6,'0');
 D.batches.filter(b=>!b.pro).forEach(b=>{b.pro=nextPro()});
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}};
+window.__prodSetD=x=>{if(!x||typeof x!=='object')return;['plans','batches','cons','recipes','rcv','qcc','rpc','qcstd'].forEach(k=>{if(!Array.isArray(x[k]))x[k]=[]});x.stock=x.stock||{};x.qcs=x.qcs||{};x.seq=x.seq||{dpp:0,bat:0};D=x;const a=root.querySelector('.m.open a.on,[data-ws].on,nav a.on');try{if(a)a.click();else{const h=root.querySelector('[data-ws]');}}catch(e){}};
 const toast=(m,e)=>{const t=$('#st');t.textContent=m;t.style.color=e?'#d9342b':'#2da44e';
  if(m=='Ready')return;let f=$('#ftoast');if(!f){f=document.createElement('div');f.id='ftoast';f.setAttribute('style','position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:2147483600;max-width:90vw;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25)');root.querySelector('.production-shell').appendChild(f)}
  f.textContent=(e?'⚠ ':'✔ ')+m;f.style.background=e?'#d9342b':'#16a34a';f.style.display='block';clearTimeout(f._t);f._t=setTimeout(()=>{f.style.display='none'},e?4500:2500)};
@@ -3305,7 +3306,7 @@ const orgBu=c=>uq(ORG.rows.filter(r=>r[0]==c).map(r=>r[1]));
 const orgPc=(c,b)=>uq(ORG.rows.filter(r=>r[0]==c&&r[1]==b).map(r=>r[2]));
 const orgPl=(c,b,p)=>uq(ORG.rows.filter(r=>r[0]==c&&r[1]==b&&r[2]==p).map(r=>r[ORG.pi]));
 const PLs=()=>ORG.rows.length?uq(ORG.rows.map(r=>r[ORG.pi])):PL;
-const nextNo=(r,d)=>{const pf=(d||td()).slice(0,4)+'-'+r.code+'-',m=D.batches.reduce((a,b)=>b.no.startsWith(pf)?Math.max(a,+b.no.slice(pf.length)||0):a,0);return pf+String(m+1).padStart(4,'0')};
+const nextNo=(r,d)=>{const pf=(d||td()).slice(0,4)+'-'+r.code+'-',m=PALL('batches').reduce((a,b)=>b.no.startsWith(pf)?Math.max(a,+b.no.slice(pf.length)||0):a,0);return pf+String(m+1).padStart(4,'0')};
 const fld=(l,h)=>\`<label>\${l}<i class="inf">i</i>\${h}</label>\`;
 const inp=(id,l,val='',ty='text',x='')=>fld(l,\`<input id="\${id}" type="\${ty}" value="\${val}" \${x}>\`);
 const sel=(id,l,a,x='')=>fld(l,\`<select id="\${id}" \${x}><option value="">[ Select \${l} ]</option>\${a.map(o=>\`<option>\${o}</option>\`).join('')}</select>\`);
@@ -3668,7 +3669,7 @@ close(a){D.batches.find(b=>b.no==a.dataset.id).st='Closed';save();go('633');toas
 
 D.qcstd=D.qcstd||[];D.qcc=D.qcc||[];D.qcs=D.qcs||{};
 const qEsc=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-const nextQcc=()=>'QCC-'+String(D.qcc.reduce((a,r)=>Math.max(a,+String(r.no).slice(4)||0),0)+1).padStart(6,'0');
+const nextQcc=()=>'QCC-'+String(PALL('qcc').reduce((a,r)=>Math.max(a,+String(r.no).slice(4)||0),0)+1).padStart(6,'0');
 const qcStd=fg=>D.qcstd.find(s=>nrm(s.fg)==nrm(fg));
 const qcPend=()=>D.batches.filter(b=>b.st=='Closed'&&!D.qcc.some(q=>q.bn==b.no));
 const qcAdd=(wh,fg,k,d)=>{const s=D.qcs[wh]=D.qcs[wh]||{};const e=s[fg]=s[fg]||{ok:0,hold:0};e[k]=rnd(e[k]+d)};
@@ -3739,7 +3740,7 @@ qcrev(a){const r=D.qcc.find(x=>x.no==a.dataset.id);if(!r)return;const e=(D.qcs[r
 });
 
 D.rpc=D.rpc||[];
-const nextRpc=()=>'RPC-'+String(D.rpc.reduce((a,r)=>Math.max(a,+String(r.no).slice(4)||0),0)+1).padStart(6,'0');
+const nextRpc=()=>'RPC-'+String(PALL('rpc').reduce((a,r)=>Math.max(a,+String(r.no).slice(4)||0),0)+1).padStart(6,'0');
 window.__prodRpc={add(e){e.no=nextRpc();D.rpc.push(e);save();return e.no},del(no){const n=D.rpc.length;D.rpc=D.rpc.filter(x=>x.no!=no);save();return n!=D.rpc.length}};
 const rpHold=()=>{const o=[];Object.keys(D.qcs).forEach(w=>Object.keys(D.qcs[w]).forEach(g=>{if(D.qcs[w][g].hold>0)o.push({wh:w,fg:g,hold:D.qcs[w][g].hold})}));return o};
 const rpMM=no=>{try{const m=JSON.parse(localStorage.getItem('erp_fgrm_records')||'{}')[no]||null;return m&&m.status!='Rejected'?m:null}catch(e){return null}};
@@ -28768,12 +28769,14 @@ return btns;
     //   Assets 100000-199999 | Liabilities 200000-299999 | Equity 300000-399999
     //   Income 400000-499999 | Expenses 500000-599999
     var GL_ACCOUNT_GROUPS = {
-      Assets:      { from: 100000, to: 199999, bsPl: 'Balance Sheet Account', subTypes: ['Current Asset', 'Fixed Asset', 'Non-Current Asset', 'Other Asset'] },
-      Liabilities: { from: 200000, to: 299999, bsPl: 'Balance Sheet Account', subTypes: ['Current Liability', 'Long-Term Liability', 'Provision'] },
-      Equity:      { from: 300000, to: 399999, bsPl: 'Balance Sheet Account', subTypes: ['Share Capital', 'Reserve & Surplus', 'Retained Earnings'] },
-      Income:      { from: 400000, to: 499999, bsPl: 'P&L Statement Account', subTypes: ['Sales Revenue', 'Other Income'] },
-      Expenses:    { from: 500000, to: 599999, bsPl: 'P&L Statement Account', subTypes: ['Direct/Cost of Sales', 'Administrative Expense', 'Selling & Distribution Expense', 'Financial Expense'] }
+      // from/to = 4-digit code range (default COA); alt = classic 6-digit range (still accepted)
+      Assets:      { from: 1000, to: 1999, alt: [100000, 199999], bsPl: 'Balance Sheet Account', subTypes: ['Current Assets', 'Bank Account', 'Stock in Hand', 'Fixed Assets', 'Current Asset', 'Fixed Asset', 'Non-Current Asset', 'Other Asset'] },
+      Liabilities: { from: 2000, to: 2999, alt: [200000, 299999], bsPl: 'Balance Sheet Account', subTypes: ['Current Liabilities', 'Long Term Liability', 'Provision', 'Current Liability', 'Long-Term Liability'] },
+      Equity:      { from: 3000, to: 3999, alt: [300000, 399999], bsPl: 'Balance Sheet Account', subTypes: ['Capital', 'Retained Earnings', 'Share Capital', 'Reserve & Surplus'] },
+      Income:      { from: 4000, to: 4999, alt: [400000, 499999], bsPl: 'P&L Statement Account', subTypes: ['Direct Income', 'Indirect Income', 'Sales Revenue', 'Other Income'] },
+      Expenses:    { from: 5000, to: 8999, alt: [500000, 599999], bsPl: 'P&L Statement Account', subTypes: ['Administrative Overhead (General & Administrative expenses)', 'Factory Overhead (Cost of Goods Sold)', 'Finance Cost (General & Administrative expenses)', 'Marketing & Selling Expenses (General & Administrative expenses)', 'Direct/Cost of Sales', 'Administrative Expense', 'Selling & Distribution Expense', 'Financial Expense'] }
     };
+    function glInRange(range, n) { return !isNaN(n) && ((n >= range.from && n <= range.to) || (range.alt && n >= range.alt[0] && n <= range.alt[1])); }
 
     // ----- Chart of Accounts -----
     function getNextCoaCode(group) {
@@ -28783,7 +28786,7 @@ return btns;
       var maxCode = range.from - 1;
       Object.keys(records).forEach(function(code) {
         var n = parseInt(code, 10);
-        if (n >= range.from && n <= range.to && n > maxCode) maxCode = n;
+        if (n >= range.from && n <= range.to && n > maxCode) maxCode = n;   // next code continues the 4-digit series
       });
       return String(maxCode + 1);
     }
@@ -28865,8 +28868,8 @@ return btns;
       }
       var range = GL_ACCOUNT_GROUPS[group];
       var codeNum = parseInt(code, 10);
-      if (!range || isNaN(codeNum) || codeNum < range.from || codeNum > range.to) {
-        errEl.textContent = '❌ GL Account Code must fall within the ' + group + ' range (' + range.from + '-' + range.to + ').';
+      if (!range || !glInRange(range, codeNum)) {
+        errEl.textContent = '❌ GL Account Code must fall within the ' + group + ' range (' + range.from + '-' + range.to + (range.alt ? ' or ' + range.alt[0] + '-' + range.alt[1] : '') + ').';
         errEl.classList.add('show');
         return false;
       }
@@ -32823,7 +32826,7 @@ return btns;
           var counterAccount = coaRecords[counterItem.gl_account] || {};
           if (counterAccount.group === 'Income' || counterAccount.group === 'Expenses') {
             operating += net;
-          } else if (counterAccount.group === 'Assets' && counterAccount.sub_type === 'Fixed Asset') {
+          } else if (counterAccount.group === 'Assets' && /^Fixed Asset/i.test(counterAccount.sub_type || '')) {
             investing += net;
           } else if (counterAccount.group === 'Liabilities' || counterAccount.group === 'Equity') {
             financing += net;
@@ -33388,11 +33391,13 @@ return btns;
         approval_ids: approvalExtra,
         verifier_ids: verifierIds,
         super_admin: !!__orig.super_admin,
+        scope: __orig.scope || undefined,
+        scope_updated: __orig.scope_updated || undefined,
         created_at: (all[originalUserId] && all[originalUserId].created_at) || new Date().toISOString()
       };
       localStorage.setItem(USERIDSETUP_STORAGE_KEY, JSON.stringify(all));
 
-      successEl.textContent = '✅ User ID ' + newUserId + ' সেভ হয়েছে।';
+      successEl.textContent = '✅ User ID ' + newUserId + ' saved.';
       renderUserIdSetupTable();
       setTimeout(closeUserIdSetupForm, 700);
     }
@@ -44965,35 +44970,43 @@ return btns;
 (function(){
  if(window.__fpInit)return;window.__fpInit=1;
  var MAPK='erp_fpost_map',LOGK='erp_fpost_log';
- var J=function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+ var J=function(k,d){try{var v=JSON.parse((window.__rawGet||localStorage.getItem.bind(localStorage))(k));return v==null?d:v}catch(e){return d}};
  var N=function(x){return parseFloat(x)||0},R2=function(x){return Math.round(x*100)/100};
  var E=function(i){return document.getElementById(i)};
  var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
  var today=function(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
  // ---- account purposes & default accounts ----
  var PURP=[
-  ['cash','Cash in Hand','Cash receipts (SD Payment Receipt by Cash)','Assets','Current Asset','110100','Cash in Hand'],
-  ['bank','Bank / Receipt Account','Non-cash receipts and LC payments','Assets','Current Asset','110200','Bank Account'],
-  ['ar','Accounts Receivable','SD Invoice, Memo, Return, Payment','Assets','Current Asset','120100','Accounts Receivable'],
-  ['inv','Inventory','GRN, Direct GRN, Purchase Return, Stock Adjustment','Assets','Current Asset','130100','Inventory'],
-  ['ap','Accounts Payable','GRN, Direct GRN, Purchase Return, LC Payment','Liabilities','Current Liability','210100','Accounts Payable'],
-  ['vat','VAT Payable','SD Invoice VAT','Liabilities','Current Liability','210200','VAT Payable'],
-  ['tax','Tax & AIT Payable','SD Invoice Tax / AIT','Liabilities','Current Liability','210300','Tax & AIT Payable'],
-  ['rev','Sales Revenue','SD Invoice, Debit Memo','Income','Sales Revenue','410100','Sales Revenue'],
-  ['sret','Sales Returns & Allowances','SD Credit Memo, Return Receive','Income','Sales Revenue','410200','Sales Returns & Allowances'],
-  ['adjg','Inventory Adjustment Gain','Positive stock adjustment','Income','Other Income','420100','Inventory Adjustment Gain'],
-  ['adjl','Inventory Adjustment Loss','Negative stock adjustment','Expenses','Direct/Cost of Sales','510100','Inventory Adjustment Loss'],
-  ['fx','Exchange Gain / Loss','LC payment FX difference','Expenses','Financial Expense','530100','Exchange Gain / Loss'],
-  ['wip','Work in Progress (WIP)','Production: RM issued to production, FG receive','Assets','Current Asset','130200','Work in Progress'],
-  ['fg','Finished Goods Inventory','Production: FG receive','Assets','Current Asset','130300','Finished Goods Inventory'],
-  ['sal','Salaries & Wages Expense','HR: Payslip paid','Expenses','Administrative Expense','520200','Salaries & Wages Expense'],
-  ['taxp','Income Tax (TDS) Payable','HR: Payslip tax deduction','Liabilities','Current Liability','210400','Income Tax (TDS) Payable'],
-  ['pfp','Provident Fund Payable','HR: Payslip PF deduction','Liabilities','Current Liability','210500','Provident Fund Payable'],
-  ['othd','Other Deductions Payable','HR: Payslip other deductions','Liabilities','Current Liability','210600','Other Deductions Payable']
+  ['cash','Cash in Hand','Cash receipts (SD Payment Receipt by Cash)','Assets','Bank Account','1008','Cash In Hand'],
+  ['bank','Bank / Receipt Account','Non-cash receipts and LC payments (change it to the bank you use)','Assets','Bank Account','1009','Standard Chartered Bank'],
+  ['ar','Accounts Receivable','SD Invoice, Memo, Return, Payment','Assets','Current Assets','1056','Accounts Receivable'],
+  ['inv','Inventory','GRN, Direct GRN, Purchase Return, Stock Adjustment','Assets','Stock in Hand','1019','Stocks of Raw Materials'],
+  ['ap','Accounts Payable','GRN, Direct GRN, Purchase Return, LC Payment','Liabilities','Current Liabilities','2016','Accounts Payable'],
+  ['vat','VAT Payable','SD Invoice VAT','Liabilities','Current Liabilities','2017','VAT Payable'],
+  ['tax','Tax & AIT Payable','SD Invoice Tax / AIT','Liabilities','Current Liabilities','2018','Tax & AIT Payable'],
+  ['rev','Sales Revenue','SD Invoice, Debit Memo','Income','Direct Income','4001','Export Sales'],
+  ['sret','Sales Returns & Allowances','SD Credit Memo, Return Receive','Income','Direct Income','4007','Sales Returns & Allowances'],
+  ['adjg','Inventory Adjustment Gain','Positive stock adjustment','Income','Indirect Income','4008','Inventory Adjustment Gain'],
+  ['adjl','Inventory Adjustment Loss','Negative stock adjustment','Expenses','Factory Overhead (Cost of Goods Sold)','6040','Inventory Adjustment Loss'],
+  ['fx','Exchange Gain / Loss','LC payment FX difference','Expenses','Administrative Overhead (General & Administrative expenses)','5037','Realized Foreign Currency Gain / Loss'],
+  ['wip','Work in Progress (WIP)','Production: RM issued to production, FG receive','Assets','Stock in Hand','1020','Stocks of Work In Progress'],
+  ['fg','Finished Goods Inventory','Production: FG receive','Assets','Stock in Hand','1021','Stocks of Finished Goods'],
+  ['sal','Salaries & Wages Expense','HR: Payslip paid','Expenses','Administrative Overhead (General & Administrative expenses)','5001','Salary & Allowances'],
+  ['taxp','Income Tax (TDS) Payable','HR: Payslip tax deduction','Liabilities','Current Liabilities','2019','Income Tax (TDS) Payable'],
+  ['pfp','Provident Fund Payable','HR: Payslip PF deduction','Liabilities','Current Liabilities','2004','PF, WPPF and Other Fund'],
+  ['othd','Other Deductions Payable','HR: Payslip other deductions','Liabilities','Current Liabilities','2006','Other Liabilities']
  ];
  function coa(){return J('erp_coa_records',{})}
  function map(){var m=J(MAPK,{}),c=coa(),o={};PURP.forEach(function(p){o[p[0]]=(m[p[0]]!==undefined&&m[p[0]]!=='')?m[p[0]]:(c[p[5]]?p[5]:'')});return o}
- function seed(){var c=coa(),n=0;PURP.forEach(function(p){if(!c[p[5]]){c[p[5]]={code:p[5],group:p[3],sub_type:p[4],bs_pl:p[3]==='Income'||p[3]==='Expenses'?'P&L Statement Account':'Balance Sheet Account',name:p[6],short_text:p[6],company:'',currency:'BDT',opening_balance:0,status:'Active',auto_seeded:1};n++}});if(n)localStorage.setItem('erp_coa_records',JSON.stringify(c));return n}
+/* Default Chart of Accounts (4-digit codes). Loaded once into a fresh COA; a COA that already has your own accounts is not touched. */
+ var DEFCOA=[["Assets","Current Assets","Advance Income Tax","1001",1100000.0],["Assets","Current Assets","Advance Salary","1002",125500.0],["Assets","Current Assets","Advance To Other Expense","1003",1235000.0],["Assets","Current Assets","Advance To Supplier and Contractor","1004",1190000.0],["Assets","Current Assets","Security Deposit","1005",1234000.0],["Assets","Current Assets","Margin On Bank Gurantee","1006",1180000.0],["Assets","Current Assets","Advance For Machinary","1007",1090000.0],["Assets","Bank Account","Cash In Hand","1008",234000.0],["Assets","Bank Account","Standard Chartered Bank","1009",987000.0],["Assets","Bank Account","HSBC Bank","1010",885000.0],["Assets","Bank Account","Prime Bank Limited","1011",1245000.0],["Assets","Bank Account","The City Bank Limited","1012",1140000.0],["Assets","Bank Account","Commercial Bank Of Cylon","1013",876000.0],["Assets","Bank Account","Bank Alfalah Limited","1014",950000.0],["Assets","Bank Account","janata Bank Limited","1015",1060000.0],["Assets","Bank Account","Mutual Trust Bank Limited","1016",887000.0],["Assets","Bank Account","Dutch Bangla Bank Limited","1017",22500000.0],["Assets","Bank Account","Islami Bank Bangladesh Limited","1018",12500000.0],["Assets","Stock in Hand","Stocks of Raw Materials","1019",1250000.0],["Assets","Stock in Hand","Stocks of Work In Progress","1020",35600.0],["Assets","Stock in Hand","Stocks of Finished Goods","1021",12560.0],["Assets","Fixed Assets","Land & Land Development","1022",10250.0],["Assets","Fixed Assets","Building Factory & Utility","1023",112670.0],["Assets","Fixed Assets","Buildings-Others & Sheds","1024",170860.0],["Assets","Fixed Assets","Plant & Machinary","1025",1250000.0],["Assets","Fixed Assets","Sheds-Farming","1026",2250000.0],["Assets","Fixed Assets","Laboratory Equipment","1027",12500000.0],["Assets","Fixed Assets","Electrical Installation","1028",235000.0],["Assets","Fixed Assets","Gas Line Installation","1029",125000.0],["Assets","Fixed Assets","Motor Vehicles","1030",100000.0],["Assets","Fixed Assets","Office Equipments","1031",12500000.0],["Assets","Fixed Assets","Furniture & Fixtures","1032",1260000.0],["Assets","Fixed Assets","Computer","1033",1265000.0],["Assets","Fixed Assets","Hardware & Software","1034",112000.0],["Assets","Fixed Assets","Boundary Wall","1035",12000000.0],["Assets","Fixed Assets","Deep Tube Well","1036",22000000.0],["Assets","Fixed Assets","Safety & Security Equipment","1037",13500000.0],["Assets","Fixed Assets","Communication & Network Equipment","1038",22500000.0],["Assets","Fixed Assets","Other Assets","1039",12500000.0],["Assets","Fixed Assets","Accumulated Depreciation-Building-Factory & Utility","1040",11000000.0],["Assets","Fixed Assets","Accumulated Depreciation-Buildings & Others","1041",286500.0],["Assets","Fixed Assets","Accumulated Depreciation-Sheds","1042",870600.0],["Assets","Fixed Assets","Accumulated Depreciation-Plant & Machinary","1043",1020000.0],["Assets","Fixed Assets","Accumulated Depreciation-Laboratory Equipment","1044",1025000.0],["Assets","Fixed Assets","Accumulated Depreciation-Electrical Installation","1045",1030000.0],["Assets","Fixed Assets","Accumulated Depreciation- Gas Line Installation","1046",12500000.0],["Assets","Fixed Assets","Accumulated Depreciation-Motor Vehicles","1047",45000.0],["Assets","Fixed Assets","Accumulated Depreciation-Office Equipments","1048",22500000.0],["Assets","Fixed Assets","Accumulated Depreciation-Furniture & Fixtures","1049",12500000.0],["Assets","Fixed Assets","Accumulated Depreciation-Computer","1050",220560.0],["Assets","Fixed Assets","Accumulated Depreciation-Hardware & Software","1051",125000.0],["Assets","Fixed Assets","Accumulated Depreciation-Boundary Wall","1052",1200000.0],["Assets","Fixed Assets","Accumulated Depreciation-Deep Tubewell","1053",125000.0],["Assets","Fixed Assets","Accumulated Depreciation-Safety & Security Equipment","1054",225000.0],["Assets","Fixed Assets","Accumulated Depreciation-Other Asset","1055",123450.0],["Liabilities","Current Liabilities","Loan & Export Bill Discount","2001",2267000.0],["Liabilities","Current Liabilities","L/C Liabilities","2002",225000.0],["Liabilities","Current Liabilities","Retention Money","2003",1250000.0],["Liabilities","Current Liabilities","PF, WPPF and Other Fund","2004",2550000.0],["Liabilities","Current Liabilities","Dividend Payable","2005",12565000.0],["Liabilities","Current Liabilities","Other Liabilities","2006",876500.0],["Liabilities","Long Term Liability","Meghna Bank Limited (Cash Credit)","2007",765400.0],["Liabilities","Long Term Liability","Meghna Bank Limited (LTR)","2008",125000.0],["Liabilities","Long Term Liability","Jamuna Bank Limited (LTR)","2009",125670.0],["Liabilities","Long Term Liability","Meghna Bank Limited (Term Loan)","2010",112760.0],["Liabilities","Provision","Provision For Audit Fees","2011",11280000.0],["Liabilities","Provision","Provision For Utility Bill","2012",12890000.0],["Liabilities","Provision","Provision For Salary and allowances","2013",1265000.0],["Liabilities","Provision","Provision For Gratuity","2014",225000.0],["Liabilities","Provision","Provision For Income Tax","2015",125000.0],["Equity","Capital","Owners Capital","3001",120000.0],["Equity","Capital","Common Shares","3002",875000.0],["Equity","Capital","Owners Contribution","3003",124500.0],["Equity","Capital","Owners Withdrawal","3004",122000.0],["Equity","Retained Earnings","Retained Earnings","3005",780000.0],["Equity","Retained Earnings","Retained Earnings - prior years","3006",210500.0],["Income","Direct Income","Export Sales","4001",11444000.0],["Income","Indirect Income","Interest Income","4002",226000.0],["Income","Indirect Income","Gain / (Loss) Disposal Of Assets","4003",765000.0],["Income","Indirect Income","Bank Interest","4004",665000.0],["Income","Indirect Income","Fish/Vagetable Sale","4005",225000.0],["Income","Indirect Income","Miscellaneous Sale","4006",440000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Salary & Allowances","5001",256600.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Directors Remuneration","5002",985000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Travelling & Conveyance","5003",1050000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Overseas Travelling","5004",1165500.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Recruitment & Training Expense","5005",225000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Head Office Employee Free Lunch","5006",112450.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Uniform and Liveries","5007",425000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Printing Expense","5008",223000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Stationary Expense","5009",225000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Software & Hardware Support Expense","5010",1155000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Postage, Telephone, Fax & Telex","5011",334000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Electricity, Gas, Water","5012",1050000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Office Consumeable Expense","5013",986700.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Rental Expense","5014",1125000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Vehicles Running & Maintenance","5015",345000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Medical Expense","5016",225500.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Group Insurance","5017",112570.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Bank Charges & Commission","5018",345780.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Commission","5019",112000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Fees & Subscriptions","5020",20000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Security Service","5021",200000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Govt. Tax, VAT & License Fees","5022",112500.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Annual General Meeting","5023",780000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Audit Fees","5024",885000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Festival Bonus","5025",125000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Donation Expense","5026",1126000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Fine & Penalties","5027",985000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","General Expense","5028",112000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Insurance Premium","5029",1215000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Ifter Bill","5030",225000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Meeting Fees","5031",325000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Mobile Bill","5032",12565000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Photocopy Bill","5033",965000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Paper & Periodic","5034",1060000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Renewal Fee","5035",1145000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Amortization Of Intangible Assets","5036",675000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Realized Foreign Currency Gain / Loss","5037",77690.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Service Charge","5038",12560.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Annual Listing Fee","5039",11230.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Design Bill","5040",12760.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Fooding Allowances","5041",12700.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Computer Accessories","5042",12500000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Legal Fees","5043",20000000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Building & Others","5044",2200000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Motor Vehicles","5045",22500000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Office Equipment","5046",12500000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Furnitures & Fixtures","5047",12600000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Computer","5048",1200000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Hardware & Software","5049",2250000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Safety & Security Equipment","5050",125000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Communication & Network Equipment","5051",12500.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Other Assets","5052",12000000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Factory Wages, Salary & Allowance","6001",210500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Travelling & Conveyance-Fact","6002",256000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Overseas Travelling-Fact","6003",245500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Recruitment & Training Expense-Fact","6004",12500000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Printing Expense-Fact","6005",1150000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Stationary Expense-Fact","6006",1245000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Software & Hardware Support Expense-Fact","6007",1265000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Production Workers Free Lunch","6008",2250000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Uniform and Liveries-Fact","6009",1265000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Fuel, Petrol, Light, Diesel Etc","6010",1245000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Electricity, Gas, Water-Fact","6011",1189000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Factory Consumeable Expense","6012",12500000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Medical Expense-Fact","6013",112600.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Repair & Maintenance Of Vehicles","6014",225000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Papers, Books & Periodicals-Fact","6015",335500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Industrial All Risk Insurance Premium","6016",125000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Postage, Telephone, Fax & Telex-Fact","6017",1129000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Govt. Tax, VAT & License Fees-Fact","6018",325000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Security Service-Fact","6019",145000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Spare Parts-Machinary-Fact","6020",1250000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Group Insurance-Fact","6021",1140000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Festival Bonus-Worker-Fact","6022",1260000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Entertainment-Fact","6023",225000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Chilling Center Expense","6024",125000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Factory Maintenance-Fact","6025",1255000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Farming Expense-Fact","6026",1176000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Generator Maintenance-Fact","6027",1189000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Internet Bill-Fact","6028",1235000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Fair Expense-Fact","6029",109870.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Picnic Expense-Fact","6030",11980.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Public Relation Expense-Fact","6031",12560.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Building-Factory & Utlity","6032",13500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Sheds","6033",110000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Plant & Machinary","6034",12500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Laboratory Equipment","6035",12600.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Electrical Installation","6036",110000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Gas Line Installation","6037",11500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Boundary Wall","6038",12250.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Deep Tubewell","6039",11440.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On Deferred L/C Loan","7001",10870.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On Loan Export Bill Document","7002",11200.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On OD","7003",12500.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On Short Term Loan","7004",11200.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On Sister Concerns","7005",11760.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On Long Term Loan","7006",12450.0],["Expenses","Finance Cost (General & Administrative expenses)","Bank Charges & Commission","7007",11440.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Salary & Allowances-MKT","8001",10230.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","TA/DA","8002",12780.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Carrying Charges","8003",11000.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Advertising & Publcity","8004",11500.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Business Promotion","8005",12250.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Tour & Travels-Mkt","8006",11440.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Export Sales Expense","8007",10870.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Loading & Unloading","8008",11200.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Research & Development","8009",12500.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Free Sample","8010",11200.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Depot Expense","8011",11760.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Vehicle Maintenance","8012",12450.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Toll Charge","8013",11440.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Incentive","8014",10230.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Expected Credit Loss","8015",12780.0]];
+ function seedCoa(){if(localStorage.getItem('erp_coa_seeded_v1'))return 0;var c=coa(),keys=Object.keys(c);
+  if(keys.some(function(k){return !c[k].auto_seeded})){localStorage.setItem('erp_coa_seeded_v1','skip');return 0}
+  var used=JSON.stringify([J('erp_je_records',{}),J(MAPK,{}),J('erp_fpost_log',[]),J('erp_ar_inv_records',{}),J('erp_ap_inv_records',{}),J('erp_ar_rec_records',{})]);
+  keys.forEach(function(k){if(c[k].auto_seeded&&used.indexOf('"'+k+'"')<0)delete c[k]});
+  DEFCOA.forEach(function(r){if(!c[r[3]])c[r[3]]={code:r[3],group:r[0],sub_type:r[1],bs_pl:(r[0]==='Income'||r[0]==='Expenses')?'P&L Statement Account':'Balance Sheet Account',name:r[2],short_text:r[2],company:'',currency:'BDT',opening_balance:r[4],status:'Active',default_seed:1}});
+  localStorage.setItem('erp_coa_records',JSON.stringify(c));localStorage.setItem('erp_coa_seeded_v1','1');return DEFCOA.length}
+ function seed(){seedCoa();var c=coa(),n=0;PURP.forEach(function(p){if(!c[p[5]]){c[p[5]]={code:p[5],group:p[3],sub_type:p[4],bs_pl:p[3]==='Income'||p[3]==='Expenses'?'P&L Statement Account':'Balance Sheet Account',name:p[6],short_text:p[6],company:'',currency:'BDT',opening_balance:0,status:'Active',auto_seeded:1};n++}});if(n)localStorage.setItem('erp_coa_records',JSON.stringify(c));return n}
  // ---- helpers for sources ----
  var LN=function(r){try{var a=JSON.parse(r.lines_json||'[]');if(a.length)return a}catch(e){}return r.item?[{item:r.item,qty:+r.qty||0,rate:+r.rate||0}]:[]};
  var done=function(r){return r&&r.doc_state==='Complete'&&r.status!=='Cancelled'};
@@ -45034,9 +45047,9 @@ return btns;
   je[id]=Object.assign({ref:id,posting_date:date,doc_date:date,company:company||'',currency:'BDT',reference:ref,status:'Posted',items:items,total_debit:R2(td),total_credit:R2(tc),submitted_by:(typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'',auto_post:1,source_module:mod},extra||{});
   localStorage.setItem('erp_je_records',JSON.stringify(je));return id}
  function subPost(S,sref,sp,jeRef){var s=sp.sub;if(!s)return;var u=(typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'';
-  if(s.t==='arinv'){var o=J('erp_ar_inv_records',{});o[sref]={ref:sref,invoice_date:sp.date,due_date:sp.date,customer_name:s.cust,customer_ref:sref,company:sp.company||'',currency:'BDT',receivable_account:M.ar,sales_account:M.rev,amount:s.amt,narration:'Auto-posted from SD '+sref,je_ref:jeRef,auto_source:S.id,submitted_by:u};localStorage.setItem('erp_ar_inv_records',JSON.stringify(o))}
-  else if(s.t==='arrec'){var o2=J('erp_ar_rec_records',{});o2[sref]={ref:sref,invoice_ref:s.inv,customer_name:s.cust,receipt_date:sp.date,receivable_account:M.ar,bank_account:/^cash$/i.test(s.method||'')?M.cash:M.bank,amount:s.amt,mode:s.method||'',cheque_no:'',company:sp.company||'',currency:'BDT',narration:'Auto-posted from SD '+sref,je_ref:jeRef,auto_source:S.id,submitted_by:u};localStorage.setItem('erp_ar_rec_records',JSON.stringify(o2))}
-  else if(s.t==='apinv'){var o3=J('erp_ap_inv_records',{});o3[sref]={ref:sref,invoice_date:sp.date,due_date:sp.date,vendor_name:s.vendor,vendor_invoice_no:sref,company:sp.company||'',currency:'BDT',expense_account:M.inv,payable_account:M.ap,amount:s.amt,narration:'Auto-posted from MM '+sref,je_ref:jeRef,auto_source:S.id,submitted_by:u};localStorage.setItem('erp_ap_inv_records',JSON.stringify(o3))}}
+  if(s.t==='arinv'){var o=J('erp_ar_inv_records',{});o[sref]={ref:sref,invoice_date:sp.date,due_date:sp.date,customer_name:s.cust,customer_ref:sref,company:sp.company||'',bu:sp.bu||'',pc:sp.pc||'',profit_center:sp.pc||'',currency:'BDT',receivable_account:M.ar,sales_account:M.rev,amount:s.amt,narration:'Auto-posted from SD '+sref,je_ref:jeRef,auto_source:S.id,submitted_by:u};localStorage.setItem('erp_ar_inv_records',JSON.stringify(o))}
+  else if(s.t==='arrec'){var o2=J('erp_ar_rec_records',{});o2[sref]={ref:sref,invoice_ref:s.inv,customer_name:s.cust,receipt_date:sp.date,receivable_account:M.ar,bank_account:/^cash$/i.test(s.method||'')?M.cash:M.bank,amount:s.amt,mode:s.method||'',cheque_no:'',company:sp.company||'',bu:sp.bu||'',pc:sp.pc||'',profit_center:sp.pc||'',currency:'BDT',narration:'Auto-posted from SD '+sref,je_ref:jeRef,auto_source:S.id,submitted_by:u};localStorage.setItem('erp_ar_rec_records',JSON.stringify(o2))}
+  else if(s.t==='apinv'){var o3=J('erp_ap_inv_records',{});o3[sref]={ref:sref,invoice_date:sp.date,due_date:sp.date,vendor_name:s.vendor,vendor_invoice_no:sref,company:sp.company||'',bu:sp.bu||'',pc:sp.pc||'',profit_center:sp.pc||'',currency:'BDT',expense_account:M.inv,payable_account:M.ap,amount:s.amt,narration:'Auto-posted from MM '+sref,je_ref:jeRef,auto_source:S.id,submitted_by:u};localStorage.setItem('erp_ap_inv_records',JSON.stringify(o3))}}
  function subDel(sref,t){var k=t==='arinv'?'erp_ar_inv_records':t==='arrec'?'erp_ar_rec_records':'erp_ap_inv_records';var o=J(k,{});if(o[sref]&&o[sref].auto_source){delete o[sref];localStorage.setItem(k,JSON.stringify(o))}}
  var EVC={sig:'',ev:[]};
  function evs(){var sig=(localStorage.getItem('erp_stock_transactions')||'').length+'|'+(localStorage.getItem('erpProd1')||'').length+'|'+(localStorage.getItem('erp_po_records')||'').length+'|'+(localStorage.getItem('erp_grn_records')||'').length+'|'+(localStorage.getItem('erp_ret_records')||'').length;
@@ -45059,7 +45072,8 @@ return btns;
      var msg='';if(!sp||!sp.amount||sp.amount<=0)msg=(sp&&sp.noval)||'Zero amount - nothing to post';
      else{var miss=[];sp.lines.forEach(function(l){if(!l[1]&&!l[2])return;var a=M[l[0]];if(!a||!C[a]||C[a].status==='Blocked')miss.push(PURP.filter(function(p){return p[0]===l[0]})[0][1])});if(miss.length)msg='GL account not mapped / not found: '+miss.filter(function(x,i,a){return a.indexOf(x)===i}).join(', ')}
      if(msg){var st=(sp&&sp.amount>0)?'Error':'Skipped';if(!e0||e0.status!==st||e0.msg!==msg){log[sid]={sid:sid,mod:S.mod,src:(sp&&sp.label)||S.name,ref:ref,date:(sp&&sp.date)||'',amount:sp?sp.amount:0,status:st,msg:msg,at:new Date().toISOString()};chg=1}return}
-     var je=writeJe(sp.date||today(),sp.company||r.company,(sp.label||S.name)+' '+ref+(sp.party?' - '+sp.party:''),sp.lines.map(function(l){return [M[l[0]],l[1],l[2]]}),S.mod,{source_ref:ref});
+     sp.company=sp.company||r.company||'';sp.bu=r.bu||'';sp.pc=r.pc||r.profit_center||'';
+     var je=writeJe(sp.date||today(),sp.company||r.company,(sp.label||S.name)+' '+ref+(sp.party?' - '+sp.party:''),sp.lines.map(function(l){return [M[l[0]],l[1],l[2]]}),S.mod,{source_ref:ref,bu:r.bu||'',profit_center:r.pc||r.profit_center||''});
      try{subPost(S,ref,sp,je)}catch(x){}
      log[sid]={sid:sid,mod:S.mod,src:sp.label||S.name,ref:ref,date:sp.date||'',amount:sp.amount,je:je,sub:sp.sub?sp.sub.t:'',status:'Posted',msg:'',at:new Date().toISOString(),by:currentUser.name||currentUser.id};chg=1;
    } else if(!act&&e0&&e0.status==='Posted'){revert(log,sid);chg=1}
@@ -45108,16 +45122,21 @@ return btns;
 (function(){
  if(window.__ssInit)return;window.__ssInit=1;
  /* ====== Company-wise Setup Sheet Sync ====== */
- var DEFAULT_URL='https://script.google.com/macros/s/AKfycbx_qrH8J1d4-xJ8ELBmspWQHFTelBdEjr22TalaIcKAzCwVcsYK_zPdTTkTBANzSx-L/exec';   // optional: paste the Apps Script Web App URL (…/exec) here; or set it in the panel
+ var DEFAULT_URL='https://script.google.com/macros/s/AKfycbzjkXyemncL9asg7jEGfKmVh-haWExmkxIf3QxodCeMwKR6I385EurM87dv6ToEK8WR/exec',
+  DEFAULT_FI_URL='https://script.google.com/macros/s/AKfycbzvSLhFsfDGpVp7Ny_xH7X8L3D9cbZin1TasgTkxkWnIfiqPPYVwxLen7i8DZ2T4461/exec',
+  DEFAULT_SD_URL='https://script.google.com/macros/s/AKfycby2nZ2CeKC_mNqXJZ_ibBorVsG1yF_kj8kbTj72oRPhrQnGv6gVTQSDx6gqia8ENAfGfQ/exec';   // optional: paste the Apps Script Web App URL (…/exec) here; or set it in the panel
  var CFGK='erp_setup_cfg',IDXK='erp_setup_idx',ISSK='erp_setup_issues';
- var J=function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+ var J=function(k,d){try{var v=JSON.parse((window.__rawGet||localStorage.getItem.bind(localStorage))(k));return v==null?d:v}catch(e){return d}};
  var E=function(i){return document.getElementById(i)};
  var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
  var N=function(x){return parseFloat(x)};
  var lc=function(x){return String(x==null?'':x).trim().toLowerCase()};
  var ost=localStorage.setItem.bind(localStorage);
  function hash(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return String(h)}
- function cfg(){var c=J(CFGK,{});if(!c.url)c.url=DEFAULT_URL;return c}
+ function cfg(){var c=J(CFGK,{});if(!c.url)c.url=DEFAULT_URL;if(c.sdUrl==null)c.sdUrl=DEFAULT_SD_URL;if(c.fiUrl==null)c.fiUrl=DEFAULT_FI_URL;return c}
+ function isSD(t){return /^SD /.test(t)}
+ function epOf(c,t){return (isSD(t)&&c.sdUrl)?c.sdUrl:(/^FICO /.test(t)&&c.fiUrl)?c.fiUrl:c.url}
+ function eps(c){var m={};m[c.url]=1;[c.sdUrl,c.fiUrl].forEach(function(u){if(u)m[u]=1});return Object.keys(m)}
  function setCfg(c){ost(CFGK,JSON.stringify(c))}
  var DS=function(r){return(r&&r.doc_state)||'Complete'};
  // ---- registry: [tab, storage key, options] ----
@@ -45143,30 +45162,81 @@ return btns;
   {t:'Employee ERP Setup',k:'erp_erpsetup_records'},
   {t:'User ID Setup',k:'erp_userid_records',strip:/pass|pwd|secret|token/i},
   {t:'Auto-Posting Map',k:'erp_fpost_map',single:1},
-  {t:'Production Recipes',k:'erpProd1',sub:'recipes',idf:'id',pushOnly:1},
-  {t:'Production QC Standard',k:'erpProd1',sub:'qcstd',idf:'fg',pushOnly:1}
+  {t:'SD Inquiry',k:'erp_sdinq_records',drafts:1},
+  {t:'SD Quotation',k:'erp_sdqt_records',drafts:1},
+  {t:'SD Sales Order',k:'erp_sdso_records',drafts:1},
+  {t:'SD Order Amendment',k:'erp_sdamd_records',drafts:1},
+  {t:'SD Order Approval',k:'erp_sdapr_records',drafts:1},
+  {t:'SD Pick List',k:'erp_sdpick_records',drafts:1},
+  {t:'SD Pack List',k:'erp_sdpack_records',drafts:1},
+  {t:'SD Delivery Note',k:'erp_sddn_records',drafts:1},
+  {t:'SD Invoice',k:'erp_sdinv_records',drafts:1},
+  {t:'SD Credit Memo',k:'erp_sdcm_records',drafts:1},
+  {t:'SD Debit Memo',k:'erp_sddm_records',drafts:1},
+  {t:'SD Sales Return Request',k:'erp_sdsr_records',drafts:1},
+  {t:'SD Sales Return Received',k:'erp_sdrr_records',drafts:1},
+  {t:'SD Return Approval',k:'erp_sdra_records',drafts:1},
+  {t:'SD Payment Receipt',k:'erp_sdpay_records',drafts:1},
+  {t:'SD Sales Target',k:'erp_sdtarget_records',drafts:1},
+  {t:'SD Credit Limit',k:'erp_sdcrl_records',drafts:1},
+  {t:'SD Customer Group',k:'erp_sdcgrp_records',drafts:1},
+  {t:'FICO Journal Entry',k:'erp_je_records',drafts:1},
+  {t:'FICO Vendor Invoice',k:'erp_ap_inv_records',drafts:1},
+  {t:'FICO Payment Voucher',k:'erp_ap_pay_records',drafts:1},
+  {t:'FICO Customer Invoice',k:'erp_ar_inv_records',drafts:1},
+  {t:'FICO Receipt Voucher',k:'erp_ar_rec_records',drafts:1},
+  {t:'FICO Bank Reconciliation',k:'erp_bank_reco_records',drafts:1},
+  {t:'FICO Cheque',k:'erp_cheque_records',drafts:1},
+  {t:'FICO Fund Transfer',k:'erp_fund_transfer_records',drafts:1},
+  {t:'FICO Asset Master',k:'erp_asset_records',drafts:1},
+  {t:'FICO Asset Transfer',k:'erp_asset_transfer_records',drafts:1},
+  {t:'FICO Depreciation',k:'erp_asset_dep_records',drafts:1},
+  {t:'FICO Depreciation Run',k:'erp_dep_run_records',drafts:1},
+  {t:'Production Plans',k:'erpProd1',sub:'plans',idf:function(r){return r.no},cof:function(r){return r.co}},
+  {t:'Production Batches',k:'erpProd1',sub:'batches',idf:function(r){return r.no},cof:function(r){return PCO.b[r.no]}},
+  {t:'Production Consumption',k:'erpProd1',sub:'cons',idf:function(r){return r.b+'|'+r.rm+'|'+r.date},cof:function(r){return PCO.b[r.b]}},
+  {t:'Production FG Receive',k:'erpProd1',sub:'rcv',idf:function(r){return r.no},cof:function(r){return PCO.b[r.bn]}},
+  {t:'Production QC Check',k:'erpProd1',sub:'qcc',idf:function(r){return r.no},cof:function(r){return PCO.b[r.bn]}},
+  {t:'Production Return',k:'erpProd1',sub:'rpc',idf:function(r){return r.no}},
+  {t:'Production Recipes',k:'erpProd1',sub:'recipes',idf:function(r){return r.id}},
+  {t:'Production QC Standard',k:'erpProd1',sub:'qcstd',idf:function(r){return r.fg}},
+  {t:'Production FG Stock',k:'erpProd1',sub:'stock',stock:1},
+  {t:'Production Counters',k:'erpProd1',sub:'seq',seq:1}
  ];
- var SERIAL=/^(erp_(item|vendor|va|sdcustomer|kpi|budget_alloc|cost_alloc|salstruct|cc|coa|erpsetup|userid)_serial|erp_fsx_[a-z0-9_]+_serial|erp_fsetup_[a-z_]*serial)$/;
+ var SERIAL=/^(erp_(item|vendor|va|sd[a-z]+|kpi|budget_alloc|cost_alloc|salstruct|cc|coa|erpsetup|userid)_serial|erp_fsx_[a-z0-9_]+_serial|erp_fsetup_[a-z_]*serial)$/;
  var DATAKEYS={};REG.forEach(function(R){DATAKEYS[R.k]=1});
- function rawMap(R){var v=J(R.k,R.sub?{}:{});if(R.sub){var a=(v&&v[R.sub])||[],o={};a.forEach(function(r,i){if(r&&typeof r==='object')o[r[R.idf]||('#'+i)]=r});return o}
+ var PCO={b:{}};
+ function prodCo(){var d=J('erpProd1',{}),pm={};PCO={b:{}};(d.plans||[]).forEach(function(p){pm[p.no]=p.co});(d.batches||[]).forEach(function(x){PCO.b[x.no]=pm[x.dpp]||''})}
+ function rawMap(R){var v=J(R.k,R.sub?{}:{});if(R.sub){
+  if(R.stock){var o={};Object.keys((v&&v.stock)||{}).forEach(function(w){Object.keys(v.stock[w]||{}).forEach(function(f){o[w+'||'+f]={wh:w,fg:f,q:+v.stock[w][f]||0}})});return o}
+  if(R.seq){return v&&v.seq?{seq:{id:'seq',seq:v.seq}}:{}}
+  var a=(v&&v[R.sub])||[],o={},dup={};a.forEach(function(r,i){if(!r||typeof r!=='object')return;var id=String(R.idf(r)||('#'+i));if(o[id]!==undefined){dup[id]=(dup[id]||1)+1;id=id+'#'+dup[id]}o[id]=r});return o}
   if(R.single){return Object.keys(v||{}).length?{map:v}:{}}return v&&typeof v==='object'?v:{}}
+ function putSub(R,map){var d=J(R.k,{});if(!d||typeof d!=='object')d={};
+  if(R.stock){var st={};Object.keys(map).forEach(function(id){var r=map[id];if(!r||!r.wh)return;st[r.wh]=st[r.wh]||{};st[r.wh][r.fg]=+r.q||0});d.stock=st}
+  else if(R.seq){var cur=d.seq||{},rs=(map.seq&&map.seq.seq)||{};d.seq=Object.assign({},cur);Object.keys(rs).forEach(function(q){d.seq[q]=Math.max(+d.seq[q]||0,+rs[q]||0)})}
+  else{var old=rawMap(R),arr=[];Object.keys(old).forEach(function(id){if(id in map)arr.push(map[id])});Object.keys(map).forEach(function(id){if(!(id in old))arr.push(map[id])});d[R.sub]=arr}
+  return d}
  function companies(){var m={};Object.values(J('erp_fsetup_company',{})).forEach(function(r){if(r&&r.name&&DS(r)!=='Draft')m[r.name.trim()]=1});return Object.keys(m)}
  function activeCompany(){var c=cfg().company;if(c)return c;var l=companies();return l[0]||''}
- function recCompany(R,r){var c=R.t==='Company'?r.name:(r&&r.company);return (c&&String(c).trim())||activeCompany()}
+ function recCompany(R,r){var c=R.t==='Company'?r.name:(R.cof?R.cof(r):(r&&r.company));return (c&&String(c).trim())||activeCompany()}
  // ---- validation ----
- var GL={Assets:[100000,199999],Liabilities:[200000,299999],Equity:[300000,399999],Income:[400000,499999],Expenses:[500000,599999]};
+ var GL={Assets:[1000,1999,100000,199999],Liabilities:[2000,2999,200000,299999],Equity:[3000,3999,300000,399999],Income:[4000,4999,400000,499999],Expenses:[5000,8999,500000,599999]};
  function ctx(){var X={co:{},bu:{},pc:{},pl:{},wh:{}};
   [['co','erp_fsetup_company'],['bu','erp_fsetup_bu'],['pc','erp_fsetup_pc'],['pl','erp_fsetup_plant'],['wh','erp_fsetup_warehouse']].forEach(function(p){Object.values(J(p[1],{})).forEach(function(r){if(!r||DS(r)==='Draft')return;
    if(p[0]==='co')X.co[lc(r.name)]=1;else if(p[0]==='bu')X.bu[lc(r.company)+'|'+lc(r.name)]=1;else if(p[0]==='pc')X.pc[lc(r.company)+'|'+lc(r.bu)+'|'+lc(r.name)]=1;else if(p[0]==='pl')X.pl[lc(r.company)+'|'+lc(r.name)]=1;else X.wh[lc(r.company)+'|'+lc(r.name)]=1})});
   try{var H=PR_ORG_DATA;(H.companies||[]).forEach(function(c){X.co[lc(c)]=1;var h=H.hierarchy[c]||{};(h.bus||[]).forEach(function(b){X.bu[lc(c)+'|'+lc(b)]=1;((h.buMap||{})[b]||[]).forEach(function(p){X.pc[lc(c)+'|'+lc(b)+'|'+lc(p)]=1})});(h.plants||[]).forEach(function(p){X.pl[lc(c)+'|'+lc(p)]=1})})}catch(e){}
   return X}
  function validate(R,id,r,X,seen){var m=[],G=function(f){return String(r[f]==null?'':r[f]).trim()};
+  if(R.sub){if(R.t==='Production Plans'){if(!G('no'))m.push('"no" is required');if(G('co')&&!X.co[lc(r.co)])m.push('Company "'+r.co+'" is not in Company setup');if(G('co')&&G('bu')&&!X.bu[lc(r.co)+'|'+lc(r.bu)])m.push('Business Unit "'+r.bu+'" not found under company "'+r.co+'"');if(G('co')&&G('bu')&&G('pc')&&!X.pc[lc(r.co)+'|'+lc(r.bu)+'|'+lc(r.pc)])m.push('Profit Center "'+r.pc+'" not found under "'+r.co+' / '+r.bu+'"')}
+   else if(R.t==='Production Batches'||R.t==='Production FG Receive'||R.t==='Production QC Check'||R.t==='Production Return'){if(!G('no'))m.push('"no" is required')}
+   Object.keys(r).forEach(function(f){var v=r[f];if(/^(qty|q|rq|sq|pq|req|pass|hold)$/.test(f)&&v!==''&&v!=null&&!isNaN(N(v))&&N(v)<0&&!R.stock)m.push('"'+f+'" cannot be negative')});return m}
   (R.req||[]).forEach(function(f){if(!G(f))m.push('"'+f+'" is required')});
   if(R.t!=='Company'&&r.company&&!X.co[lc(r.company)])m.push('Company "'+r.company+'" is not in Company setup');
   if(R.t==='Profit Center'&&G('company')&&G('bu')&&!X.bu[lc(r.company)+'|'+lc(r.bu)])m.push('Business Unit "'+r.bu+'" not found under company "'+r.company+'"');
   if((R.t==='Warehouse'||R.t==='Plant')&&G('bu')&&G('company')&&!X.bu[lc(r.company)+'|'+lc(r.bu)])m.push('Business Unit "'+r.bu+'" not found under company "'+r.company+'"');
   if(R.t==='Warehouse'&&G('plant')&&G('company')&&!X.pl[lc(r.company)+'|'+lc(r.plant)])m.push('Plant "'+r.plant+'" not found under company "'+r.company+'"');
-  if(R.coa){var cd=G('code'),g=GL[G('group')];if(cd&&!/^\d{6}$/.test(cd))m.push('GL code must be 6 digits');else if(cd&&g&&(+cd<g[0]||+cd>g[1]))m.push('GL code '+cd+' is outside the '+G('group')+' range '+g[0]+'-'+g[1])}
+  if(R.coa){var cd=G('code'),g=GL[G('group')];if(cd&&!/^(\d{4}|\d{6})$/.test(cd))m.push('GL code must be 4 or 6 digits');else if(cd&&g&&!((+cd>=g[0]&&+cd<=g[1])||(g[2]&&+cd>=g[2]&&+cd<=g[3])))m.push('GL code '+cd+' is outside the '+G('group')+' range '+g[0]+'-'+g[1]+(g[2]?' or '+g[2]+'-'+g[3]:''))}
   Object.keys(r).forEach(function(f){var v=r[f];if(v===''||v==null||typeof v==='object')return;
    if(/(^|_)(qty|rate|amount|limit|days|price|disc|discount|cost|budget|salary|basic|gross)(_|$)/i.test(f)&&!isNaN(N(v))&&N(v)<0)m.push('"'+f+'" cannot be negative');
    if(/(_pct|percent)$/i.test(f)&&!isNaN(N(v))&&(N(v)<0||N(v)>100))m.push('"'+f+'" must be between 0 and 100');
@@ -45178,17 +45248,17 @@ return btns;
  function clean(R,r){var o={};Object.keys(r).forEach(function(f){if(R.strip&&R.strip.test(f))return;var v=r[f];if(typeof v==='string'&&v.length>10000)return;o[f]=v});return o}
  function rowOf(R,id,r){var c=clean(R,r),flat={};Object.keys(c).forEach(function(f){var v=c[f];if(v==null||typeof v==='object')return;flat[f]=v});
   return Object.assign(flat,{_id:id,_company:recCompany(R,r),_json:JSON.stringify(c)})}
- function collect(){var X=ctx(),seen={},rows={},issues=[],total=0;
-  REG.forEach(function(R){var map=rawMap(R);Object.keys(map).forEach(function(id){var r=map[id];if(!r||typeof r!=='object')return;if(R.sub||R.single){}else if(DS(r)==='Draft')return;
+ function collect(){var X=ctx(),seen={},rows={},issues=[],total=0;prodCo();
+  REG.forEach(function(R){var map=rawMap(R);Object.keys(map).forEach(function(id){var r=map[id];if(!r||typeof r!=='object')return;if(R.sub||R.single){}else if(DS(r)==='Draft'&&!R.drafts)return;
    var m=R.single?[]:validate(R,id,r,X,seen);total++;
    if(m.length){issues.push({tab:R.t,id:id,name:r.name||r.code||r.ref_no||id,msgs:m});return}
    (rows[R.t]=rows[R.t]||[]).push(rowOf(R,id,r))})});
   return {rows:rows,issues:issues,total:total}}
  // ---- network ----
  function qs(o){return Object.keys(o).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(o[k])}).join('&')}
- function api(method,body){var c=cfg();if(!c.url)return Promise.reject(new Error('Web App URL is not set'));
-  if(method==='GET')return fetch(c.url+(c.url.indexOf('?')<0?'?':'&')+qs(Object.assign({token:c.token||''},body))).then(function(r){return r.json()});
-  return fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({token:c.token||''},body))}).then(function(r){return r.json()})}
+ function api(method,body,u){var c=cfg();u=u||c.url;if(!u)return Promise.reject(new Error('Web App URL is not set'));
+  if(method==='GET')return fetch(u+(u.indexOf('?')<0?'?':'&')+qs(Object.assign({token:c.token||''},body))).then(function(r){return r.json()});
+  return fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({token:c.token||''},body))}).then(function(r){return r.json()})}
  var busy=0,last={at:'',msg:'Not synced yet',ok:true};
  function status(msg,ok){last={at:new Date().toLocaleTimeString(),msg:msg,ok:ok!==false};var s=E('ssStatus');if(s){s.textContent=last.at+' - '+msg;s.style.color=last.ok?'#065f46':'#b91c1c'}}
  // ---- PUSH ----
@@ -45198,12 +45268,18 @@ return btns;
   var idx=J(IDXK,{}),jobs=[];
   names.forEach(function(co){var tabs={};REG.forEach(function(R){tabs[R.t]=(C.rows[R.t]||[]).filter(function(r){return r._company===co}).map(function(r){return Object.assign({},r,{_updated:new Date().toISOString(),_by:(typeof currentUser!=='undefined'&&currentUser)?(currentUser.name||currentUser.id):''})})});
    if(co===activeCompany()){tabs['Counters']=Object.keys(localStorage).filter(function(k){return SERIAL.test(k)}).map(function(k){return {_id:k,_company:co,value:localStorage.getItem(k),_json:JSON.stringify(localStorage.getItem(k))}})}
-   jobs.push(api('POST',{action:'setupSave',company:co,tabs:tabs}).then(function(r){if(!r.ok)throw new Error(co+': '+r.error);REG.forEach(function(R){(tabs[R.t]||[]).forEach(function(row){idx[R.t+'|'+row._id]=hash(row._json)})});return r}))});
+   var c0=cfg(),by={};Object.keys(tabs).forEach(function(t){var u=epOf(c0,t);(by[u]=by[u]||{})[t]=tabs[t]});if(!by[c0.url])by[c0.url]={};
+   var calls=Object.keys(by).map(function(u){return api('POST',{action:'setupSave',company:co,tabs:by[u]},u).then(function(r){if(!r.ok)throw new Error(co+(u===c0.url?'':' ('+u.slice(-12)+')')+': '+r.error);return r})});
+   jobs.push(Promise.all(calls).then(function(rs){REG.forEach(function(R){(tabs[R.t]||[]).forEach(function(row){idx[R.t+'|'+row._id]=hash(row._json)})});return rs[0]}))});
   return Promise.all(jobs).then(function(){ost(IDXK,JSON.stringify(idx));return {n:names.length,issues:C.issues.length}})}
  // ---- PULL / auto-load ----
  function pull(){var cs=companies(),a=activeCompany();if(a&&cs.indexOf(a)<0)cs.push(a);
   return api('GET',{action:'listCompanies'}).then(function(r){(r.companies||[]).forEach(function(c){if(cs.indexOf(c)<0)cs.push(c)});return cs},function(){return cs}).then(function(list){
-   return Promise.all(list.map(function(co){return api('GET',{action:'setupLoad',company:co}).then(function(r){return r.ok?r:{ok:true,tabs:{},company:co}})}))}).then(function(res){
+   return Promise.all(list.map(function(co){var c0=cfg(),chk=function(r,w){if(!r||!r.ok)throw new Error((w||'Server')+': '+((r&&r.error)||'bad response'));return r};
+    return api('GET',{action:'setupLoad',company:co}).then(function(r){return chk(r,co)}).then(function(r){var others=eps(c0).filter(function(u){return u!==c0.url});if(!others.length)return r;
+     return Promise.all(others.map(function(u){return api('GET',{action:'setupLoad',company:co},u).then(function(r2){return chk(r2,co+' ('+u.slice(-12)+')')})})).then(function(l){var tabs=Object.assign({},r.tabs||{}),ex=r.exists!==false;
+      l.forEach(function(r2,n){var u=others[n];Object.keys(r2.tabs||{}).forEach(function(t){if(epOf(c0,t)===u)tabs[t]=r2.tabs[t]});if(r2.exists!==false)ex=true});
+      return Object.assign({},r,{tabs:tabs,exists:ex})})})}))}).then(function(res){
    var idx=J(IDXK,{}),added=0,upd=0,del=0;
    REG.forEach(function(R){if(R.pushOnly)return;var local=rawMap(R),changed=false,seenIds={};
     res.forEach(function(rs){var rows=(rs.tabs&&rs.tabs[R.t])||[];rows.forEach(function(row){var id=String(row._id),rec;try{rec=JSON.parse(row._json)}catch(e){return}if(rec==null)return;seenIds[id]=1;
@@ -45215,10 +45291,10 @@ return btns;
      if(idx[k]===lh||idx[k]===undefined&&0){local[id]=Object.assign({},lr,rec);idx[k]=h;changed=true;upd++}})});
     // remote deletions: local row previously synced, unchanged, absent from sheet
     if(!R.single&&res.some(function(rs){return rs.exists!==false})){Object.keys(local).forEach(function(id){var k=R.t+'|'+id;if(!seenIds[id]&&idx[k]!==undefined&&idx[k]===hash(JSON.stringify(clean(R,local[id])))){delete local[id];delete idx[k];changed=true;del++}})}
-    if(changed)ost(R.k,JSON.stringify(local))});
+    if(changed)ost(R.k,JSON.stringify(R.sub?putSub(R,local):local))});
    // counters
    res.forEach(function(rs){((rs.tabs&&rs.tabs.Counters)||[]).forEach(function(row){if(SERIAL.test(row._id)){var v=parseInt(row.value,10)||0,l=parseInt(localStorage.getItem(row._id)||'0',10)||0;if(v>l)ost(row._id,String(v))}})});
-   ost(IDXK,JSON.stringify(idx));return {added:added,updated:upd,deleted:del,companies:res.length}})}
+   ost(IDXK,JSON.stringify(idx));if((added||upd||del)&&typeof window.__prodSetD==='function'){try{window.__prodSetD(JSON.parse(localStorage.getItem('erpProd1')))}catch(e){}}return {added:added,updated:upd,deleted:del,companies:res.length}})}
  function syncNow(mode){if(busy)return Promise.resolve();busy=1;status('Syncing...');var p=(mode==='push')?push():(mode==='pull')?pull():pull().then(function(a){return push().then(function(b){return Object.assign(a,b)})});
   return p.then(function(r){var m=(r.none?'Nothing to push (no company defined yet). ':'')+(r.added!=null?('Loaded: +'+r.added+' new, '+r.updated+' updated, '+r.deleted+' removed. '):'')+(r.n!=null&&!r.none?('Pushed to '+r.n+' company sheet(s). '):'')+(r.issues?(r.issues+' record(s) skipped (validation)'):'');status(m||'Done',true);refresh()}).catch(function(e){status('Failed: '+(e&&e.message||e),false)}).then(function(){busy=0;draw()})}
  // ---- auto push on setup writes ----
@@ -45243,20 +45319,494 @@ return btns;
  function refresh(){}
  function draw(){var o=E('ssOv');if(!o)return;var c=cfg(),C=collect(),cos=companies(),b=E('ssBody');
   var sum=REG.map(function(R){var m=rawMap(R),n=Object.keys(m).filter(function(i){return R.sub||R.single||DS(m[i])!=='Draft'}).length,bad=C.issues.filter(function(x){return x.tab===R.t}).length;return '<tr><td>'+R.t+(R.pushOnly?' <span style="color:#94a3b8;font-size:11px">(push only)</span>':'')+'</td><td>'+n+'</td><td class="'+(bad?'ss-bad':'ss-ok')+'">'+(bad?bad+' invalid':'OK')+'</td></tr>'}).join('');
-  b.innerHTML='<div class="ss-g"><div><label>Apps Script Web App URL</label><input id="ssUrl" value="'+esc(c.url||'')+'" placeholder="https://script.google.com/macros/s/.../exec"></div><div><label>Token (optional, = ERP_TOKEN)</label><input id="ssTok" type="password" value="'+esc(c.token||'')+'"></div><div><label>Active Company (sheet for rows without a company)</label><input id="ssCo" list="ssCoL" value="'+esc(c.company||activeCompany())+'"><datalist id="ssCoL">'+cos.map(function(x){return '<option value="'+esc(x)+'">'}).join('')+'</datalist></div></div>'
+  b.innerHTML='<div class="ss-g"><div><label>Apps Script Web App URL</label><input id="ssUrl" value="'+esc(c.url||'')+'" placeholder="https://script.google.com/macros/s/.../exec"></div><div><label>SD Web App URL (SD transaction tabs)</label><input id="ssSdUrl" value="'+esc(c.sdUrl||'')+'" placeholder="same as left = one script for everything"></div><div><label>FICO Web App URL (FICO transaction tabs)</label><input id="ssFiUrl" value="'+esc(c.fiUrl||'')+'" placeholder="empty = main URL"></div><div><label>Token (optional, = ERP_TOKEN)</label><input id="ssTok" type="password" value="'+esc(c.token||'')+'"></div><div><label>Active Company (sheet for rows without a company)</label><input id="ssCo" list="ssCoL" value="'+esc(c.company||activeCompany())+'"><datalist id="ssCoL">'+cos.map(function(x){return '<option value="'+esc(x)+'">'}).join('')+'</datalist></div></div>'
   +'<div style="margin-bottom:8px"><label><input type="checkbox" id="ssAuto" '+(c.auto!==false?'checked':'')+'> Auto-sync (push on every setup save, pull every 3 min and at login)</label></div>'
   +'<div><button class="ss-btn g" onclick="__ssync.save()">💾 Save Settings</button><button class="ss-btn g" onclick="__ssync.test()">🔌 Test Connection</button><button class="ss-btn" onclick="__ssync.sync()">🔄 Sync Now (Load + Save)</button><button class="ss-btn g" onclick="__ssync.pull()">⬇ Load from Sheet</button><button class="ss-btn g" onclick="__ssync.push()">⬆ Save to Sheet</button></div>'
   +'<div id="ssStatus" style="margin:10px 0;font-weight:600;color:'+(last.ok?'#065f46':'#b91c1c')+'">'+(last.at?esc(last.at+' - '+last.msg):'')+'</div>'
   +(C.issues.length?'<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:8px 12px"><b class="ss-bad">⚠ '+C.issues.length+' record(s) failed validation and are NOT synced:</b><table><tr><th>Setup</th><th>Record</th><th>Problem</th></tr>'+C.issues.slice(0,60).map(function(x){return '<tr><td>'+esc(x.tab)+'</td><td>'+esc(x.name)+'</td><td>'+x.msgs.map(esc).join('<br>')+'</td></tr>'}).join('')+'</table></div>':'<div class="ss-ok" style="font-weight:600">✔ All setup records passed validation.</div>')
   +'<table><tr><th>Setup master (Sheet tab)</th><th>Local rows</th><th>Validation</th></tr>'+sum+'</table>'}
  function open(){if(!E('ssOv')){var d=document.createElement('div');d.id='ssOv';d.className='ss-ov';d.onclick=function(e){if(e.target===d)d.classList.remove('on')};d.innerHTML=CSS+'<div class="ss-box"><div class="ss-h"><h2>☁️ Setup Sheet Sync — Company-wise Google Sheet</h2><button class="ss-x" onclick="document.getElementById(\'ssOv\').classList.remove(\'on\')">✕</button></div><div class="ss-b" id="ssBody"></div></div>';document.body.appendChild(d)}E('ssOv').classList.add('on');draw()}
- function saveCfg(){var c=cfg();c.url=(E('ssUrl')||{value:c.url}).value.trim();c.token=(E('ssTok')||{value:c.token}).value;c.company=(E('ssCo')||{value:c.company}).value.trim();c.auto=E('ssAuto')?E('ssAuto').checked:true;setCfg(c);return c}
+ function saveCfg(){var c=cfg();c.url=(E('ssUrl')||{value:c.url}).value.trim();c.sdUrl=(E('ssSdUrl')||{value:c.sdUrl||''}).value.trim();c.fiUrl=(E('ssFiUrl')||{value:c.fiUrl||''}).value.trim();c.token=(E('ssTok')||{value:c.token}).value;c.company=(E('ssCo')||{value:c.company}).value.trim();c.auto=E('ssAuto')?E('ssAuto').checked:true;setCfg(c);return c}
  window.__ssync={open:open,save:function(){saveCfg();status('Settings saved');draw()},
   test:function(){saveCfg();status('Testing...');api('GET',{action:'ping'}).then(function(r){status(r.ok?'Connection OK':'Failed: '+r.error,!!r.ok)}).catch(function(e){status('Failed: '+e.message,false)})},
   sync:function(){saveCfg();syncNow()},pull:function(){saveCfg();syncNow('pull')},push:function(){saveCfg();syncNow('push')},validate:collect,
   _pull:pull,_push:push};
  // ---- menu entries ----
  function menu(){[['setup','item_master'],['sd_setup','sd_customer_master'],['fico_setup','fico_coa'],['hr_employee','hr_erp_setup']].forEach(function(p){var d=document.querySelector('.dropdown[data-parent="'+p[0]+'"]');if(d&&!d.querySelector('[data-sub="setup_sheet_sync"]')){var a=document.createElement('a');a.href='#';a.setAttribute('data-sub','setup_sheet_sync');a.innerHTML='<span class="arrow">☁</span> Setup Sheet Sync';a.onclick=function(e){e.preventDefault();open();return false};d.appendChild(a)}})}
+ setInterval(menu,1000);menu();
+})();
+</script>
+
+<script id="userScopeJs">
+(function(){
+ if(window.__usInit)return;window.__usInit=1;
+ /* ===== User access scope: Company / BU / Profit Center / Warehouse ===== */
+ var og=localStorage.getItem.bind(localStorage),ost0=localStorage.setItem.bind(localStorage);
+ window.__rawGet=og;
+ var JP=function(s,d){try{var v=JSON.parse(s);return v==null?d:v}catch(e){return d}};
+ var lc=function(x){return String(x==null?'':x).trim().toLowerCase()};
+ var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
+ var E=function(i){return document.getElementById(i)};
+ var SYNC_RE=/saveToFirebase|syncAllToFirebase|push\w*ToGoogleSheet|sharedStock\w*|rebuildAndSyncLeaveBalance|syncLeaveBalanceToHrSheet|syncRecord|syncPrRecordToUser|syncLeaveRecordToUser|loadFromFirebase|bulkSync/;
+ // ---- scope of current user ----
+ var lastS=null,lastU=null,SC=null,SCSIG='';
+ function scope(){var u=(typeof currentUser!=='undefined'&&currentUser)?String(currentUser.id):'';if(!u){return null}
+  var s=og('erp_userid_records');if(s!==lastS||u!==lastU){lastS=s;lastU=u;var all=JP(s,{}),rec=all[u];if(!rec)Object.keys(all).forEach(function(k){if(!rec&&String(all[k].user_id)===u)rec=all[k]});
+   var sc=rec&&!rec.super_admin&&rec.scope;SC=(sc&&((sc.companies||[]).length||(sc.bus||[]).length||(sc.pcs||[]).length||(sc.whs||[]).length||(sc.cats||[]).length))?sc:null;SCSIG=SC?JSON.stringify(SC):''}
+  return SC}
+ // ---- rule ----
+ function has(a,v){return (a||[]).some(function(x){return lc(x)===lc(v)})}
+ function okCBP(sc,c,b,p){
+  if(c&&(sc.companies||[]).length&&!has(sc.companies,c))return false;
+  if(b){var L=(sc.bus||[]).filter(function(x){return !c||lc(x.split('|')[0])===lc(c)});if(L.length&&!L.some(function(x){var q=x.split('|');return lc(q[1])===lc(b)&&(!c||lc(q[0])===lc(c))}))return false}
+  if(p){var M=(sc.pcs||[]).filter(function(x){var q=x.split('|');return (!c||lc(q[0])===lc(c))&&(!b||lc(q[1])===lc(b))});if(M.length&&!M.some(function(x){var q=x.split('|');return lc(q[2])===lc(p)&&(!c||lc(q[0])===lc(c))&&(!b||lc(q[1])===lc(b))}))return false}
+  return true}
+ var WHM=null,WHS='';
+ function whMaster(){var s=og('erp_fsetup_warehouse');if(s!==WHS){WHS=s;WHM={};Object.values(JP(s,{})).forEach(function(r){if(r&&r.name)WHM[lc(r.name)]=r})}return WHM}
+ function okWh(sc,name){if(!name)return true;var r=whMaster()[lc(name)];if(r&&!okCBP(sc,r.company,r.bu,r.pc))return false;if((sc.whs||[]).length&&!has(sc.whs,name))return false;return true}
+ var CM=null,CMS='';
+ function catMap(){var sig=[og('erp_item_master')||'',(typeof PR_ITEM_DATA!=='undefined'&&PR_ITEM_DATA&&PR_ITEM_DATA.groups?PR_ITEM_DATA.groups.length:0),(typeof PRODUCT_MASTER!=='undefined'&&PRODUCT_MASTER&&PRODUCT_MASTER.groups?PRODUCT_MASTER.groups.length:0)].join('|');
+  if(sig===CMS&&CM)return CM;CMS=sig;CM={};var put=function(k,g){if(k&&g&&!CM[lc(k)])CM[lc(k)]=g};
+  [typeof PR_ITEM_DATA!=='undefined'?PR_ITEM_DATA:null,typeof PRODUCT_MASTER!=='undefined'?PRODUCT_MASTER:null].forEach(function(D){if(!D||!D.hierarchy)return;Object.keys(D.hierarchy).forEach(function(g){var im=(D.hierarchy[g]||{}).itemMap||{};Object.keys(im).forEach(function(n){put(n,g);put(im[n]&&im[n].code,g)})})});
+  Object.values(JP(og('erp_item_master'),{})).forEach(function(r){if(r&&r.group){put(r.name,r.group);put(r.code,r.group)}});return CM}
+ function catOfItem(x){if(!x)return '';var m=catMap(),v=m[lc(x)];if(v)return v;var q=String(x).split(/\s+[-–]\s+/);for(var i=0;i<q.length;i++){if(m[lc(q[i])])return m[lc(q[i])]}return ''}
+ function lineCats(l,out){if(!l||typeof l!=='object')return;['item_category','category','item_group'].forEach(function(f){if(l[f]&&typeof l[f]==='string')out.push(l[f])});
+  ['item','item_name','item_code','material_name','material_code','name','code'].forEach(function(f){if(typeof l[f]==='string'){var c=catOfItem(l[f]);if(c)out.push(c)}})}
+ function recCats(k,r){var out=[];if(k==='erp_item_master'){if(r.group)out.push(r.group);return out}
+  if(/^erp_(coa|je|ap_|ar_|bank|cheque|fund|asset|dep|cc|budget|cost|emp|leave|payrun|payslip|attendance|fsetup)/.test(k))return out;
+  lineCats(r,out);['items','lines'].forEach(function(f){if(Array.isArray(r[f]))r[f].forEach(function(l){lineCats(l,out)})});
+  if(r.lines_json){try{JSON.parse(r.lines_json).forEach(function(l){lineCats(l,out)})}catch(e){}}return out}
+ function catOK(sc,k,r){if(!(sc.cats||[]).length)return true;var c=recCats(k,r);if(!c.length)return true;return c.some(function(x){return has(sc.cats,x)})}
+ var NOSTRICT=/^erp_(item_master|vendor|va|sdcustomer|sdplist|sddisc|sdtax|coa|cc|budget_alloc|cost_alloc|salstruct|kpi|erpsetup|userid|emp|stock|fsetup|fsx|fpost|setup|orgf|cust|qt|cst|rfq)/;
+ function STRICT(k){return DICT(k)&&!NOSTRICT.test(k)}
+ function allowedRec(k,r,sc){if(!r||typeof r!=='object')return true;var c=r.company,b=r.bu||r.business_unit,p=r.pc||r.profit_center,w=null;
+  if(k==='erp_fsetup_company'){c=r.name;b=p=''}else if(k==='erp_fsetup_bu'){b=r.name}else if(k==='erp_fsetup_pc'){p=r.name}else if(k==='erp_fsetup_warehouse'){w=r.name}else if(k==='erp_fsetup_plant'){}
+  if(!okCBP(sc,c,b,p))return false;
+  if(w&&(sc.whs||[]).length&&!has(sc.whs,w))return false;
+  if(!catOK(sc,k,r))return false;
+  if(sc.strict!==false&&STRICT(k)){if((sc.companies||[]).length&&!c)return false;if((sc.bus||[]).length&&!b)return false;if((sc.pcs||[]).length&&!p)return false}
+  for(var f in r){if(/^(warehouse|wh|store|from_warehouse|to_warehouse|receiving_warehouse|good_wh|dmg_wh|delivery_warehouse)$/i.test(f)&&r[f]&&typeof r[f]==='string'&&!okWh(sc,r[f]))return false}
+  return true}
+ var DICT=function(k){return /^erp_.+_records$/.test(k)&&k!=='erp_userid_records'&&k!=='erp_emp_records'&&k!=='erp_setup_cfg'};
+ var EXTRA={erp_stock_records:1,erp_item_master:1,erp_fsetup_company:1,erp_fsetup_bu:1,erp_fsetup_pc:1,erp_fsetup_plant:1,erp_fsetup_warehouse:1};
+ var ARR={erp_stock_transactions:1};
+ function filtered(k){return DICT(k)||EXTRA[k]||ARR[k]}
+ function inSync(){try{return SYNC_RE.test(new Error().stack||'')}catch(e){return false}}
+ // memo
+ var MEMO={};
+ localStorage.getItem=function(k){var v=og(k);if(v==null||!filtered(k))return v;var sc=scope();if(!sc)return v;
+  var m=MEMO[k];if(m&&m.v===v&&m.g===SCSIG)return m.o===v?v:(inSync()?v:m.o);
+  var d=JP(v,null),out=v,hid=0;
+  if(d&&Array.isArray(d)){var a=d.filter(function(x){return allowedRec(k,x,sc)});if(a.length!==d.length){out=JSON.stringify(a);hid=1}}
+  else if(d&&typeof d==='object'){var o={};Object.keys(d).forEach(function(id){if(allowedRec(k,d[id],sc))o[id]=d[id];else hid=1});if(hid)out=JSON.stringify(o)}
+  MEMO[k]={v:v,g:SCSIG,o:out};if(hid&&inSync())return v;return out};
+ localStorage.setItem=function(k,v){var sc=filtered(k)?scope():null;
+  if(sc){try{var raw=JP(og(k),null),nw=JP(v,null);
+   if(raw&&nw){if(Array.isArray(raw)&&Array.isArray(nw)){var hid=raw.filter(function(x){return !allowedRec(k,x,sc)});if(hid.length){var hs={};hid.forEach(function(x){hs[JSON.stringify(x)]=1});if(!nw.some(function(x){return hs[JSON.stringify(x)]}))v=JSON.stringify(hid.concat(nw))}}
+    else if(!Array.isArray(raw)&&!Array.isArray(nw)&&typeof raw==='object'){var ch=0;Object.keys(raw).forEach(function(id){if(!(id in nw)&&!allowedRec(k,raw[id],sc)){nw[id]=raw[id];ch=1}});if(ch)v=JSON.stringify(nw)}}}catch(e){}}
+  return ost0(k,v)};
+ // access tags of a record (used by the server sync: Row Level Security evaluates these columns)
+ window.__scopeTags=function(k,r){if(!r||typeof r!=='object')return {company:'',bu:'',pc:'',whs:[],cats:[],strict:false};
+  var c=r.company,b=r.bu||r.business_unit,p=r.pc||r.profit_center,w=[];
+  if(k==='erp_fsetup_company'){c=r.name;b=p=''}else if(k==='erp_fsetup_bu'){b=r.name}else if(k==='erp_fsetup_pc'){p=r.name}else if(k==='erp_fsetup_warehouse'){if(r.name)w.push(r.name)}
+  for(var f in r){if(/^(warehouse|wh|store|from_warehouse|to_warehouse|receiving_warehouse|good_wh|dmg_wh|delivery_warehouse)$/i.test(f)&&r[f]&&typeof r[f]==='string'&&w.indexOf(r[f])<0)w.push(r[f])}
+  var cats=[];try{cats=recCats(k,r).filter(function(x,i,a){return x&&a.indexOf(x)===i})}catch(e){}
+  return {company:String(c||''),bu:String(b||''),pc:String(p||''),whs:w,cats:cats,strict:!!STRICT(k)}};
+ // ---- Production module (erpProd1) ----
+ var PK='erpProd1',PHID=null;
+ function prodSplit(d,sc){var rc={};(d.recipes||[]).forEach(function(r){rc[lc(r.fg)]=r});
+  var catBad=function(fg){var r=rc[lc(fg)];return !!(r&&r.cat&&(sc.cats||[]).length&&!has(sc.cats,r.cat))};
+  var pOK=function(p){if(!okCBP(sc,p.co,p.bu,p.pc))return false;var it=p.items||[];if(it.length&&it.every(function(x){return catBad(x.fg)}))return false;return true};
+  var pm={};(d.plans||[]).forEach(function(p){pm[p.no]=pOK(p)});
+  var bOK=function(b){if(b.dpp&&b.dpp in pm&&!pm[b.dpp])return false;if(catBad(b.fg))return false;return okWh(sc,b.fgwh)};
+  var bm={};(d.batches||[]).forEach(function(b){bm[b.no]=bOK(b)});
+  var byB=function(f){return function(x){var n=x.b||x.bn;if(n in bm)return bm[n];return catBad(x.fg)?false:okWh(sc,x.wh)}};
+  var ok={plans:pOK,batches:bOK,cons:byB(),rcv:byB(),qcc:byB(),
+   recipes:function(r){return !catBad(r.fg)},rpc:function(x){return okWh(sc,x.wh)&&!catBad(x.fg)},qcstd:function(x){return !catBad(x.fg)}};
+  var out={},hid={};Object.keys(d).forEach(function(k){out[k]=d[k]});
+  Object.keys(ok).forEach(function(k){if(!Array.isArray(d[k]))return;out[k]=[];hid[k]=[];d[k].forEach(function(x){(ok[k](x||{})?out[k]:hid[k]).push(x)})});
+  if(d.stock&&typeof d.stock==='object'){out.stock={};hid.stock={};Object.keys(d.stock).forEach(function(w){var o={},h={};Object.keys(d.stock[w]||{}).forEach(function(f){(okWh(sc,w)&&!catBad(f)?o:h)[f]=d.stock[w][f]});if(Object.keys(o).length||!Object.keys(h).length)out.stock[w]=o;if(Object.keys(h).length)hid.stock[w]=h})}
+  return {out:out,hid:hid}}
+ (function(){var g0=localStorage.getItem,s0=localStorage.setItem,MM={};
+  localStorage.getItem=function(k){var v=g0.call(localStorage,k);if(k!==PK||v==null)return v;var sc=scope();if(!sc){PHID=null;return v}
+   var m=MM[k];if(m&&m.v===v&&m.g===SCSIG)return inSync()?v:m.o;
+   var d=JP(v,null);if(!d||typeof d!=='object')return v;var r=prodSplit(d,sc),o=JSON.stringify(r.out);MM[k]={v:v,g:SCSIG,o:o};return inSync()?v:o};
+  localStorage.setItem=function(k,v){if(k===PK){var sc=scope();if(sc){try{var raw=JP(og(k),null),nw=JP(v,null);
+    if(raw&&nw){var r=prodSplit(raw,sc),h=r.hid;
+     Object.keys(h).forEach(function(a){if(a==='stock'){nw.stock=nw.stock||{};Object.keys(h.stock).forEach(function(w){nw.stock[w]=Object.assign({},h.stock[w],(nw.stock[w]||{}))});return}
+      if(!Array.isArray(nw[a]))nw[a]=[];var key=function(x){return x.no||x.id||x.b||JSON.stringify(x)};var have={};nw[a].forEach(function(x){have[key(x)]=1});h[a].forEach(function(x){if(!have[key(x)])nw[a].push(x)})});
+     var sq=(raw.seq||{}),ns=nw.seq||(nw.seq={});Object.keys(sq).forEach(function(q){ns[q]=Math.max(+ns[q]||0,+sq[q]||0)});v=JSON.stringify(nw)}}catch(e){}}}
+   return s0.call(localStorage,k,v)};
+  window.__prodHidden=function(a){var sc=scope();if(!sc)return [];try{var raw=JP(og(PK),null);if(!raw)return [];var h=prodSplit(raw,sc).hid[a];return Array.isArray(h)?h:[]}catch(e){return []}};
+  var lastSig=null;setInterval(function(){try{if(typeof window.__prodSetD!=='function')return;var sg=SCSIG+'|'+(scope()?1:0);if(sg===lastSig)return;
+   if(lastSig!==null||scope()){var v=localStorage.getItem(PK);if(v)window.__prodSetD(JP(v,null))}lastSig=sg}catch(e){}},800)})();
+ // ---- org hierarchy filter ----
+ function filterOrg(d){var sc=scope();if(!sc||!d||!d.hierarchy)return d;var o={companies:[],hierarchy:{}};
+  Object.keys(d).forEach(function(k){if(k!=='companies'&&k!=='hierarchy')o[k]=d[k]});
+  (d.companies||[]).forEach(function(c){if(!okCBP(sc,c))return;var h=d.hierarchy[c];if(!h){o.companies.push(c);return}
+   var n=Object.assign({},h);n.bus=(h.bus||[]).filter(function(b){return okCBP(sc,c,b)});n.buMap={};n.bus.forEach(function(b){n.buMap[b]=((h.buMap||{})[b]||[]).filter(function(p){return okCBP(sc,c,b,p)})});
+   Object.keys(h).forEach(function(k){if(Array.isArray(h[k])&&k!=='bus'&&k!=='plants'){}});
+   if(h.plants)n.plants=h.plants.slice();o.companies.push(c);o.hierarchy[c]=n});return o}
+ (function(){var ob=window.prBuildOrgHierarchy;if(typeof ob==='function'&&!ob.__us){window.prBuildOrgHierarchy=function(){return filterOrg(ob.apply(this,arguments))};window.prBuildOrgHierarchy.__us=1}})();
+ // ---- dropdown filter (company / bu / pc / warehouse) ----
+ function whAllowed(sc,v){var m=whMaster()[lc(v)];if(m)return okWh(sc,v);return !(sc.whs||[]).length||has(sc.whs,v)}
+ var KN=null,KNS='';
+ function known(sc){var sig=SCSIG+'|'+(og('erp_fsetup_company')||'').length+'|'+(og('erp_fsetup_bu')||'').length+'|'+(og('erp_fsetup_pc')||'').length+'|'+(og('erp_fsetup_warehouse')||'').length+'|'+(typeof PR_ORG_DATA!=='undefined'?JSON.stringify(PR_ORG_DATA.companies||[]).length:0);
+  if(KN&&sig===KNS)return KN;KNS=sig;var K={},A={},mark=function(n,ok){if(!n)return;var l=lc(n);K[l]=1;if(ok)A[l]=1};
+  var O=rawOrg();O.cs.forEach(function(c){mark(c,okCBP(sc,c))});O.bus.forEach(function(x){var q=x.split('|');mark(q[1],okCBP(sc,q[0],q[1]))});O.pcs.forEach(function(x){var q=x.split('|');mark(q[2],okCBP(sc,q[0],q[1],q[2]))});O.whs.forEach(function(w){mark(w,okWh(sc,w))});
+  (sc.whs||[]).forEach(function(w){mark(w,true)});KN={K:K,A:A};return KN}
+ function selects(){var sc=scope();if(!sc)return;var Q=known(sc),cats=(sc.cats||[]).length;
+  [].forEach.call(document.querySelectorAll('select'),function(s){if(s.closest('#usOv,#ssOv,#fpOv'))return;
+   [].slice.call(s.options).forEach(function(o){var v=o.value;if(!v)return;var l=lc(v);
+    if(Q.K[l]&&!Q.A[l]){o.remove();return}
+    if(cats){if(isKnownCat(v)&&!has(sc.cats,v)){o.remove();return}var c=catOfItem(v)||catOfItem(o.textContent);if(c&&!has(sc.cats,c))o.remove()}})})}
+ function isKnownCat(v){var m=catMap(),f=false;Object.keys(m).forEach(function(k){if(lc(m[k])===lc(v))f=true});return f}
+ // org selects (bu/pc) are rebuilt from the filtered hierarchy; if data was already built, re-filter once
+ var sigDone='';
+ function applyOrg(){var sc=scope(),sig=SCSIG+'|'+(typeof currentUser!=='undefined'&&currentUser?currentUser.id:'');if(sig===sigDone)return;
+  try{if(typeof PR_ORG_DATA!=='undefined'&&PR_ORG_DATA&&PR_ORG_DATA.hierarchy&&sc){PR_ORG_DATA=filterOrg(PR_ORG_DATA);if(typeof prPopulateCompanySelect==='function')prPopulateCompanySelect()}}catch(e){}
+  sigDone=sig;showBadge()}
+ function showBadge(){var sc=scope(),b=E('usBadge');if(!sc){if(b)b.remove();return}
+  if(!b){b=document.createElement('div');b.id='usBadge';b.style.cssText='position:fixed;left:10px;bottom:10px;z-index:99980;background:#0f766e;color:#fff;font-size:11.5px;padding:5px 10px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.3);max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';document.body.appendChild(b)}
+  var p=[];if((sc.companies||[]).length)p.push('Company: '+sc.companies.join(', '));if((sc.bus||[]).length)p.push('BU: '+sc.bus.map(function(x){return x.split('|')[1]}).join(', '));if((sc.pcs||[]).length)p.push('PC: '+sc.pcs.map(function(x){return x.split('|')[2]}).join(', '));if((sc.whs||[]).length)p.push('Warehouse: '+sc.whs.join(', '));if((sc.cats||[]).length)p.push('Item Category: '+sc.cats.join(', '));
+  b.textContent='📍 Access limited — '+p.join(' · ');b.title=b.textContent}
+ function filterItemData(){var sc=scope();if(!sc||!(sc.cats||[]).length)return;[typeof PR_ITEM_DATA!=='undefined'?PR_ITEM_DATA:null,typeof PRODUCT_MASTER!=='undefined'?PRODUCT_MASTER:null].forEach(function(D){if(!D||!D.groups||!D.hierarchy)return;if(D.groups.some(function(g){return !has(sc.cats,g)})){D.groups=D.groups.filter(function(g){return has(sc.cats,g)});Object.keys(D.hierarchy).forEach(function(g){if(!has(sc.cats,g))delete D.hierarchy[g]});CMS=''}})}
+ setInterval(function(){applyOrg();filterItemData();selects()},700);
+ // ---- admin UI: Access Scope in User ID Setup ----
+ var CSS='<style>.us-ov{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100010;display:none;align-items:flex-start;justify-content:center;padding:24px;overflow:auto}.us-ov.on{display:flex}.us-box{background:#fff;border-radius:8px;width:min(1000px,100%);box-shadow:0 10px 40px rgba(0,0,0,.3)}.us-h{display:flex;align-items:center;background:linear-gradient(90deg,#0f766e,#14b8a6);color:#fff;padding:12px 16px;border-radius:8px 8px 0 0}.us-h h2{margin:0;font-size:17px;flex:1}.us-x{background:#fff2;border:0;color:#fff;font-size:18px;border-radius:4px;cursor:pointer;padding:2px 10px}.us-b{padding:14px 16px;font-size:13px}.us-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.us-c{border:1px solid #e2e8f0;border-radius:6px;padding:8px;max-height:320px;overflow:auto}.us-c h4{margin:0 0 6px;font-size:13px;color:#065f46}.us-c label{display:block;padding:2px 0;font-size:12.5px;cursor:pointer}.us-btn{background:#0f766e;color:#fff;border:0;border-radius:5px;padding:7px 16px;cursor:pointer;margin-right:6px}.us-btn.g{background:#475569}.us-n{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:12.5px}</style>';
+ function rawOrg(){var cs={},bus={},pcs={},whs={};var add=function(c,b,p){if(c)cs[c]=1;if(c&&b)bus[c+'|'+b]=1;if(c&&b&&p)pcs[c+'|'+b+'|'+p]=1};
+  try{var H=PR_ORG_DATA;(H.companies||[]).forEach(function(c){var h=H.hierarchy[c]||{};cs[c]=1;(h.bus||[]).forEach(function(b){add(c,b);((h.buMap||{})[b]||[]).forEach(function(p){add(c,b,p)})})})}catch(e){}
+  var dr=function(r){return r&&r.doc_state!=='Draft'};
+  Object.values(JP(og('erp_fsetup_company'),{})).forEach(function(r){if(dr(r)&&r.name)cs[r.name]=1});Object.values(JP(og('erp_fsetup_bu'),{})).forEach(function(r){if(dr(r))add(r.company,r.name)});Object.values(JP(og('erp_fsetup_pc'),{})).forEach(function(r){if(dr(r))add(r.company,r.bu,r.name)});
+  Object.values(JP(og('erp_fsetup_warehouse'),{})).forEach(function(r){if(dr(r)&&r.name)whs[r.name]=1});
+  var cats={};try{(PR_ITEM_DATA.groups||[]).forEach(function(g){cats[g]=1})}catch(e){}try{(PRODUCT_MASTER.groups||[]).forEach(function(g){cats[g]=1})}catch(e){}Object.values(JP(og('erp_item_master'),{})).forEach(function(r){if(r&&r.group)cats[r.group]=1});
+  return {cs:Object.keys(cs).sort(),bus:Object.keys(bus).sort(),pcs:Object.keys(pcs).sort(),whs:Object.keys(whs).sort(),cats:Object.keys(cats).sort()}}
+ var curUid='';
+ function openScope(uid){if(!uid){alert('Save the User ID first, then set its access scope.');return}
+  var all=JP(og('erp_userid_records'),{}),rec=all[uid];if(!rec){alert('Save the User ID first, then set its access scope.');return}
+  if(rec.super_admin){alert('Super Admin always has access to all locations.');return}
+  curUid=uid;var sc=rec.scope||{},O=rawOrg();
+  var ck=function(arr,v){return has(arr,v)?' checked':''};
+  var col=function(t,items,sel,lab,key){return '<div class="us-c"><h4>'+t+'</h4>'+(items.length?items.map(function(x){return '<label><input type="checkbox" data-g="'+key+'" value="'+esc(x)+'"'+ck(sel,x)+'> '+esc(lab?lab(x):x)+'</label>'}).join(''):'<div style="color:#94a3b8">No data in Setup</div>')+'</div>'};
+  if(!E('usOv')){var d=document.createElement('div');d.id='usOv';d.className='us-ov';d.innerHTML=CSS+'<div class="us-box"><div class="us-h"><h2 id="usTitle"></h2><button class="us-x" onclick="document.getElementById(\'usOv\').classList.remove(\'on\')">✕</button></div><div class="us-b" id="usBody"></div></div>';document.body.appendChild(d)}
+  E('usTitle').textContent='📍 Access Scope — User '+uid+(rec.employee_name?' ('+rec.employee_name+')':'');
+  E('usBody').innerHTML='<div class="us-n">Tick the locations this user may work in. The user will see <b>only</b> these in dropdowns, lists and reports. <b>Leave a column empty = no restriction at that level.</b> Item Category limits the item groups/items the user can pick and see. Example: tick only Company A → all BUs/PCs/warehouses of Company A. Tick BU “Food” too → only that BU of Company A.</div><div class="us-g">'
+   +col('🏛 Company',O.cs,sc.companies,null,'co')+col('🏷 Business Unit',O.bus,sc.bus,function(x){return x.split('|').join(' › ')},'bu')+col('📈 Profit Center',O.pcs,sc.pcs,function(x){return x.split('|').join(' › ')},'pc')+col('🏬 Warehouse',O.whs,sc.whs,null,'wh')+col('📦 Item Category',O.cats,sc.cats,null,'cat')
+   +'</div><div style="margin-top:10px"><label style="cursor:pointer"><input type="checkbox" id="usStrict"'+(sc.strict===false?'':' checked')+'> Also hide records that have <b>no</b> Company / BU / Profit Center information (older data) — recommended so reports show only this user\'s locations</label></div><div style="margin-top:12px"><button class="us-btn" onclick="__uscope.save()">💾 Save Scope</button><button class="us-btn g" onclick="__uscope.clear()">Remove all restrictions</button><span id="usMsg" style="color:#065f46;font-weight:600"></span></div>';
+  E('usOv').classList.add('on')}
+ function val(g){return [].map.call(E('usBody').querySelectorAll('input[data-g="'+g+'"]:checked'),function(i){return i.value})}
+ window.__uscope={open:openScope,
+  save:function(){var all=JP(og('erp_userid_records'),{}),r=all[curUid];if(!r)return;r.scope={companies:val('co'),bus:val('bu'),pcs:val('pc'),whs:val('wh'),cats:val('cat'),strict:E('usStrict').checked};r.scope_updated=new Date().toISOString();all[curUid]=r;ost0('erp_userid_records',JSON.stringify(all));E('usMsg').textContent='✅ Saved. Takes effect at the user\'s next login / refresh.';try{if(typeof renderUserIdSetupTable==='function')renderUserIdSetupTable()}catch(e){}},
+  clear:function(){var all=JP(og('erp_userid_records'),{}),r=all[curUid];if(!r)return;delete r.scope;all[curUid]=r;ost0('erp_userid_records',JSON.stringify(all));E('usMsg').textContent='✅ Restrictions removed.';openScope(curUid)},
+  allowed:function(k,r){var sc=scope();return !sc||allowedRec(k,r,sc)},scope:scope};
+ function hookForm(){var o=E('userIdSetupFormOverlay');if(!o)return;var ex=E('usScopeBtn');if(!ex){var bar=o.querySelector('.erp-form-actions');if(bar){var b=document.createElement('button');b.type='button';b.id='usScopeBtn';b.className='erp-btn';b.style.cssText='background:#0f766e;color:#fff';b.textContent='📍 Access Scope';b.onclick=function(){openScope((E('useridsetup_userid')||{}).value&&E('useridsetup_userid').value.trim())};bar.insertBefore(b,bar.firstChild)}}}
+ setInterval(hookForm,1000);
+ // list column: show scope summary in User ID list
+ setInterval(function(){var t=document.getElementById('userIdSetupTableBody');if(!t||t.__us)return;},3000);
+})();
+</script>
+
+<script id="orgFieldsJs">
+(function(){
+ if(window.__ofInit)return;window.__ofInit=1;
+ /* ===== Company / Business Unit / Profit Center on every form that lacks them ===== */
+ var og=window.__rawGet||localStorage.getItem.bind(localStorage);
+ var JP=function(s,d){try{var v=JSON.parse(s);return v==null?d:v}catch(e){return d}};
+ var lc=function(x){return String(x==null?'':x).trim().toLowerCase()};
+ var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
+ var LASTK='erp_orgf_last';
+ var OVS='.sdx-ov,.pr-list-overlay,.str-list-overlay,.weight-modal-overlay';
+ var SKIP=/(report|register|ledger|outstanding|valuation|movement|dashboard|trial balance|balance sheet|profit\s*(&amp;|&)\s*loss|cash flow|directory|ageing)/i;
+ var CUR={co:'',bu:'',pc:'',ref:''},seenAt=0;
+ function org(){return (typeof PR_ORG_DATA!=='undefined'&&PR_ORG_DATA&&PR_ORG_DATA.hierarchy)?PR_ORG_DATA:{companies:[],hierarchy:{}}}
+ function bus(c){var h=org().hierarchy[c];return h?(h.bus||[]):[]}
+ function pcs(c,b){var h=org().hierarchy[c];return h&&h.buMap&&h.buMap[b]?h.buMap[b]:[]}
+ function opts(arr,cur,ph){return '<option value="">'+ph+'</option>'+arr.map(function(x){return '<option value="'+esc(x)+'"'+(x===cur?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
+ // does overlay already have org fields?
+ function present(ov){var r={co:0,bu:0,pc:0};[].forEach.call(ov.querySelectorAll('input,select'),function(e){if(e.closest('.orgf-wrap'))return;var id=String(e.id||'');var l='';try{var f=e.closest('.erp-field')||e.parentElement;var lb=f&&f.querySelector('label');l=lb?lb.textContent:''}catch(x){}var t=(id+' '+l).toLowerCase();
+   if(/company/.test(t))r.co=1;if(/(^|[^a-z])bu([^a-z]|$)|business unit|_bu\b/.test(t))r.bu=1;if(/profit|(^|_)pc(_|$)|_pc\b/.test(t))r.pc=1});return r}
+ function lastOrg(){return JP(localStorage.getItem(LASTK),{})}
+ function findRec(ref){if(!ref)return null;var hit=null;Object.keys(localStorage).forEach(function(k){if(hit||!(/^erp_.+_records$/.test(k)||k==='erp_item_master'))return;var o=JP(og(k),null);if(!o||typeof o!=='object')return;Object.keys(o).forEach(function(i){var r=o[i];if(!hit&&r&&typeof r==='object'&&(r.ref_no===ref||r.ref===ref||r.no===ref||r.code===ref||i===ref)&&(r.company||r.bu||r.pc||r.profit_center))hit=r})});return hit}
+ function refOf(ov){var v='';[].forEach.call(ov.querySelectorAll('input'),function(e){if(!v&&e.offsetParent&&/^[A-Za-z][A-Za-z0-9]{1,6}-\d{3,8}$/.test((e.value||'').trim()))v=e.value.trim()});return v}
+ function defaults(co){var O=org(),c=CUR.co;if(!c){var L=lastOrg();c=L.co&&O.companies.indexOf(L.co)>-1?L.co:'';if(!c&&O.companies.length===1)c=O.companies[0]}
+  var b=CUR.bu;if(!b&&c){var bl=bus(c);if(bl.length===1)b=bl[0];else{var L2=lastOrg();if(L2.co===c&&bl.indexOf(L2.bu)>-1)b=L2.bu}}
+  var p=CUR.pc;if(!p&&c&&b){var pl=pcs(c,b);if(pl.length===1)p=pl[0];else{var L3=lastOrg();if(L3.co===c&&L3.bu===b&&pl.indexOf(L3.pc)>-1)p=L3.pc}}
+  CUR.co=c||'';CUR.bu=b||'';CUR.pc=p||''}
+ function wrapHtml(sd,label,cls,sel){return sd?'<div class="orgf-wrap"><label>'+label+' *</label>'+sel+'</div>':'<div class="erp-field orgf-wrap"><div class="erp-field-label-row"><label>'+label+' *</label></div>'+sel+'</div>'}
+ function build(grid,need,sd){var O=org(),h='';
+  if(need.co)h+=wrapHtml(sd,'Company','co','<select class="orgf-co" style="width:100%">'+opts(O.companies,CUR.co,'-- Select Company --')+'</select>');
+  if(need.bu)h+=wrapHtml(sd,'Business Unit','bu','<select class="orgf-bu" style="width:100%">'+opts(bus(CUR.co),CUR.bu,'-- Select BU --')+'</select>');
+  if(need.pc)h+=wrapHtml(sd,'Profit Center','pc','<select class="orgf-pc" style="width:100%">'+opts(pcs(CUR.co,CUR.bu),CUR.pc,'-- Select Profit Center --')+'</select>');
+  var d=document.createElement('div');d.innerHTML=h;var first=grid.firstChild;[].slice.call(d.children).forEach(function(n){grid.insertBefore(n,first)});
+  [].forEach.call(grid.querySelectorAll('.orgf-wrap select'),function(s){s.onchange=function(){onSel(s)}});}
+ function onSel(s){var c=s.className;if(/orgf-co/.test(c)){CUR.co=s.value;CUR.bu='';CUR.pc=''}else if(/orgf-bu/.test(c)){CUR.bu=s.value;CUR.pc=''}else CUR.pc=s.value;
+  syncAll()}
+ function syncAll(){var O=org();[].forEach.call(document.querySelectorAll('.orgf-wrap'),function(w){var s=w.querySelector('select');if(!s)return;var c=s.className;
+   if(/orgf-co/.test(c)){s.innerHTML=opts(O.companies,CUR.co,'-- Select Company --')}else if(/orgf-bu/.test(c)){s.innerHTML=opts(bus(CUR.co),CUR.bu,'-- Select BU --')}else{s.innerHTML=opts(pcs(CUR.co,CUR.bu),CUR.pc,'-- Select Profit Center --')}});
+  if(CUR.co)try{localStorage.setItem(LASTK,JSON.stringify({co:CUR.co,bu:CUR.bu,pc:CUR.pc}))}catch(e){}}
+ function title(ov){var h=ov.querySelector('h2,h3,.pr-list-header,.erp-form-header,.sdx-h,b');return (h?h.textContent:'')+' '+(ov.id||'')}
+ function inject(){var any=false;
+  [].forEach.call(document.querySelectorAll(OVS),function(ov){if(!ov.offsetParent&&getComputedStyle(ov).position!=='fixed')return;if(getComputedStyle(ov).display==='none')return;
+   var grids=[].filter.call(ov.querySelectorAll('.erp-field-grid,.sdx-g'),function(g){return g.offsetParent&&!g.closest('#sdDash,.menu-bar')});
+   if(!grids.length)return;var g=grids[0];if(g.querySelector('.orgf-wrap')){any=true;return}
+   if(SKIP.test(title(ov))&&!ov.querySelector('.sdx-g'))return;
+   if(g.closest('[id$="ListView"]')&&g.closest('[id$="ListView"]').offsetParent)return;
+   if(ov.querySelectorAll('input:not([type=hidden]):not([type=checkbox]),select,textarea').length<4)return;
+   var pr=present(ov),need={co:!pr.co,bu:!pr.bu,pc:!pr.pc};if(!need.co&&!need.bu&&!need.pc)return;
+   var sd=g.classList.contains('sdx-g'),ref=refOf(ov);
+   if(ref&&ref!==CUR.ref){var r=findRec(ref);CUR={co:r?(r.company||''):'',bu:r?(r.bu||''):'',pc:r?(r.pc||r.profit_center||''):'',ref:ref}}
+   else if(!ref&&CUR.ref){CUR.ref=''}
+   defaults();build(g,need,sd);any=true;
+   // read-only view: disable when other inputs are disabled
+   var others=[].filter.call(g.querySelectorAll('input,select,textarea'),function(e){return !e.closest('.orgf-wrap')&&e.type!=='hidden'&&!e.readOnly});if(others.length&&others.every(function(e){return e.disabled}))[].forEach.call(g.querySelectorAll('.orgf-wrap select'),function(s){s.disabled=true})});
+  if(any)seenAt=Date.now();else if(Date.now()-seenAt>2000){CUR={co:'',bu:'',pc:'',ref:''}}}
+ setInterval(inject,600);
+ // ---- required validation on save-like buttons ----
+ var ARM=0;
+ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button');if(!b)return;var w=b.closest('.sdx-ov,.pr-list-overlay,.str-list-overlay,.weight-modal-overlay');if(!w||!w.querySelector('.orgf-wrap'))return;
+  var t=(b.textContent||'').trim();if(!/(💾|save|submit|complete|✅|update|post)/i.test(t)||/(exit|cancel|back|close)/i.test(t))return;
+  var ob=w.querySelector('.orgf-co'),ou=w.querySelector('.orgf-bu'),op=w.querySelector('.orgf-pc'),O=org(),m='';
+  if(ob&&!ob.value)m='Company';else if(ou&&!ou.value&&bus(CUR.co).length)m='Business Unit';else if(op&&!op.value&&pcs(CUR.co,CUR.bu).length)m='Profit Center';
+  if(m){e.preventDefault();e.stopImmediatePropagation();alert('Please select '+m+' before saving.');return}
+  ARM=Date.now()+4000},true);
+ document.addEventListener('submit',function(e){var w=e.target.closest&&e.target.closest('.sdx-ov,.pr-list-overlay,.str-list-overlay,.weight-modal-overlay');if(!w||!w.querySelector('.orgf-wrap'))return;var ob=w.querySelector('.orgf-co');if(ob&&!ob.value){e.preventDefault();e.stopImmediatePropagation();alert('Please select Company before saving.');return}ARM=Date.now()+4000},true);
+ // ---- stamp company / bu / pc into the saved record ----
+ var ost=localStorage.setItem.bind(localStorage);
+ localStorage.setItem=function(k,v){
+  if(Date.now()<ARM&&CUR.co&&(/^erp_.+_records$/.test(k)||k==='erp_item_master')&&k!=='erp_userid_records'&&k!=='erp_je_records'){
+   try{var nw=JP(v,null);if(nw&&typeof nw==='object'&&!Array.isArray(nw)){var old=JP(og(k),{}),ch=0;
+    Object.keys(nw).forEach(function(id){var r=nw[id];if(!r||typeof r!=='object'||Array.isArray(r))return;if(r.company)return;if(old[id]&&JSON.stringify(old[id])===JSON.stringify(r))return;
+     r.company=CUR.co;if(CUR.bu){r.bu=CUR.bu}if(CUR.pc){r.pc=CUR.pc;r.profit_center=CUR.pc}ch=1});
+    if(ch)v=JSON.stringify(nw)}}catch(e){}}
+  return ost(k,v)};
+ window.__orgf={cur:function(){return CUR},inject:inject};
+})();
+</script>
+
+<script id="supabaseJs">
+(function(){
+ if(window.__sbInit)return;window.__sbInit=1;
+ var NG=function(k){return Storage.prototype.getItem.call(localStorage,k)},NS=function(k,v){try{Storage.prototype.setItem.call(localStorage,k,v)}catch(e){}},NR=function(k){Storage.prototype.removeItem.call(localStorage,k)};
+ var VIEW=localStorage.getItem;                       // scope-filtered view (same one the app sees)
+ var JP=function(s,d){try{var v=JSON.parse(s);return v==null?d:v}catch(e){return d}};
+ var E=function(i){return document.getElementById(i)};
+ var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
+ var CFGK='erp_sb_cfg',SESK='erp_sb_sess',QK='erp_sb_q',VK='erp_sb_ver',CURK='erp_sb_cur',CONFK='erp_sb_conf',LASTK='erp_sb_lastuser',REJK='erp_sb_rej',BLKK='erp_sb_blk';
+ function cfg(){return JP(NG(CFGK),{})}
+ function ON(){var c=cfg();return !!(c.url&&c.anon&&c.on!==false)}
+ function sess(){return JP(NG(SESK),null)}
+ var applying=0,busy=0,pulling=0,last={at:'',msg:'Not connected',ok:true},lastPull='';
+ function status(m,ok){last={at:new Date().toLocaleTimeString(),msg:m,ok:ok!==false};var s=E('sbStatus');if(s){s.textContent=last.at+' - '+m;s.style.color=last.ok?'#065f46':'#b91c1c'}}
+ // ------------------------------------------------------------------ key classification
+ var EXC=/^erp_(sb_|setup_|orgf_|fpost_seeded)/;
+ function kind(k){if(!/^erp/.test(k)||EXC.test(k))return '';if(k==='erpProd1')return 'prod';if(/^erp_.+serial$/.test(k))return 'counter';
+  if(/^erp_.+_records$/.test(k)||k==='erp_item_master'||/^erp_fsetup_/.test(k))return 'dict';
+  if(k==='erp_stock_transactions')return 'array';if(k==='erp_fpost_map'||k==='erp_fpost_log')return 'single';return ''}
+ function syncKeys(){var o=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(kind(k))o.push(k)}return o}
+ // ------------------------------------------------------------------ record <-> document mapping
+ var SUB={plans:function(r){return r.no},batches:function(r){return r.no},cons:function(r){return r.b+'|'+r.rm+'|'+r.date},rcv:function(r){return r.no},qcc:function(r){return r.no},rpc:function(r){return r.no},recipes:function(r){return r.id},qcstd:function(r){return r.fg}};
+ function arrMap(a,idf){var o={},dup={};(a||[]).forEach(function(r,i){if(!r||typeof r!=='object')return;var id=String(idf(r)==null||idf(r)===''?('#'+i):idf(r));if(o[id]!==undefined){dup[id]=(dup[id]||1)+1;id=id+'#'+dup[id]}o[id]=r});return o}
+ function arrId(r,i){return String(r&&(r.id||r.txn_id||r.ref||r.ref_no||r.no)||('#'+i))}
+ function strip(k,r){if(k!=='erp_userid_records'||!r||typeof r!=='object')return r;var c=Object.assign({},r);delete c.password;return c}
+ // -> {docKey:{id:data}}
+ function docMap(k,raw){var d=JP(raw,null),out={},kd=kind(k);
+  if(kd==='dict'){out[k]={};if(d&&typeof d==='object'&&!Array.isArray(d))Object.keys(d).forEach(function(id){if(d[id]&&typeof d[id]==='object')out[k][id]=strip(k,d[id])})}
+  else if(kd==='array'){out[k]={};if(Array.isArray(d)){var dup={};d.forEach(function(r,i){var id=arrId(r,i);if(out[k][id]!==undefined){dup[id]=(dup[id]||1)+1;id=id+'#'+dup[id]}out[k][id]=r})}}
+  else if(kd==='single'){out[k]={};if(d!=null)out[k]._=d}
+  else if(kd==='prod'&&d&&typeof d==='object'){Object.keys(SUB).forEach(function(s){out[k+':'+s]=arrMap(d[s],SUB[s])});
+   var st={};Object.keys(d.stock||{}).forEach(function(w){Object.keys(d.stock[w]||{}).forEach(function(f){st[w+'||'+f]={wh:w,fg:f,q:+d.stock[w][f]||0}})});out[k+':stock']=st;out[k+':seq']=d.seq?{_:d.seq}:{}}
+  return out}
+ function prodCtx(){var d=JP(NG('erpProd1'),{}),pm={},bm={};(d.plans||[]).forEach(function(p){pm[p.no]=p});(d.batches||[]).forEach(function(b){bm[b.no]=pm[b.dpp]||null});return {pm:pm,bm:bm}}
+ function tagsFor(dk,id,data,PC){var T={company:'',bu:'',pc:'',whs:[],cats:[],strict:false};
+  try{
+   if(dk.indexOf('erpProd1:')===0){var s=dk.slice(9),p=null;
+    if(s==='plans'){T.company=data.co||'';T.bu=data.bu||'';T.pc=data.pc||'';T.strict=true;return T}
+    if(s==='batches'){p=PC.pm[data.dpp];if(data.fgwh)T.whs.push(data.fgwh)}
+    else if(s==='cons'||s==='rcv'||s==='qcc'){p=PC.bm[data.b||data.bn]||null;if(data.wh)T.whs.push(data.wh)}
+    else if(s==='rpc'||s==='stock'){if(data.wh)T.whs.push(data.wh)}
+    else if(s==='recipes'&&data.cat)T.cats.push(data.cat);
+    if(p){T.company=p.co||'';T.bu=p.bu||'';T.pc=p.pc||''}return T}
+   if(typeof window.__scopeTags==='function'&&data&&typeof data==='object'&&!Array.isArray(data)){var t=window.__scopeTags(dk,data);if(dk==='erp_userid_records'){t.strict=false;t.company=t.bu=t.pc='';t.whs=[];t.cats=[]}return t}
+  }catch(e){}return T}
+ // apply downloaded rows of one doc key to local storage
+ function applyRows(dk,rows){
+  var i=dk.indexOf(':'),k=i<0?dk:dk.slice(0,i),sub=i<0?'':dk.slice(i+1),kd=kind(k),raw=NG(k),d=JP(raw,null);
+  applying=1;try{
+   if(kd==='dict'){d=(d&&typeof d==='object'&&!Array.isArray(d))?d:{};rows.forEach(function(r){if(r.deleted)delete d[r.id];else{var nd=r.data;if(k==='erp_userid_records'){var old=d[r.id]||{};nd=Object.assign({},nd,old.password!=null?{password:old.password}:{})}d[r.id]=nd}});NS(k,JSON.stringify(d))}
+   else if(kd==='single'){rows.forEach(function(r){if(r.id==='_')NS(k,JSON.stringify(r.deleted?null:r.data))})}
+   else if(kd==='array'){d=Array.isArray(d)?d:[];var m=arrMap(d,function(r){return arrId(r,0)});rows.forEach(function(r){if(r.deleted)delete m[r.id];else m[r.id]=r.data});
+    var seen={},out=[];d.forEach(function(r,ix){var id=arrId(r,ix);if(m[id]!==undefined&&!seen[id]){out.push(m[id]);seen[id]=1}});Object.keys(m).forEach(function(id){if(!seen[id])out.push(m[id])});NS(k,JSON.stringify(out))}
+   else if(kd==='prod'){d=(d&&typeof d==='object')?d:{seq:{dpp:0,bat:0}};
+    if(sub==='stock'){d.stock=d.stock||{};rows.forEach(function(r){var x=r.data||{};if(!x.wh)return;if(r.deleted){if(d.stock[x.wh])delete d.stock[x.wh][x.fg]}else{d.stock[x.wh]=d.stock[x.wh]||{};d.stock[x.wh][x.fg]=+x.q||0}})}
+    else if(sub==='seq'){rows.forEach(function(r){if(r.id==='_'&&r.data){d.seq=d.seq||{};Object.keys(r.data).forEach(function(q){d.seq[q]=Math.max(+d.seq[q]||0,+r.data[q]||0)})}})}
+    else if(SUB[sub]){var old=d[sub]||[],m=arrMap(old,SUB[sub]);rows.forEach(function(r){if(r.deleted)delete m[r.id];else m[r.id]=r.data});
+     var seen={},out=[],om=arrMap(old,SUB[sub]);Object.keys(om).forEach(function(id){if(m[id]!==undefined){out.push(m[id]);seen[id]=1}});Object.keys(m).forEach(function(id){if(!seen[id])out.push(m[id])});d[sub]=out}
+    NS(k,JSON.stringify(d))}
+  }finally{applying=0}}
+ // ------------------------------------------------------------------ queue / versions / conflicts
+ function Q(){return JP(NG(QK),[])}function setQ(q){NS(QK,JSON.stringify(q))}
+ function VER(){return JP(NG(VK),{})}function setVER(v){NS(VK,JSON.stringify(v))}
+ function CONF(){return JP(NG(CONFK),[])}function setCONF(c){NS(CONFK,JSON.stringify(c))}
+ function REJ(){return JP(NG(REJK),[])}function setREJ(c){NS(REJK,JSON.stringify(c.slice(-100)))}
+ function enqueue(op){var q=Q(),key=op.op+'|'+(op.dk||op.k)+'|'+(op.id||'');var ix=-1;q.forEach(function(x,i){if((x.op+'|'+(x.dk||x.k)+'|'+(x.id||''))===key)ix=i});
+  if(ix>=0)q[ix]=Object.assign(op,{base:q[ix].base});else q.push(op);
+  if(op.op==='up'||op.op==='del'){/* an up and del of the same doc replace each other */q=q.filter(function(x,i){return !(i!==(ix>=0?ix:q.length-1)&&x.dk===op.dk&&x.id===op.id&&(x.op==='up'||x.op==='del'))})}
+  setQ(q);schedule()}
+ function diffEnqueue(k,oldRaw,newRaw){var o=docMap(k,oldRaw),n=docMap(k,newRaw),PC=kind(k)==='prod'?prodCtx():null,V=VER();
+  Object.keys(Object.assign({},o,n)).forEach(function(dk){var om=o[dk]||{},nm=n[dk]||{};
+   Object.keys(nm).forEach(function(id){var s=JSON.stringify(nm[id]);if(om[id]===undefined||JSON.stringify(om[id])!==s)enqueue({op:'up',dk:dk,id:id,data:nm[id],tags:tagsFor(dk,id,nm[id],PC),t:Date.now()})});
+   Object.keys(om).forEach(function(id){if(nm[id]===undefined)enqueue({op:'del',dk:dk,id:id,data:om[id],tags:tagsFor(dk,id,om[id],PC),t:Date.now()})})});
+  if(k==='erp_userid_records'){var a=JP(oldRaw,{}),b=JP(newRaw,{});Object.keys(b).forEach(function(id){var r=b[id]||{};if(r.password&&(!a[id]||a[id].password!==r.password))enqueue({op:'pw',id:id,uid:String(r.user_id||id),name:r.employee_name||'',password:r.password,t:Date.now()})})}}
+ // ------------------------------------------------------------------ network
+ function tokenP(){var s=sess();if(!s)return Promise.resolve(null);if(s.exp-60>Date.now()/1000)return Promise.resolve(s.access);
+  return fetch(cfg().url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:cfg().anon,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.refresh})}).then(function(r){return r.json().then(function(j){if(!r.ok||!j.access_token){NR(SESK);throw new Error('Session expired - please log in again')}saveSess(j);return j.access_token})})}
+ function saveSess(j){NS(SESK,JSON.stringify({access:j.access_token,refresh:j.refresh_token,exp:j.expires_at||Math.floor(Date.now()/1000)+(j.expires_in||3600),uid:(j.user&&j.user.email||'').split('@')[0]}))}
+ function http(method,path,body,extra,base){return tokenP().then(function(t){if(!t)throw new Error('Not signed in to server');var h={apikey:cfg().anon,Authorization:'Bearer '+t,'Content-Type':'application/json'};if(extra)Object.assign(h,extra);
+   return fetch(cfg().url+(base||'/rest/v1/')+path,{method:method,headers:h,body:body==null?undefined:JSON.stringify(body)}).then(function(r){return r.text().then(function(x){var j=null;try{j=x?JSON.parse(x):null}catch(e){}return {status:r.status,json:j}})})})}
+ function ep(s){return encodeURIComponent(s)}
+ function rowOf(op){var t=op.tags||{};return {key:op.dk,id:op.id,company:t.company||'',bu:t.bu||'',pc:t.pc||'',whs:t.whs||[],cats:t.cats||[],strict:!!t.strict,data:op.data,deleted:op.op==='del'}}
+ function conflict(op,remote,why){var c=CONF().filter(function(x){return !(x.dk===op.dk&&x.id===op.id)});c.push({dk:op.dk,id:op.id,mine:op.data,theirs:remote?remote.data:null,ver:remote?remote.version:0,deleted:remote?remote.deleted:false,why:why||'version',t:Date.now()});setCONF(c)}
+ function sendOne(op){
+  if(op.op==='ctr')return http('POST','rpc/erp_bump',{p_key:op.k,p_value:op.val}).then(function(r){return r.status<300?{ok:1}:{fail:r}});
+  if(op.op==='pw')return http('POST','erp-admin-user',{user_id:op.uid,password:op.password,name:op.name},null,'/functions/v1/').then(function(r){return r.status<300&&r.json&&r.json.ok?{ok:1}:{fail:r}});
+  var key=op.dk+'|'+op.id,V=VER(),base=V[key],row=rowOf(op);
+  if(base===undefined){return http('POST','erp_docs',row,{Prefer:'return=representation'}).then(function(r){
+    if(r.status<300&&r.json&&r.json[0]){var v=VER();v[key]=r.json[0].version;setVER(v);return {ok:1}}
+    if(r.status===409)return getRow(op).then(function(rm){if(rm&&rm.version){var v=VER();v[key]=rm.version;setVER(v)}conflict(op,rm,'exists');return {conf:1}});
+    return {fail:r}})}
+  var body=Object.assign({},row,{version:base+1});
+  return http('PATCH','erp_docs?key=eq.'+ep(op.dk)+'&id=eq.'+ep(op.id)+'&version=eq.'+base,body,{Prefer:'return=representation'}).then(function(r){
+   if(r.status<300&&r.json&&r.json[0]){var v=VER();v[key]=r.json[0].version;setVER(v);return {ok:1}}
+   if(r.status<300)return getRow(op).then(function(rm){if(!rm)return {fail:{status:403,json:{message:'not allowed (outside your access scope)'}}};var v=VER();v[key]=rm.version;setVER(v);conflict(op,rm,'version');return {conf:1}});
+   return {fail:r}})}
+ function getRow(op){return http('GET','erp_docs?select=*&key=eq.'+ep(op.dk)+'&id=eq.'+ep(op.id)).then(function(r){return r.json&&r.json[0]||null})}
+ function flush(){if(busy||!ON()||!sess())return Promise.resolve();var q=Q();if(!q.length)return Promise.resolve();busy=1;var done=0,fails=0;
+  function next(){var q=Q();if(!q.length)return Promise.resolve();var op=q[0];
+   return sendOne(op).then(function(res){var q2=Q();
+    if(res.ok||res.conf){q2.shift();setQ(q2);done++;return next()}
+    var st=res.fail&&res.fail.status;
+    if(st===401||st===0||st>=500)throw new Error('Server error '+st);
+    // permanent rejection (RLS / validation): park it so the queue does not block
+    var rj=REJ();rj.push({op:op.op,dk:op.dk||op.k,id:op.id,status:st,msg:(res.fail.json&&(res.fail.json.message||res.fail.json.error))||'rejected',t:Date.now()});setREJ(rj);q2.shift();setQ(q2);fails++;return next()})}
+  return next().then(function(){status('Uploaded '+done+' change(s)'+(fails?', '+fails+' rejected':'')+(CONF().length?', '+CONF().length+' conflict(s)':''),!fails)},function(e){status('Offline / retry later: '+e.message,false)}).then(function(){busy=0;draw()})}
+ var tmF=null;function schedule(){clearTimeout(tmF);tmF=setTimeout(function(){flush()},1500)}
+ // ------------------------------------------------------------------ pull
+ function pull(){if(pulling||!ON()||!sess())return Promise.resolve(0);pulling=1;var cur=NG(CURK)||'1970-01-01T00:00:00Z',total=0,V=VER(),changedKeys={},maxTs=cur,pend={};Q().forEach(function(x){if(x.dk)pend[x.dk+'|'+x.id]=1});
+  function page(){return http('GET','erp_docs?select=*&updated_at=gte.'+ep(cur)+'&order=updated_at.asc&limit=1000').then(function(r){
+    if(r.status>=300)throw new Error((r.json&&r.json.message)||('HTTP '+r.status));var rows=r.json||[],by={};
+    rows.forEach(function(x){var key=x.key+'|'+x.id;if(V[key]===x.version)return;
+     if(pend[key]){if(x.version>(V[key]||0)){conflict({dk:x.key,id:x.id,data:(Q().filter(function(q){return q.dk===x.key&&q.id===x.id})[0]||{}).data},x,'version')}return}
+     V[key]=x.version;(by[x.key]=by[x.key]||[]).push(x);total++;if(x.updated_at>maxTs)maxTs=x.updated_at});
+    Object.keys(by).forEach(function(dk){applyRows(dk,by[dk]);changedKeys[dk.split(':')[0]]=1});
+    rows.forEach(function(x){if(x.updated_at>maxTs)maxTs=x.updated_at});
+    if(rows.length>=1000&&maxTs>cur){cur=maxTs;return page()}})}
+  return page().then(function(){setVER(V);NS(CURK,maxTs);return http('GET','erp_counters?select=*')}).then(function(r){var BL=JP(NG(BLKK),{});((r&&r.json)||[]).forEach(function(c){var l=parseInt(NG(c.key)||'0',10)||0;if(BL[c.key]&&l<BL[c.key].to)return;if(+c.value>l){applying=1;NS(c.key,String(c.value));applying=0}})}).then(function(){
+    lastPull=new Date().toLocaleTimeString();if(changedKeys.erpProd1&&typeof window.__prodSetD==='function'){try{window.__prodSetD(JP(localStorage.getItem('erpProd1'),null))}catch(e){}}
+    if(total)try{document.dispatchEvent(new CustomEvent('erp-sb-pulled',{detail:Object.keys(changedKeys)}))}catch(e){}
+    status('Downloaded '+total+' change(s)',true);pulling=0;draw();return total},function(e){pulling=0;status('Download failed: '+e.message,false);draw();return 0})}
+ // ------------------------------------------------------------------ intercept local writes
+ (function(){var prev=localStorage.setItem;
+  localStorage.setItem=function(k,v){var tr=!applying&&ON()&&sess()&&kind(k),old=null;
+   if(tr&&kind(k)!=='counter'){try{old=VIEW.call(localStorage,k)}catch(e){old=NG(k)}}
+   var r=prev.call(localStorage,k,v);
+   if(tr){try{if(kind(k)==='counter'){var n=parseInt(v,10),bl=JP(NG(BLKK),{})[k];if(!isNaN(n)&&!(bl&&n>=bl.from&&n<=bl.to))enqueue({op:'ctr',k:k,val:n,t:Date.now()})}else diffEnqueue(k,old,v)}catch(e){}}
+   return r}})();
+ // ------------------------------------------------------------------ login / logout
+ function wrapLogin(){var o=window.handleLogin;if(typeof o!=='function'||o.__sb)return;
+  window.handleLogin=function(e){if(!ON())return o.apply(this,arguments);e.preventDefault();
+   var uid=(E('userId').value||'').trim(),pw=(E('password').value||'').trim(),er=E('loginError');
+   if(!uid||!pw){return o.apply(this,arguments)}
+   er.textContent='⏳ Signing in to server...';er.classList.add('show');er.style.color='';
+   fetch(cfg().url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:cfg().anon,'Content-Type':'application/json'},body:JSON.stringify({email:uid.toLowerCase()+'@erp.local',password:pw})}).then(function(r){return r.json().then(function(j){return {ok:r.ok&&j.access_token,j:j}})},function(){return {net:1}}).then(function(x){
+    if(x.net){er.classList.remove('show');return o.call(window,e)}                       // offline: local credentials still work
+    if(!x.ok){er.textContent='❌ Invalid User ID or Password';er.classList.add('show');return}
+    var lastU=NG(LASTK);if(lastU&&lastU!==uid){syncKeys().forEach(function(k){NR(k)});[QK,VK,CURK,CONFK,BLKK].forEach(NR)}   // different person on this browser: start clean
+    NS(LASTK,uid);saveSess(x.j);
+    return http('GET','erp_users?select=*&user_id=eq.'+ep(uid)).then(function(r){var me=r.json&&r.json[0]||{};
+     return pull().then(function(){var all=JP(NG('erp_userid_records'),{}),rec=all[uid]||{};
+      all[uid]=Object.assign({user_id:uid,employee_name:me.name||uid,employee_code:rec.employee_code||'',approval_ids:rec.approval_ids||[],verifier_ids:rec.verifier_ids||[]},rec,{password:pw,super_admin:!!me.is_admin||rec.super_admin,scope:me.scope&&Object.keys(me.scope).length?me.scope:rec.scope});
+      if(!me.is_admin&&!(me.scope&&Object.keys(me.scope).length))delete all[uid].scope;
+      applying=1;NS('erp_userid_records',JSON.stringify(all));applying=0;er.classList.remove('show');o.call(window,e);status('Signed in as '+uid,true);if(cfg().keepLocalPw!==true)setTimeout(function(){try{var a2=JP(NG('erp_userid_records'),{});if(a2[uid]&&a2[uid].password){a2[uid].password='';applying=1;NS('erp_userid_records',JSON.stringify(a2));applying=0}}catch(x){applying=0}},2500)})})
+   }).catch(function(err){er.textContent='❌ '+(err&&err.message||'Login failed');er.classList.add('show')});
+   return false};
+  window.handleLogin.__sb=1}
+ function wrapLogout(){var o=window.logout;if(typeof o!=='function'||o.__sb)return;window.logout=function(){try{if(ON()&&sess()&&Q().length)flush()}catch(e){}var r=o.apply(this,arguments);setTimeout(function(){NR(SESK)},2500);return r};window.logout.__sb=1}
+ setInterval(function(){wrapLogin();wrapLogout()},700);wrapLogin();wrapLogout();
+
+ // ------------------------------------------------------------------ Phase 2: duplicate-free document numbers
+ // The app builds a number as (stored serial + 1). We make sure the stored serial always sits inside a block of numbers
+ // reserved for THIS user on the server (erp_alloc_block), so two users can never produce the same number.
+ var NOALLOC=/saveToFirebase|syncAllToFirebase|loadFromFirebase|bulkSync|collect|syncNow|uploadAll|syncKeys|applyRows|diffEnqueue|docMap|setInterval|rebuildAndSync|__ssync|__fpost/;
+ function xhr(method,url,body,tok){try{var x=new XMLHttpRequest();x.open(method,url,false);x.setRequestHeader('apikey',cfg().anon);x.setRequestHeader('Authorization','Bearer '+tok);x.setRequestHeader('Content-Type','application/json');x.send(body==null?null:JSON.stringify(body));return {status:x.status,json:(function(){try{return JSON.parse(x.responseText)}catch(e){return null}})()}}catch(e){return {status:0}}}
+ function tokenSync(){var s=sess();if(!s)return null;if(s.exp-30>Date.now()/1000)return s.access;
+  try{var x=new XMLHttpRequest();x.open('POST',cfg().url+'/auth/v1/token?grant_type=refresh_token',false);x.setRequestHeader('apikey',cfg().anon);x.setRequestHeader('Content-Type','application/json');x.send(JSON.stringify({refresh_token:s.refresh}));if(x.status<300){var j=JSON.parse(x.responseText);saveSess(j);return j.access_token}}catch(e){}return null}
+ function allocBlock(k,cur){var t=tokenSync();if(!t)return null;var r=xhr('POST',cfg().url+'/rest/v1/rpc/erp_alloc_block',{p_key:k,p_min:cur,p_size:+cfg().blk||5},t);
+  if(r.status<300&&r.json&&r.json[0]&&r.json[0].from_n!=null)return {from:+r.json[0].from_n,to:+r.json[0].to_n};return null}
+ (function(){var prev=localStorage.getItem;
+  localStorage.getItem=function(k){var v=prev.call(localStorage,k);
+   if(typeof k==='string'&&/^erp_.+serial$/.test(k)&&!applying&&ON()&&sess()&&cfg().blocks!==false){
+    var cur=parseInt(v||'0',10)||0,B=JP(NG(BLKK),{}),bl=B[k];
+    if(!bl||cur>=bl.to||cur<bl.from-1){var st='';try{st=new Error().stack||''}catch(e){}
+     if(!NOALLOC.test(st)){var nb=allocBlock(k,cur);if(nb){B[k]=nb;NS(BLKK,JSON.stringify(B));applying=1;NS(k,String(nb.from-1));applying=0;v=String(nb.from-1)}}}}
+   return v}})();
+ // legacy Firebase DATA sync is switched off in server mode (the server is the single source of truth)
+ function offFirebase(){['saveToFirebase','syncAllToFirebase','startRealtimeSync'].forEach(function(n){var o=window[n];if(typeof o==='function'&&!o.__sb){window[n]=function(){if(ON()&&cfg().keepFirebase!==true)return;return o.apply(this,arguments)};window[n].__sb=1}});
+  var l=window.loadFromFirebase;if(typeof l==='function'&&!l.__sb){window.loadFromFirebase=function(cb){if(ON()&&cfg().keepFirebase!==true){if(typeof cb==='function')cb();return}return l.apply(this,arguments)};window.loadFromFirebase.__sb=1}}
+ setInterval(offFirebase,700);offFirebase();
+ // ------------------------------------------------------------------ background loops
+ setInterval(function(){if(ON()&&sess()&&document.visibilityState==='visible'){flush().then(function(){return pull()})}},20000);
+ window.addEventListener('online',function(){if(ON()&&sess())flush().then(pull)});
+
+ // ------------------------------------------------------------------ diagnostics (first real connection)
+ var DIAGH='';function diag(){var out=[],c=cfg();function add(n,ok,msg,hint){out.push({n:n,ok:ok,msg:msg,hint:hint||''});show()}
+  function show(){var d=E('sbDiag');if(d)DIAGH=d.innerHTML='<table><tr><th>Check</th><th></th><th>Result / what to do</th></tr>'+out.map(function(x){return '<tr><td>'+esc(x.n)+'</td><td>'+(x.ok===null?'…':x.ok?'✅':'❌')+'</td><td>'+esc(x.msg)+(x.hint?'<br><i>'+esc(x.hint)+'</i>':'')+'</td></tr>'}).join('')+'</table>'}
+  if(!c.url||!c.anon){add('Settings',false,'URL or anon key missing','Fill Project URL and anon key, then Save.');return}
+  if(/service_role/i.test(c.anon)||(c.anon.split('.')[1]&&(function(){try{return JSON.parse(atob(c.anon.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).role==='service_role'}catch(e){return false}})())){add('Key type',false,'This looks like the service_role key!','Stop: use the anon (public) key. Rotate the service_role key in Supabase -> Settings -> API.');return}
+  add('Key type',true,'anon key');
+  fetch(c.url+'/auth/v1/health',{headers:{apikey:c.anon}}).then(function(r){add('Server reachable',r.ok,'HTTP '+r.status,r.ok?'':'Check the Project URL (https://<ref>.supabase.co) and that the project is not paused.')},function(e){add('Server reachable',false,String(e.message||e),'Network blocked, wrong URL, or project paused.')}).then(function(){
+   var s=sess();if(!s){add('Signed in',false,'Not signed in','Use "Sign in" above (admin User ID + password created in Authentication -> Users as <id>@erp.local).');return}
+   add('Signed in',true,s.uid);
+   return http('GET','erp_users?select=*&limit=5').then(function(r){if(r.status===404||(r.json&&/relation|schema cache|does not exist/i.test(JSON.stringify(r.json)))){add('Schema installed',false,'Table erp_users not found','Run supabase/schema.sql in the SQL Editor.');return}
+    if(r.status>=300){add('Schema installed',false,'HTTP '+r.status+' '+JSON.stringify(r.json).slice(0,120));return}
+    add('Schema installed',true,'erp_users readable');
+    var me=(r.json||[]).filter(function(x){return String(x.user_id)===String(s.uid)})[0];
+    add('ERP user row',!!me,me?('admin='+!!me.is_admin+', scope='+(Object.keys(me.scope||{}).length?'set':'none')):'No erp_users row for '+s.uid,me?'':'Insert it (SETUP.md step 3) - without it the server hides everything from this login.');
+    return http('GET','erp_docs?select=key,id&limit=1').then(function(r2){add('Read documents',r2.status<300,r2.status<300?((r2.json||[]).length+' row(s) visible'):'HTTP '+r2.status+' '+JSON.stringify(r2.json).slice(0,120))}).then(function(){
+     return http('POST','rpc/erp_alloc_block',{p_key:'erp_diag_serial',p_min:0,p_size:1}).then(function(r3){add('Number allocation (rpc)',r3.status<300,r3.status<300?'works':'HTTP '+r3.status,r3.status<300?'':'Re-run the latest schema.sql (Phase 2 function).')})}).then(function(){
+     return fetch(c.url+'/functions/v1/erp-admin-user',{method:'OPTIONS',headers:{apikey:c.anon}}).then(function(r4){add('Edge function erp-admin-user',r4.status<400,'HTTP '+r4.status,r4.status<400?'':'Deploy: supabase functions deploy erp-admin-user (needed only to create/reset other users).')},function(){add('Edge function erp-admin-user',false,'not reachable','Deploy it, or create users in the Supabase dashboard.')})})})
+  }).catch(function(e){add('Diagnostics',false,String(e.message||e))})}
+ // ------------------------------------------------------------------ admin tools + panel
+ function uploadAll(){if(!ON()||!sess())return status('Sign in first',false);var n=0;
+  syncKeys().forEach(function(k){var kd=kind(k);if(kd==='counter'){var v=parseInt(NG(k),10);if(!isNaN(v)){enqueue({op:'ctr',k:k,val:v,t:Date.now()});n++}return}
+   var raw=NG(k),m=docMap(k,raw),PC=kd==='prod'?prodCtx():null,V=VER();
+   Object.keys(m).forEach(function(dk){Object.keys(m[dk]).forEach(function(id){if(V[dk+'|'+id]!==undefined)return;enqueue({op:'up',dk:dk,id:id,data:m[dk][id],tags:tagsFor(dk,id,m[dk][id],PC),t:Date.now()});n++})});
+   if(k==='erp_userid_records'){var a=JP(raw,{});Object.keys(a).forEach(function(id){var r=a[id]||{};if(r.password)enqueue({op:'pw',id:id,uid:String(r.user_id||id),name:r.employee_name||'',password:r.password,t:Date.now()})})}});
+  status('Queued '+n+' record(s) for upload',true);flush().then(pull)}
+ function signInPanel(){var u=(E('sbU')||{}).value||'',p=(E('sbP')||{}).value||'';saveCfg();if(!u||!p)return status('Enter User ID and Password',false);
+  fetch(cfg().url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:cfg().anon,'Content-Type':'application/json'},body:JSON.stringify({email:u.toLowerCase()+'@erp.local',password:p})}).then(function(r){return r.json().then(function(j){if(!r.ok||!j.access_token)throw new Error(j.error_description||j.msg||'Invalid login');saveSess(j);NS(LASTK,u);status('Signed in as '+u,true);return pull()})}).catch(function(e){status('Sign-in failed: '+e.message,false)}).then(draw)}
+ function resolveC(i,how){var c=CONF(),x=c[i];if(!x)return;c.splice(i,1);setCONF(c);
+  if(how==='server'){var V=VER();V[x.dk+'|'+x.id]=x.ver;setVER(V);applyRows(x.dk,[{id:x.id,data:x.theirs,deleted:x.deleted}]);var q=Q().filter(function(o){return !(o.dk===x.dk&&o.id===x.id)});setQ(q);status('Server version applied',true)}
+  else{var V2=VER();V2[x.dk+'|'+x.id]=x.ver;setVER(V2);var q2=Q().filter(function(o){return !(o.dk===x.dk&&o.id===x.id)});var k=x.dk.split(':')[0];q2.push({op:'up',dk:x.dk,id:x.id,data:x.mine,tags:tagsFor(x.dk,x.id,x.mine,kind(k)==='prod'?prodCtx():null),t:Date.now()});setQ(q2);flush();status('Your version will overwrite the server copy',true)}draw()}
+ function saveCfg(){var c=cfg();c.url=((E('sbUrl')||{value:c.url||''}).value||'').trim().replace(/\/+$/,'');c.anon=((E('sbKey')||{value:c.anon||''}).value||'').trim();c.on=E('sbOn')?E('sbOn').checked:c.on!==false;if(E('sbBlk'))c.blk=Math.max(1,Math.min(1000,parseInt(E('sbBlk').value,10)||5));NS(CFGK,JSON.stringify(c));return c}
+ var CSS='<style>.sb-ov{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:99996;display:none;align-items:flex-start;justify-content:center;padding:24px;overflow:auto}.sb-ov.on{display:flex}.sb-box{background:#fff;border-radius:8px;width:min(900px,100%);box-shadow:0 10px 40px rgba(0,0,0,.3)}.sb-h{display:flex;align-items:center;background:linear-gradient(90deg,#1e3a8a,#3b82f6);color:#fff;padding:12px 16px;border-radius:8px 8px 0 0}.sb-h h2{margin:0;font-size:17px;flex:1}.sb-x{background:#fff2;border:0;color:#fff;font-size:18px;border-radius:4px;cursor:pointer;padding:2px 10px}.sb-b{padding:14px 16px;font-size:13px}.sb-b input[type=text],.sb-b input[type=password]{width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;box-sizing:border-box}.sb-b label{display:block;font-weight:600;margin:8px 0 3px}.sb-b button{background:#2563eb;color:#fff;border:0;border-radius:4px;padding:6px 12px;margin:6px 6px 0 0;cursor:pointer}.sb-b button.g{background:#64748b}.sb-b table{border-collapse:collapse;width:100%;margin-top:6px}.sb-b td,.sb-b th{border:1px solid #e2e8f0;padding:4px 6px;text-align:left;font-size:12px;vertical-align:top}.sb-pill{display:inline-block;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:2px 10px;margin-right:6px}</style>';
+ function open(){if(!E('sbOv')){var d=document.createElement('div');d.id='sbOv';d.className='sb-ov';d.onclick=function(e){if(e.target===d)d.classList.remove('on')};d.innerHTML=CSS+'<div class="sb-box"><div class="sb-h"><h2>🗄️ Server Database (Supabase)</h2><button class="sb-x" onclick="document.getElementById(\'sbOv\').classList.remove(\'on\')">✕</button></div><div class="sb-b" id="sbBody"></div></div>';document.body.appendChild(d)}E('sbOv').classList.add('on');draw()}
+ function draw(){var b=E('sbBody');if(!b||!E('sbOv')||!E('sbOv').classList.contains('on'))return;var c=cfg(),s=sess(),q=Q(),cf=CONF(),rj=REJ();
+  var keep={u:(E('sbU')||{}).value||'',p:''};
+  b.innerHTML='<div><span class="sb-pill">'+(ON()?'Server mode ON':'Server mode OFF (local only)')+'</span><span class="sb-pill">'+(s?'Signed in: '+esc(s.uid):'Not signed in')+'</span><span class="sb-pill">Pending upload: '+q.length+'</span><span class="sb-pill">Conflicts: '+cf.length+'</span><span class="sb-pill">Last download: '+esc(lastPull||'-')+'</span></div>'+
+   '<div id="sbStatus" style="margin:8px 0;font-weight:600;color:'+(last.ok?'#065f46':'#b91c1c')+'">'+esc(last.at?last.at+' - '+last.msg:last.msg)+'</div>'+
+   '<label>Project URL</label><input type="text" id="sbUrl" placeholder="https://xxxx.supabase.co" value="'+esc(c.url||'')+'">'+
+   '<label>Anon (public) key — never paste the service_role key</label><input type="text" id="sbKey" value="'+esc(c.anon||'')+'">'+
+   '<label><input type="checkbox" id="sbOn" '+(c.on!==false?'checked':'')+'> Use server database (login through server)</label>'+'<label>Document-number block size (numbers reserved per request; unused numbers of a block are skipped)</label><input type="text" id="sbBlk" style="width:90px" value="'+esc(c.blk||5)+'">'+
+   '<button onclick="__sb.save()">Save</button><button class="g" onclick="__sb.test()">Test connection</button>'+
+   '<hr><label>Sign in now (admin, to upload existing data)</label><div style="display:flex;gap:8px"><input type="text" id="sbU" placeholder="User ID" value="'+esc(keep.u)+'"><input type="password" id="sbP" placeholder="Password"></div>'+
+   '<button onclick="__sb.signin()">Sign in</button><button class="g" onclick="__sb.diag()">Run diagnostics</button><button onclick="__sb.syncNow()">Sync now</button><button onclick="__sb.upload()">Upload all local data to server (admin)</button>'+
+   '<div id="sbDiag"></div>'+(cf.length?'<h3>Conflicts (someone else changed the same record)</h3><table><tr><th>Document</th><th>Why</th><th></th></tr>'+cf.map(function(x,i){return '<tr><td>'+esc(x.dk)+' / '+esc(x.id)+'</td><td>'+esc(x.why)+'</td><td><button onclick="__sb.resolve('+i+',\'server\')">Use server version</button><button class="g" onclick="__sb.resolve('+i+',\'mine\')">Keep mine</button></td></tr>'}).join('')+'</table>':'')+
+   (rj.length?'<h3>Rejected by server (not saved)</h3><table><tr><th>Document</th><th>Reason</th></tr>'+rj.slice(-8).map(function(x){return '<tr><td>'+esc(x.dk)+' / '+esc(x.id)+'</td><td>'+esc(x.msg)+'</td></tr>'}).join('')+'</table><button class="g" onclick="__sb.clearRej()">Clear</button>':'');if(E('sbDiag'))E('sbDiag').innerHTML=DIAGH}
+ window.__sb={open:open,save:function(){saveCfg();status('Settings saved');draw()},
+  test:function(){var c=saveCfg();status('Testing...');fetch(c.url+'/auth/v1/health',{headers:{apikey:c.anon}}).then(function(r){status(r.ok?'Connection OK':'Failed: HTTP '+r.status,r.ok)}).catch(function(e){status('Failed: '+e.message,false)}).then(draw)},
+  signin:signInPanel,diag:diag,syncNow:function(){saveCfg();flush().then(pull)},upload:uploadAll,resolve:resolveC,clearRej:function(){setREJ([]);draw()},
+  _flush:flush,_pull:pull,_blk:function(){return JP(NG(BLKK),{})},_queue:Q,_conf:CONF,_kind:kind,_docMap:docMap};
+ function menu(){[['setup','item_master'],['sd_setup','sd_customer_master'],['fico_setup','fico_coa'],['hr_employee','hr_erp_setup']].forEach(function(p){var d=document.querySelector('.dropdown[data-parent="'+p[0]+'"]');if(d&&!d.querySelector('[data-sub="server_db"]')){var a=document.createElement('a');a.href='#';a.setAttribute('data-sub','server_db');a.innerHTML='<span class="arrow">🗄</span> Server Database';a.onclick=function(e){e.preventDefault();open();return false};d.appendChild(a)}})}
  setInterval(menu,1000);menu();
 })();
 </script>
