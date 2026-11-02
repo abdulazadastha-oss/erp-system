@@ -4,7 +4,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Opened ERP · Login · Production</title>
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script id="dashRangeJs">
+(function(){
+ if(window.__dashFT)return;
+ var ST={};
+ function p2(x){return String(x).padStart(2,'0')}
+ function ymd(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+ function def(){var n=new Date();return[n.getFullYear()+'-'+p2(n.getMonth()+1)+'-01',ymd(n)]}
+ window.__dashFT=function(k){var s=ST[k]||(ST[k]=def()),a=s[0]||'',b=s[1]||'';if(a&&b&&a>b){var t=a;a=b;b=t}return[a,b||'9999-12-31']};
+ window.__dashSpan=function(r){var a=r[0]?new Date(r[0]+'T00:00:00'):null,b=r[1]&&r[1]<'9999'?new Date(r[1]+'T00:00:00'):new Date();return a?Math.round((b-a)/864e5):9999};
+ window.__dashSet=function(k,i,v,fn){var s=ST[k]||(ST[k]=def());s[i]=v;if(typeof window[fn]==='function')window[fn]()};
+ window.__dashReset=function(k,fn){ST[k]=def();if(typeof window[fn]==='function')window[fn]()};
+ window.__dashFTHtml=function(k,fn){var s=ST[k]||(ST[k]=def());
+  var st='padding:4px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;color:#0f172a;background:#fff;min-width:124px';
+  return '<span class="dash-ft" style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:600"><span>From</span><input type="date" value="'+s[0]+'" style="'+st+'" onchange="__dashSet(\''+k+'\',0,this.value,\''+fn+'\')"><span>To</span><input type="date" value="'+(s[1]||'')+'" style="'+st+'" onchange="__dashSet(\''+k+'\',1,this.value,\''+fn+'\')"></span>'};
+})();
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
     * {
@@ -2805,7 +2821,7 @@
           <div><h1>Inventory Management</h1><p>Stock Tracking <span class="dot-separator">•</span> Movements <span class="dot-separator">•</span> Alerts <span class="dot-separator">•</span> Performance</p></div>
         </div>
         <div class="header-controls">
-          <label class="period-control" for="mmhPeriod"><span>Period:</span><select id="mmhPeriod" onchange="mmHomeRender()"></select><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></label>
+          <span class="period-control" id="mmhPeriodBox"></span>
           <div class="updated-stamp"><span class="status-pulse"></span> Last updated: <strong id="mmhStamp">—</strong></div>
           <button class="icon-button" type="button" onclick="mmHomeRender(true)" aria-label="Refresh dashboard" title="Refresh dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-14.2-4.9L4 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4v4h4M4 13a8.1 8.1 0 0 0 14.2 4.9L20 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 20v-4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
@@ -3833,13 +3849,13 @@ go('home');
   function ym(d) { return String(d || '').slice(0, 7); }
   function render() {
     var v = root.querySelector('#v-home'); if (!v || !v.classList.contains('on')) return;
-    if (sec.contains(root.activeElement) && root.activeElement.tagName === 'SELECT') return;
+    if (sec.contains(root.activeElement) && /^(SELECT|INPUT)$/.test(root.activeElement.tagName)) return;
     var D = load();
     var months = {}; ['plans', 'batches', 'rcv', 'qcc', 'cons'].forEach(function (k) { D[k].forEach(function (r) { if (r && r.date) months[ym(r.date)] = 1; }); });
     var now = new Date(), cm = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0'); months[cm] = 1;
     var ml = Object.keys(months).filter(Boolean).sort().reverse();
     if (cur === '' ) cur = cm;
-    var inP = function (d) { return cur === 'all' || ym(d) === cur; };
+    var RGp = window.__dashFT('pd'); var inP = function (d) { d = String(d || '').slice(0, 10); return d >= RGp[0] && d <= RGp[1]; };
     var plans = D.plans.filter(function (p) { return inP(p.date); });
     var bat = D.batches.filter(function (b) { return inP(b.date); });
     var live = bat.filter(function (b) { return b.st && b.st !== 'Draft'; });
@@ -3869,8 +3885,7 @@ go('home');
       ['#7c3aed', 'RM Consumed (Kg)', fmt(rmUsed, 0), 'Materials: <b>' + Object.keys(cons.reduce(function (o, c) { o[c.rm] = 1; return o; }, {})).length + '</b> · Entries: <b>' + cons.length + '</b>', 723],
       ['#0891b2', 'FG Stock (Kg)', fmt(fgStock, 0), 'Warehouses: <b>' + Object.keys(whs).length + '</b> · QC cleared: <b>' + qcc.length + '</b>', 722]
     ];
-    var h = '<div class="pd-top"><div><small>Production</small><h2>Production Dashboard</h2></div><div class="sp"><span>Period:</span><select id="pdPer">' +
-      '<option value="all"' + (cur === 'all' ? ' selected' : '') + '>All time</option>' + ml.map(function (m) { var p = m.split('-'); return '<option value="' + m + '"' + (m === cur ? ' selected' : '') + '>' + MON[(+p[1] || 1) - 1] + ' ' + p[0] + '</option>'; }).join('') + '</select><button id="pdRef" title="Refresh">⟳</button></div></div>';
+    var h = '<div class="pd-top"><div><small>Production</small><h2>Production Dashboard</h2></div><div class="sp">' + window.__dashFTHtml('pd','pdRender') + '<button id="pdRef" title="Refresh">⟳</button></div></div>';
     h += '<div class="pd-kpis">' + K.map(function (k) { return '<div class="pd-k" style="--c:' + k[0] + '" onclick="window.pdGo(' + k[4] + ')"><div class="t">' + k[1] + '</div><div class="v">' + k[2] + '</div><div class="f">' + k[3] + '</div></div>'; }).join('') + '</div>';
 
     // daily chart
@@ -3922,7 +3937,6 @@ go('home');
     h += '<div class="pd-row r4">' + card('Finished Goods Produced', tfg, '#16a34a', topFg.length + ' items') + card('Raw Material Consumption', trm, '#7c3aed', rl.length + ' items') + card('Production Plan Progress', tpp, '#d97706') + card('FG Stock by Warehouse', wt, '#0891b2') + '</div>';
     h += '<div class="pd-row r3" style="grid-template-columns:1.6fr 1fr">' + card('Recent Production Batches', trb, '#2563eb', 'latest 30') + card('QC Clearance', tq, '#7c3aed') + '</div>';
     sec.innerHTML = h;
-    var sel = sec.querySelector('#pdPer'); sel.onchange = function () { cur = sel.value; render(); };
     sec.querySelector('#pdRef').onclick = function () { render(); };
   }
   window.pdRender = render;
@@ -21612,23 +21626,32 @@ return btns;
     //   Raw Material | Wheat Bran      | RM-001 | kg
     //   Raw Material | Soybean Meal    | RM-002 | kg
     //   Packaging    | Poly Bag 50kg   | PK-010 | pcs
-    var PR_ITEM_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRV6TAo_ZCWYV8DX3mOZw6f7EfXBGddDJWU4OI0PmCrQZFFRCk6JUwlWKXbx-Rt81uJJc35yZejN_YH/pub?gid=911696853&single=true&output=csv';
+    var PR_ITEM_SHEET_CSV_URL = '';   // old Google-Sheet item list (old codes) switched off: items now come from Item Master
     var PR_ITEM_DATA = { groups: [], hierarchy: {} };
     var PR_ITEM_LOAD_STARTED = false;
     // Local item master fallback prevents an empty PR line-item dropdown when
     // the external Google Sheet cannot be fetched from the current browser.
-    var PR_ITEM_FALLBACK_ROWS = [
-      ['Item Group', 'Item Name', 'Item Code', 'UOM'],
-      ['Raw Material', 'Maize', 'RM-001', 'kg'],
-      ['Raw Material', 'Soybean Meal', 'RM-002', 'kg'],
-      ['Raw Material', 'Wheat Bran', 'RM-003', 'kg'],
-      ['Packaging', 'Poly Bag 50kg', 'PK-010', 'pcs'],
-      ['Spare Parts', 'Bearing', 'SP-001', 'pcs']
-    ];
+    var PR_ITEM_FALLBACK_ROWS = [['Item Group', 'Item Name', 'Item Code', 'UOM']];
+    // Item Group / Item Name / Item Code / UOM now come from Item Master
+    function prItemRowsFromMaster() {
+      var rows = [['Item Group', 'Item Name', 'Item Code', 'UOM']];
+      try {
+        var m = JSON.parse(localStorage.getItem('erp_item_master') || '{}');
+        Object.keys(m).forEach(function(k) {
+          var r = m[k];
+          if (r && r.name && r.group && (r.status || 'Active') === 'Active') rows.push([r.group, r.name, r.code || k, r.uom || '']);
+        });
+      } catch (e) {}
+      return rows;
+    }
+    window.__prItemsRefresh = function() {
+      PR_ITEM_DATA = { groups: [], hierarchy: {} };
+      prApplyItemFallback();
+    };
 
     function prApplyItemFallback() {
       if (!PR_ITEM_DATA.groups.length) {
-        PR_ITEM_DATA = prBuildItemHierarchy(PR_ITEM_FALLBACK_ROWS);
+        PR_ITEM_DATA = prBuildItemHierarchy(prItemRowsFromMaster());
       }
       document.querySelectorAll('.pr-item-cat-select').forEach(function(sel) {
         var current = sel.value;
@@ -21676,7 +21699,7 @@ return btns;
         })
         .then(function(text) {
           var parsed = prBuildItemHierarchy(prParseCsv(text));
-          PR_ITEM_DATA = parsed.groups.length ? parsed : prBuildItemHierarchy(PR_ITEM_FALLBACK_ROWS);
+          PR_ITEM_DATA = parsed.groups.length ? parsed : prBuildItemHierarchy(prItemRowsFromMaster());
           // Refresh every currently-open row after the async master load.
           document.querySelectorAll('.pr-item-cat-select').forEach(function(sel) {
             var current = sel.value;
@@ -21707,7 +21730,7 @@ return btns;
     // hold only finished-goods products, kept separate from the raw-material
     // item sheet used by PR.
     // =====================================================================
-    var PRODUCT_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRV6TAo_ZCWYV8DX3mOZw6f7EfXBGddDJWU4OI0PmCrQZFFRCk6JUwlWKXbx-Rt81uJJc35yZejN_YH/pub?gid=1756894505&single=true&output=csv';
+    var PRODUCT_SHEET_CSV_URL = '';   // product CSV not used any more: Finished Goods come from Item Master
     var PRODUCT_MASTER = { groups: [], hierarchy: {} };
 
     function buildProductMaster(rows) {
@@ -21725,19 +21748,24 @@ return btns;
       return { groups: groups, hierarchy: hierarchy };
     }
 
-    function loadProductMasterData() {
-      if (!PRODUCT_SHEET_CSV_URL || PRODUCT_SHEET_CSV_URL.indexOf('PASTE_') === 0) {
-        console.warn('PRODUCT_SHEET_CSV_URL not set yet — Production Order "Item Group / Item Name" dropdowns will be empty.');
-        return;
-      }
-      fetch(PRODUCT_SHEET_CSV_URL)
-        .then(function(res) { return res.text(); })
-        .then(function(text) {
-          PRODUCT_MASTER = buildProductMaster(prParseCsv(text));
-          refillAllMfgPoRowGroupSelects();
-        })
-        .catch(function(err) { console.error('Failed to load Product master data from Google Sheet:', err); });
+    // Finished-goods list = Item Master items whose Category (or Item Type) is "Finished Goods"
+    function prodRowsFromMaster() {
+      var rows = [['Item Group', 'Item Name', 'Item Code', 'UOM']];
+      try {
+        var m = JSON.parse(localStorage.getItem('erp_item_master') || '{}');
+        Object.keys(m).forEach(function(k) {
+          var r = m[k];
+          if (!r || !r.name || !r.group || (r.status || 'Active') !== 'Active') return;
+          if (String(r['class'] || '').trim().toLowerCase() === 'finished goods' || String(r.type || '').trim().toLowerCase() === 'finished goods') rows.push([r.group, r.name, r.code || k, r.uom || '']);
+        });
+      } catch (e) {}
+      return rows;
     }
+    function loadProductMasterData() {
+      PRODUCT_MASTER = buildProductMaster(prodRowsFromMaster());
+      refillAllMfgPoRowGroupSelects();
+    }
+    window.__prodItemsRefresh = loadProductMasterData;
 
     // Re-fill the Item Group dropdown in every currently-open Production Order
     // item row (used after the product master finishes loading from Sheets).
@@ -41663,9 +41691,10 @@ return btns;
 
   window.mmHomeRender = function (manual) {
     var host = $('mmHome'); if (!host) return;
-    var sel = $('mmhPeriod'), ps = periods();
-    if (!sel.options.length) sel.innerHTML = ps.map(function (p, i) { return '<option value="' + i + '">' + p.label + '</option>'; }).join('');
-    var per = ps[parseInt(sel.value || '0', 10) || 0];
+    var box = $('mmhPeriodBox'); if (box && !box.contains(document.activeElement)) box.innerHTML = window.__dashFTHtml('mm', 'mmHomeRender');
+    var RGm = window.__dashFT('mm'), tm = new Date((RGm[1] < '9999' ? RGm[1] : today()) + 'T00:00:00');
+    var nx = new Date(RGm[1] < '9999' ? new Date(RGm[1] + 'T00:00:00').getTime() + 864e5 : Date.now() + 864e5);
+    var per = { y: tm.getFullYear(), m: tm.getMonth(), label: MON[tm.getMonth()] + ' ' + tm.getFullYear(), start: RGm[0] || '0000-01-01', end: nx.getFullYear() + '-' + pad(nx.getMonth() + 1) + '-' + pad(nx.getDate()) };
     var ev = events(), M = master();
     var endExcl = per.end, startM = per.start;
     var asOf = endExcl > today() ? today() : endExcl;
@@ -43376,14 +43405,14 @@ return btns;
       <div style="display:flex;align-items:center;gap:6px;">
         <select id="imTypeSel" onchange="renderImTable()" style="padding:5px;border:1px solid #aaa;border-radius:3px;font-size:0.78rem;"><option value="">All Types</option></select>
         <select id="imStatusSel" onchange="renderImTable()" style="padding:5px;border:1px solid #aaa;border-radius:3px;font-size:0.78rem;"><option value="">All Status</option><option>Active</option><option>Inactive</option></select>
-        <input type="text" id="imSearchInput" placeholder="🔍 Search by Code, Name, Group..." oninput="renderImTable()" style="padding:5px 10px;border:1px solid #aaa;border-radius:3px;font-size:0.78rem;min-width:230px;">
+        <input type="text" id="imSearchInput" placeholder="🔍 Search by Code, Name, Sub Category..." oninput="renderImTable()" style="padding:5px 10px;border:1px solid #aaa;border-radius:3px;font-size:0.78rem;min-width:230px;">
         <button onclick="openImForm()" title="Add New" style="background:#27ae60;color:#fff;border:none;width:28px;height:28px;border-radius:3px;font-size:1rem;cursor:pointer;">➕</button>
         <button onclick="renderImTable()" title="Refresh" style="background:#2980b9;color:#fff;border:none;width:28px;height:28px;border-radius:3px;font-size:0.9rem;cursor:pointer;">🔄</button>
       </div>
     </div>
     <div style="overflow-x:auto;background:#f8f9fa;">
       <table class="str-table" style="font-size:0.78rem;">
-        <thead><tr><th>SL#</th><th>Item Code</th><th>Item Name</th><th>Item Group</th><th>Type</th><th>UOM</th><th>Pack Size</th><th>Batch</th><th>Min Stock</th><th>Reorder Lvl</th><th>Std Rate</th><th>Status</th><th>Actions</th></tr></thead>
+        <thead><tr><th>SL#</th><th>Item Code</th><th>Item Name</th><th>Sub Category</th><th>Type</th><th>UOM</th><th>Pack Size</th><th>Batch</th><th>Min Stock</th><th>Reorder Lvl</th><th>Std Rate</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="imTableBody"></tbody>
       </table>
       <div id="imEmptyMsg" style="text-align:center;padding:40px 20px;color:#94a3b8;font-size:0.85rem;display:none;"><span style="font-size:2.5rem;display:block;margin-bottom:10px;">📦</span>No item found.<br>Click "+" to add an item.</div>
@@ -43409,7 +43438,7 @@ return btns;
     </div>
   </div>
 </div>
-<datalist id="imGroupList"></datalist><datalist id="imUomList"><option>kg</option><option>g</option><option>ton</option><option>pcs</option><option>bag</option><option>ltr</option><option>ml</option><option>box</option><option>bundle</option><option>meter</option><option>roll</option><option>drum</option></datalist>
+<datalist id="imGroupList"></datalist><datalist id="imClassList"><option>Additives</option><option>Raw Material (RM)</option><option>Packing Material</option><option>Finished Goods</option><option>Spare Parts</option></datalist><datalist id="imUomList"><option>kg</option><option>g</option><option>ton</option><option>pcs</option><option>bag</option><option>ltr</option><option>ml</option><option>box</option><option>bundle</option><option>meter</option><option>roll</option><option>drum</option></datalist>
 <script id="imJs">
 (function(){
   var KEY='erp_item_master',SER='erp_item_serial',$=function(i){return document.getElementById(i);},editing=null;
@@ -43419,7 +43448,7 @@ return btns;
   function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function lc(x){return String(x||'').trim().toLowerCase();}
   var F={
-   imGen:[['code','Item Code','readonly'],['name','Item Name *','text'],['type','Item Type *','select',TYPES],['group','Item Group / Category *','list','imGroupList'],
+   imGen:[['code','Item Code','readonly'],['name','Item Name *','text'],['type','Item Type *','select',TYPES],['class','Category','list','imClassList'],['group','Sub Category *','list','imGroupList'],
           ['uom','Base UOM *','list','imUomList'],['alt_uom','Alternate UOM','list','imUomList'],['conv','Conversion (1 Alt UOM = ? Base UOM)','number'],['pack','Pack Size','text'],
           ['spec','Specification','text',null,2],['brand','Brand / Make','text'],['status','Status','select',['Active','Inactive']]],
    imInv:[['batch','Batch Managed','select',['Yes','No']],['shelf','Shelf Life (days)','number'],['min','Minimum Stock','number'],['max','Maximum Stock','number'],
@@ -43478,12 +43507,12 @@ return btns;
     var recs=P(KEY,{}),d={};
     all().forEach(function(f){var e=$('im_'+f[0]);d[f[0]]=e?String(e.value).trim():'';});
     if(!d.name){err('Item Name is required.');return;}
-    if(!d.group){err('Item Group / Category is required.');return;}
+    if(!d.group){err('Sub Category is required.');return;}
     if(!d.uom){err('Base UOM is required.');return;}
     if(d.alt_uom&&!(parseFloat(d.conv)>0)){err('Enter the conversion factor for the Alternate UOM.');return;}
     if(d.min&&d.max&&parseFloat(d.max)<parseFloat(d.min)){err('Maximum Stock cannot be less than Minimum Stock.');return;}
     var dup=Object.keys(recs).some(function(k){return k!==editing&&lc(recs[k].name)===lc(d.name)&&lc(recs[k].group)===lc(d.group);});
-    if(dup){err('This item already exists in the same group.');return;}
+    if(dup){err('This item already exists in the same Sub Category.');return;}
     if(editing){d.code=editing;d.created_by=recs[editing].created_by;d.created_at=recs[editing].created_at;d.updated_at=new Date().toISOString();}
     else{
       var ser=P(SER,{}),pf=PFX[d.type]||'OT';ser[pf]=(ser[pf]||0)+1;localStorage.setItem(SER,JSON.stringify(ser));
@@ -43491,6 +43520,7 @@ return btns;
     }
     recs[d.code]=d;localStorage.setItem(KEY,JSON.stringify(recs));
     try{if(window.PR_ITEM_DATA&&PR_ITEM_DATA.hierarchy)window.__itemMasterMergeInto(PR_ITEM_DATA.groups,PR_ITEM_DATA.hierarchy);}catch(e){}
+    try{if(typeof window.__prodItemsRefresh==='function')window.__prodItemsRefresh();if(typeof window.__prItemsRefresh==='function')window.__prItemsRefresh()}catch(e){}
     closeImForm();renderImTable();
   };
   window.deleteIm=function(code){
@@ -43998,7 +44028,7 @@ return btns;
   var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto"><line x1="'+p+'" y1="'+(H-22)+'" x2="'+(W-p)+'" y2="'+(H-22)+'" stroke="#cbd5e1"/>';
   pts.forEach(function(x,i){var h=(H-50)*x[1]/mx,X=p+i*bw+bw*.15;s+='<rect x="'+X+'" y="'+(H-22-h)+'" width="'+bw*.7+'" height="'+h+'" fill="'+C.mid+'" rx="2"><title>'+esc(x[0])+': '+money(x[1])+'</title></rect>';if(pts.length<=14||i%Math.ceil(pts.length/14)===0)s+='<text x="'+(X+bw*.35)+'" y="'+(H-8)+'" font-size="9" text-anchor="middle" fill="#64748b">'+esc(x[0])+'</text>'});
   return s+'</svg>'}
- function render(){var root=E('sdDash');if(!root)return;var per=(E('sdDashPer')||{}).value||'month',rg=period(per),inR=function(r){var d=r.date||'';return d>=rg[0]&&d<=rg[1]};
+ function render(){var root=E('sdDash');if(!root)return;var rg=window.__dashFT('sd'),per=window.__dashSpan(rg)>62?'year':'month',inR=function(r){var d=r.date||'';return d>=rg[0]&&d<=rg[1]};
   var qt=Object.values(J('erp_sdqt_records',{})),so=Object.values(J('erp_sdso_records',{})),dn=Object.values(J('erp_sddn_records',{})),inv=Object.values(J('erp_sdinv_records',{})),sr=Object.values(J('erp_sdsr_records',{})),cust=Object.values(J('erp_sdcustomer_records',{})),crl=Object.values(J('erp_sdcrl_records',{}));
   var invC=inv.filter(function(r){return ok(r)&&r.status!=='Cancelled'}),invP=invC.filter(inR),sales=0,coll=0;invP.forEach(function(r){var t=invTot(r);sales+=t});Object.values(J('erp_sdpay_records',{})).forEach(function(p){if(ok(p)&&inR(p))coll+=+p.amount||0});invC.forEach(function(r){if(r.status==='Paid'&&inR(r)&&!(window.__sdPaidOf&&window.__sdPaidOf(r)>0))coll+=invTot(r)});
   var unpaid=invC.filter(function(r){return window.__sdDue(r)>0.005}),out=0,age=[0,0,0,0],now=Date.now();unpaid.forEach(function(r){var t=window.__sdDue(r);out+=t;var d=Math.floor((now-new Date(r.date||ymd(new Date())).getTime())/864e5);age[d<=30?0:d<=60?1:d<=90?2:3]+=t});
@@ -44013,7 +44043,7 @@ return btns;
   var cr=[];cust.forEach(function(c){if(!ok(c))return;var l=0;crl.forEach(function(x){if(x.customer===c.name&&ok(x))l=+x.limit});if(!l&&+c.credit_limit>0)l=+c.credit_limit;if(l>0){var o=window.__sdOutstanding?window.__sdOutstanding(c.name):0;cr.push([c.name,o,l])}});cr.sort(function(a,b){return b[1]/b[2]-a[1]/a[2]});
   var recent=invC.slice().sort(function(a,b){return String(b.date).localeCompare(String(a.date))}).slice(0,6);
   var SC={Draft:'#64748b',Approved:C.mid,'In Process':C.amber,Delivered:C.green,Closed:C.gray,Cancelled:C.red};
-  var h=CSS+'<div class="sd-top"><div><small>Sales &amp; Distribution</small><h2>💰 Sales Dashboard</h2></div><span style="flex:1"></span><label>Period: <select id="sdDashPer" onchange="sdDashRender()"><option value="month">This Month</option><option value="30">Last 30 Days</option><option value="year">This Year</option><option value="all">All</option></select></label><button onclick="sdDashRender()" style="border:none;border-radius:4px;padding:6px 10px;cursor:pointer">🔄</button></div>';
+  var h=CSS+'<div class="sd-top"><div><small>Sales &amp; Distribution</small><h2>💰 Sales Dashboard</h2></div><span style="flex:1"></span>'+window.__dashFTHtml('sd','sdDashRender')+'<button onclick="sdDashRender()" style="border:none;border-radius:4px;padding:6px 10px;cursor:pointer">🔄</button></div>';
   h+='<div class="g g4">'+docCard('Quotation','📝','qt',qt)+docCard('Delivery Order','🧾','so',so)+docCard('Delivery Note','🚚','dn',dn)+docCard('Sales Return','↩️','sr',sr)+'</div><!--TG-->';
   var K=function(l,v,s,cl,fn){return '<div class="cd'+(fn?' lk':'')+'"'+(fn?' onclick="'+fn+'"':'')+'><div class="k">'+l+'</div><div class="v" style="color:'+cl+'">'+v+'</div><div class="sub">'+s+'</div></div>'};
   h+='<div class="g g6">'+K('Sales (Invoiced)',money(sales),invP.length+' invoices',C.blue,"openSdSalesregList()")+K('Collected',money(coll),'Payments received',C.green,"sdComingSoon('Payment Receipt')")+K('Outstanding',money(out),unpaid.length+' unpaid invoices',C.red,"openSdOutstandingList()")+K('Open Order Value',money(openV),pend.length+' SO awaiting delivery',C.amber)+K('Returns',money(retV),'In period',C.violet,"sdDashGo('sr','Complete')")+K('Quotation Conversion',(qtOk.length?Math.round(conv/qtOk.length*100):0)+'%',conv+' of '+qtOk.length+' → SO ('+apr+' approved)',C.mid,"sdDashGo('qa')")+'</div>';
@@ -44048,7 +44078,7 @@ return btns;
   h+='<div class="g g2"><div class="cd"><h4>Sales Trend ('+(long?'monthly':'daily')+')</h4>'+(pts.length?chart(pts):'<div class="sub">No invoices in this period.</div>')+'</div><div class="cd"><h4>Delivery Order Pipeline</h4>'+Object.keys(pipe).map(function(s){return '<span class="ch" style="background:'+(SC[s]||C.gray)+'22;color:'+(SC[s]||C.gray)+'">'+esc(s)+': '+pipe[s]+'</span>'}).join('')+'<h4 style="margin-top:14px">Outstanding Ageing (by invoice date)</h4>'+bars([['0–30 days',age[0]],['31–60 days',age[1]],['61–90 days',age[2]],['90+ days',age[3]]],C.red)+'</div></div>';
   h+='<div class="g g3"><div class="cd"><h4>Top Customers</h4>'+bars(top(cu,function(x){return x}),C.mid)+'</div><div class="cd"><h4>Top Items (value)</h4>'+bars(top(it,function(x){return x.v}),C.green)+'</div><div class="cd"><h4>Credit Limit Usage</h4>'+(cr.slice(0,8).map(function(x){var p=Math.min(100,x[1]/x[2]*100);return '<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;font-size:12px"><span>'+esc(x[0])+'</span><b>'+money(x[1])+' / '+money(x[2])+'</b></div><div class="bar"><i style="width:'+p+'%;background:'+(p>=100?C.red:p>=80?C.amber:C.green)+'"></i></div></div>'}).join('')||'<div class="sub">No customers with a credit limit.</div>')+'</div></div>';
   h+='<div class="g g2"><div class="cd"><h4>Pending Deliveries ('+pend.length+')</h4><div class="sc"><table><thead><tr><th>SO</th><th>Customer</th><th>Remaining</th><th style="text-align:right">Value</th></tr></thead><tbody>'+(pend.slice(0,30).map(function(x){return '<tr><td><b>'+esc(x.r.ref_no)+'</b></td><td>'+esc(x.r.customer)+'</td><td>'+esc(x.lines.join(', '))+'</td><td style="text-align:right">'+money(x.v)+'</td></tr>'}).join('')||'<tr><td colspan="4" class="sub">No pending deliveries.</td></tr>')+'</tbody></table></div></div><div class="cd"><h4>Recent Invoices</h4><div class="sc"><table><thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th style="text-align:right">Total</th><th>Status</th></tr></thead><tbody>'+(recent.map(function(r){return '<tr><td><b>'+esc(r.ref_no)+'</b></td><td>'+esc(r.date)+'</td><td>'+esc(r.customer)+'</td><td style="text-align:right">'+money(invTot(r))+'</td><td>'+esc(r.status)+'</td></tr>'}).join('')||'<tr><td colspan="5" class="sub">No invoices.</td></tr>')+'</tbody></table></div></div></div>';
-  var keep=(E('sdDashPer')||{}).value;root.innerHTML=h;if(keep)E('sdDashPer').value=keep}
+  root.innerHTML=h}
  window.sdDashRender=render;
  function mount(){var m=document.querySelector('#module-sd main.dashboard-container');if(!m||E('sdDash'))return;m.innerHTML='<div id="sdDash"></div>';render()}
  function overrideProd(){if(typeof renderSdProdsales!=='function'||renderSdProdsales._d)return;
@@ -44211,7 +44241,7 @@ return btns;
  function ageing(list){var b=[['Not due',0],['1–30 days',0],['31–60 days',0],['61–90 days',0],['90+ days',0]],now=new Date(ymd(new Date())).getTime();list.forEach(function(x){var d=x.due?Math.floor((now-new Date(x.due).getTime())/864e5):0,i=d<=0?0:d<=30?1:d<=60?2:d<=90?3:4;b[i][1]+=x.bal});return b.map(function(r,i){return[r[0],r[1],i===0?C.green:i===1?C.amber:C.red]})}
  window.fiGo=function(fn){try{window[fn]()}catch(e){console.error(e)}};
  function render(){var root=E('fiDash');if(!root||typeof getAllCoaRecords!=='function')return;
-  var per=(E('fiPer')||{}).value||'year',rg=period(per),today=ymd(new Date());
+  var rg=window.__dashFT('fi'),today=ymd(new Date());
   var coa=getAllCoaRecords(),je=getAllJeRecords(),bal={},grp={};
   coa.forEach(function(a){bal[a.code]=getAccountClosingBalance(a.code,today);(grp[a.group]=grp[a.group]||[]).push(a)});
   var sumG=function(g,sgn){var t=0;(grp[g]||[]).forEach(function(a){t+=bal[a.code]||0});return t*(sgn||1)};
@@ -44226,7 +44256,7 @@ return btns;
   var overdue=function(l){var t=0;l.forEach(function(x){if(x.due&&x.due<today)t+=x.bal});return t};
   var K=function(l,v,s,cl,fn){return '<div class="cd'+(fn?' lk':'')+'"'+(fn?' onclick="fiGo(\''+fn+'\')"':'')+'><div class="k">'+l+'</div><div class="v" style="color:'+cl+'">'+v+'</div><div class="sub">'+s+'</div></div>'};
   var np=inc-exp;
-  var h=CSS+'<div class="top"><div><small>Financial &amp; Controlling</small><h2>📗 Finance Dashboard</h2></div><span style="flex:1"></span><label>Period: <select id="fiPer" onchange="fiDashRender()"><option value="month">This Month</option><option value="30">Last 30 Days</option><option value="year">This Year</option><option value="all">All</option></select></label><button onclick="fiDashRender()" style="border:none;border-radius:4px;padding:6px 10px;cursor:pointer">🔄</button></div>';
+  var h=CSS+'<div class="top"><div><small>Financial &amp; Controlling</small><h2>📗 Finance Dashboard</h2></div><span style="flex:1"></span>'+window.__dashFTHtml('fi','fiDashRender')+'<button onclick="fiDashRender()" style="border:none;border-radius:4px;padding:6px 10px;cursor:pointer">🔄</button></div>';
   h+='<div class="g g6">'+K('Cash &amp; Bank',money(cashTot),cash.length+' account(s)',C.teal,'openCashFlow')+K('Receivable (AR)',money(arT),'Overdue '+money(overdue(arL)),C.blue,'openArInvList')+K('Payable (AP)',money(apT),'Overdue '+money(overdue(apL)),C.amber,'openApInvList')+K('Income',money(inc),'Selected period',C.green,'openPnl')+K('Expenses',money(exp),'Selected period',C.red,'openPnl')+K('Net '+(np>=0?'Profit':'Loss'),money(Math.abs(np)),inc?Math.round(np/inc*1000)/10+'% margin':'–',np>=0?C.green:C.red,'openPnl')+'</div>';
   var jeD=0,jeP=0;je.forEach(function(r){if(r.status==='Draft')jeD++;else jeP++});var chq=Object.values(J('erp_cheque_records',{})),chqP=chq.filter(function(c){return c.status==='Pending'||c.status==='Presented'}),chqIss=0,chqRec=0;chqP.forEach(function(c){if(c.type==='Issued')chqIss+=+c.amount||0;else chqRec+=+c.amount||0});
   var ast=Object.values(J('erp_asset_records',{})),astC=0;ast.forEach(function(a){astC+=+a.cost||0});
@@ -44250,7 +44280,7 @@ return btns;
   var rec=je.slice().sort(function(a,b){return String(b.posting_date).localeCompare(String(a.posting_date))||String(b.ref).localeCompare(String(a.ref))}).slice(0,8);
   h+='<div class="g g2"><div class="cd"><h4>Recent Journal Entries</h4><div class="sc"><table><thead><tr><th>Ref</th><th>Date</th><th>Reference</th><th style="text-align:right">Amount</th><th>Status</th></tr></thead><tbody>'+(rec.map(function(r){return '<tr><td><b>'+esc(r.ref)+'</b></td><td>'+esc(r.posting_date)+'</td><td>'+esc(r.reference||'')+'</td><td style="text-align:right">'+money(r.total_debit)+'</td><td>'+esc(r.status)+'</td></tr>'}).join('')||'<tr><td colspan="5" class="sub">No journal entries.</td></tr>')+'</tbody></table></div></div>'+
    '<div class="cd"><h4>Pending Cheques ('+chqP.length+')</h4><div class="sc"><table><thead><tr><th>Cheque</th><th>Type</th><th>Party</th><th>Date</th><th style="text-align:right">Amount</th></tr></thead><tbody>'+(chqP.slice(0,10).map(function(c){return '<tr><td><b>'+esc(c.cheque_no)+'</b></td><td>'+esc(c.type)+'</td><td>'+esc(c.party_name)+'</td><td>'+esc(c.cheque_date)+'</td><td style="text-align:right">'+money(c.amount)+'</td></tr>'}).join('')||'<tr><td colspan="5" class="sub">No pending cheques.</td></tr>')+'</tbody></table></div></div></div>';
-  var keep=(E('fiPer')||{}).value;root.innerHTML=h;E('fiPer').value=keep||'year'}
+  root.innerHTML=h}
  window.fiDashRender=render;
  function mount(){var m=document.querySelector('#module-fico main.dashboard-container');if(!m||E('fiDash'))return;m.innerHTML='<div id="fiDash"></div>';render()}
  setInterval(function(){mount();var m=E('module-fico');if(m&&m.offsetParent!==null&&!document.querySelector('.str-list-overlay.active,.sdx-ov,.fx-ov'))render()},4000);
@@ -44351,7 +44381,7 @@ return btns;
  function payTrend(pts){var W=620,H=190,p=30,mx=Math.max.apply(null,pts.map(function(x){return Math.max(x[1],x[2])}).concat([1])),gw=(W-p*2)/Math.max(pts.length,1),s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto"><line x1="'+p+'" y1="'+(H-24)+'" x2="'+(W-p)+'" y2="'+(H-24)+'" stroke="#cbd5e1"/>';pts.forEach(function(x,i){var X=p+i*gw,bw=gw*.36,h1=(H-52)*x[1]/mx,h2=(H-52)*x[2]/mx;s+='<rect x="'+(X+gw*.1)+'" y="'+(H-24-h1)+'" width="'+bw+'" height="'+h1+'" fill="'+C.blue+'" rx="2"><title>'+x[0]+' Gross: '+money(x[1])+'</title></rect><rect x="'+(X+gw*.1+bw+2)+'" y="'+(H-24-h2)+'" width="'+bw+'" height="'+h2+'" fill="'+C.green+'" rx="2"><title>'+x[0]+' Net: '+money(x[2])+'</title></rect><text x="'+(X+gw*.5)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" fill="#64748b">'+x[0]+'</text>'});return s+'</svg><div class="sub"><span style="color:'+C.blue+'">■</span> Gross &nbsp;<span style="color:'+C.green+'">■</span> Net Salary</div>'}
  window.hrGo=function(fn){try{window[fn]()}catch(e){console.error(e)}};
  function render(){var root=E('hrDash');if(!root)return;
-  var per=(E('hrPer')||{}).value||'year',rg=period(per),today=ymd(new Date()),now=new Date(),ym=today.slice(0,7);
+  var rg=window.__dashFT('hr'),today=ymd(new Date()),now=new Date(),ym=today.slice(0,7);
   var emp=vals(J('erp_emp_records',{})),att=J('erp_attendance_records',{}),lv=vals(J('erp_leave_records',{})),ps=vals(J('erp_payslip_records',{})),onb=vals(J('erp_onboarding_records',{})),tr=vals(J('erp_emp_transfer_records',{})),jp=vals(J('erp_jobposting_records',{})),cd=vals(J('erp_candidate_records',{})),te=vals(J('erp_trenr_records',{}));
   var act=emp.filter(function(e){return (e.status||'Active')==='Active'}),nm={};emp.forEach(function(e){nm[e.code]=e.name});
   var joiners=emp.filter(function(e){return e.join_date>=rg[0]&&e.join_date<=rg[1]});
@@ -44364,7 +44394,7 @@ return btns;
   var netM=0,grossM=0;psMonth.forEach(function(p){netM+=+p.net_salary||0;grossM+=+p.gross||0});
   var openJ=jp.filter(function(j){return j.status==='Open'}),vac=0;openJ.forEach(function(j){vac+=+j.vacancies||0});
   var onbIP=onb.filter(function(o){return o.status!=='Completed'});
-  var h=CSS+'<div class="top"><div><small>Human Resources</small><h2>👥 HR Dashboard</h2></div><div style="margin-left:auto"><select id="hrPer" onchange="hrDashRender()"><option value="month">This Month</option><option value="30">Last 30 Days</option><option value="year">This Year</option></select></div></div>';
+  var h=CSS+'<div class="top"><div><small>Human Resources</small><h2>👥 HR Dashboard</h2></div><div style="margin-left:auto">'+window.__dashFTHtml('hr','hrDashRender')+'</div></div>';
   var kc=function(k,v,s,fn,col){return '<div class="cd lk" onclick="hrGo(\''+fn+'\')"><div class="k">'+k+'</div><div class="v" style="color:'+(col||'#1e293b')+'">'+v+'</div><div class="sub">'+s+'</div></div>'};
   h+='<div class="g g4">'+kc('Total Employees',emp.length,act.length+' Active · '+left.length+' Resigned/Terminated','openEmpList',C.blue)+kc('New Joiners',joiners.length,'in selected period','openEmpList',C.green)+kc('Present Today',tdn?presPct+'%':'—',tdn?(tdc.Present+tdc.Late+tdc['Half Day'])+' of '+tdn+' marked':'Attendance not marked today','openAttList',C.teal)+kc('On Leave Today',onLv.length,pendLv.length+' pending approval','openLeaveList',C.amber)+'</div>';
   h+='<div class="g g4">'+kc('Net Payroll ('+MN[now.getMonth()]+')',money(netM),'Gross '+money(grossM)+' · '+psMonth.length+' payslip(s)','openPslipList',C.violet)+kc('Open Vacancies',vac,openJ.length+' open job posting(s)','openJobList',C.blue)+kc('Candidates',cd.length,cd.filter(function(c){return c.status==='Selected'}).length+' selected','openCandList',C.green)+kc('Onboarding In Progress',onbIP.length,onb.length+' total','openOnboardList',C.red)+'</div>';
@@ -44389,7 +44419,7 @@ return btns;
   h+='<div class="g g3"><div class="cd"><h4>🎂 Birthdays This Month</h4>'+tbl(['Name','Date'],bd.map(function(e){return '<tr><td>'+esc(e.name)+'</td><td>'+esc(e.dob.slice(5))+'</td></tr>'}),'None')+'</div>'+
    '<div class="cd"><h4>Onboarding In Progress ('+onbIP.length+')</h4>'+tbl(['Employee','Progress'],onbIP.slice(0,8).map(function(o){return '<tr><td>'+esc(o.emp_name||o.emp_code)+'</td><td><div class="bar"><i style="width:'+(+o.progress||0)+'%;background:'+C.blue+'"></i></div></td></tr>'}),'None')+'</div>'+
    '<div class="cd"><h4>Recent Transfers</h4>'+tbl(['Employee','To','Date'],rt.map(function(t){return '<tr><td>'+esc(nm[t.emp_code]||t.emp_code)+'</td><td>'+esc(t.to_cost_center)+'</td><td>'+esc(t.transfer_date)+'</td></tr>'}),'None')+'</div></div>';
-  var keep=(E('hrPer')||{}).value;root.innerHTML=h;E('hrPer').value=keep||'year'}
+  root.innerHTML=h}
  window.hrDashRender=render;
  function mount(){var m=document.querySelector('#module-hr main.dashboard-container');if(!m||E('hrDash'))return;m.innerHTML='<div id="hrDash"></div>';render()}
  setInterval(function(){mount();var m=E('module-hr');if(m&&m.offsetParent!==null&&!document.querySelector('.str-list-overlay.active,.sdx-ov,.fx-ov,[class*=overlay].active'))render()},4000);
@@ -44994,7 +45024,10 @@ return btns;
   ['sal','Salaries & Wages Expense','HR: Payslip paid','Expenses','Administrative Overhead (General & Administrative expenses)','5001','Salary & Allowances'],
   ['taxp','Income Tax (TDS) Payable','HR: Payslip tax deduction','Liabilities','Current Liabilities','2019','Income Tax (TDS) Payable'],
   ['pfp','Provident Fund Payable','HR: Payslip PF deduction','Liabilities','Current Liabilities','2004','PF, WPPF and Other Fund'],
-  ['othd','Other Deductions Payable','HR: Payslip other deductions','Liabilities','Current Liabilities','2006','Other Liabilities']
+  ['othd','Other Deductions Payable','HR: Payslip other deductions','Liabilities','Current Liabilities','2006','Other Liabilities'],
+  ['cogs','Cost of Goods Sold','Sale: stock cost of goods delivered (moving average) / sales return reversal','Expenses','Factory Overhead (Cost of Goods Sold)','6041','Cost of Goods Sold'],
+  ['mexp','Materials Consumed Expense','Materials issue / direct issue / consumption','Expenses','Factory Overhead (Cost of Goods Sold)','6042','Materials Consumed (Factory)'],
+  ['waste','Wastage & Spoilage','Stock wastage write-off','Expenses','Factory Overhead (Cost of Goods Sold)','6043','Wastage & Spoilage Expense']
  ];
  function coa(){return J('erp_coa_records',{})}
  function map(){var m=J(MAPK,{}),c=coa(),o={};PURP.forEach(function(p){o[p[0]]=(m[p[0]]!==undefined&&m[p[0]]!=='')?m[p[0]]:(c[p[5]]?p[5]:'')});return o}
@@ -45006,7 +45039,13 @@ return btns;
   keys.forEach(function(k){if(c[k].auto_seeded&&used.indexOf('"'+k+'"')<0)delete c[k]});
   DEFCOA.forEach(function(r){if(!c[r[3]])c[r[3]]={code:r[3],group:r[0],sub_type:r[1],bs_pl:(r[0]==='Income'||r[0]==='Expenses')?'P&L Statement Account':'Balance Sheet Account',name:r[2],short_text:r[2],company:'',currency:'BDT',opening_balance:r[4],status:'Active',default_seed:1}});
   localStorage.setItem('erp_coa_records',JSON.stringify(c));localStorage.setItem('erp_coa_seeded_v1','1');return DEFCOA.length}
- function seed(){seedCoa();var c=coa(),n=0;PURP.forEach(function(p){if(!c[p[5]]){c[p[5]]={code:p[5],group:p[3],sub_type:p[4],bs_pl:p[3]==='Income'||p[3]==='Expenses'?'P&L Statement Account':'Balance Sheet Account',name:p[6],short_text:p[6],company:'',currency:'BDT',opening_balance:0,status:'Active',auto_seeded:1};n++}});if(n)localStorage.setItem('erp_coa_records',JSON.stringify(c));return n}
+ /* More accounts every company needs (VAT, advances, GR/IR, discounts, variances ...). Added once to a default-seeded COA. */
+ var DEFEXTRA=[["Assets","Current Assets","1057","Bills Receivable"],["Assets","Current Assets","1058","Prepaid Expenses"],["Assets","Current Assets","1059","Advance To Employees (Loan)"],["Assets","Current Assets","1060","Input VAT (VAT Receivable)"],["Assets","Current Assets","1061","Goods In Transit"],["Assets","Current Assets","1062","Inter-Company Receivable"],["Assets","Bank Account","1063","Petty Cash"],["Assets","Stock in Hand","1064","Stocks of Packing Materials"],["Assets","Stock in Hand","1065","Stocks of Spare Parts & Consumables"],["Assets","Fixed Assets","1066","Capital Work In Progress"],["Assets","Fixed Assets","1067","Intangible Assets"],["Assets","Fixed Assets","1068","Accumulated Amortization-Intangible Assets"],["Liabilities","Current Liabilities","2020","Accrued Expenses"],["Liabilities","Current Liabilities","2021","Salary & Wages Payable"],["Liabilities","Current Liabilities","2022","Advance From Customers"],["Liabilities","Current Liabilities","2023","GR/IR Clearing (Goods Received Not Invoiced)"],["Liabilities","Current Liabilities","2024","VAT Deducted At Source (VDS) Payable"],["Liabilities","Current Liabilities","2025","Interest Payable"],["Liabilities","Current Liabilities","2026","Inter-Company Payable"],["Liabilities","Current Liabilities","2027","Bills Payable"],["Liabilities","Current Liabilities","2028","Income Tax Payable"],["Equity","Retained Earnings","3007","Current Year Profit & Loss"],["Income","Direct Income","4009","Domestic Sales"],["Income","Direct Income","4010","Sales Discount"],["Income","Direct Income","4011","Service Income"],["Income","Indirect Income","4012","Scrap / Wastage Sale"],["Income","Indirect Income","4013","Purchase Discount Received"],["Income","Indirect Income","4014","Unrealized Foreign Currency Gain"],["Expenses","Administrative Overhead (General & Administrative expenses)","5053","Bad Debts Written Off"],["Expenses","Administrative Overhead (General & Administrative expenses)","5054","Rounding Off Difference"],["Expenses","Administrative Overhead (General & Administrative expenses)","5055","Income Tax Expense"],["Expenses","Administrative Overhead (General & Administrative expenses)","5056","Unrealized Foreign Currency Loss"],["Expenses","Factory Overhead (Cost of Goods Sold)","6044","Freight & Carriage Inward"],["Expenses","Factory Overhead (Cost of Goods Sold)","6045","Purchase Price Variance"],["Expenses","Factory Overhead (Cost of Goods Sold)","6046","Production Variance (Usage / Yield)"],["Expenses","Factory Overhead (Cost of Goods Sold)","6047","Direct Labour Absorbed"],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","8016","Sales Commission"],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","8017","Freight & Carriage Outward"]];
+ function seedExtra(){if(localStorage.getItem('erp_coa_seeded_v2'))return 0;var c=coa(),ks=Object.keys(c);
+  if(ks.length&&!ks.some(function(k){return c[k].default_seed||c[k].auto_seeded})){localStorage.setItem('erp_coa_seeded_v2','skip');return 0}
+  var n=0;DEFEXTRA.forEach(function(r){if(!c[r[2]]){c[r[2]]={code:r[2],group:r[0],sub_type:r[1],bs_pl:(r[0]==='Income'||r[0]==='Expenses')?'P&L Statement Account':'Balance Sheet Account',name:r[3],short_text:r[3],company:'',currency:'BDT',opening_balance:0,status:'Active',default_seed:1};n++}});
+  localStorage.setItem('erp_coa_records',JSON.stringify(c));localStorage.setItem('erp_coa_seeded_v2','1');return n}
+ function seed(){seedCoa();seedExtra();var c=coa(),n=0;PURP.forEach(function(p){if(!c[p[5]]){c[p[5]]={code:p[5],group:p[3],sub_type:p[4],bs_pl:p[3]==='Income'||p[3]==='Expenses'?'P&L Statement Account':'Balance Sheet Account',name:p[6],short_text:p[6],company:'',currency:'BDT',opening_balance:0,status:'Active',auto_seeded:1};n++}});if(n)localStorage.setItem('erp_coa_records',JSON.stringify(c));return n}
  // ---- helpers for sources ----
  var LN=function(r){try{var a=JSON.parse(r.lines_json||'[]');if(a.length)return a}catch(e){}return r.item?[{item:r.item,qty:+r.qty||0,rate:+r.rate||0}]:[]};
  var done=function(r){return r&&r.doc_state==='Complete'&&r.status!=='Cancelled'};
@@ -45054,13 +45093,32 @@ return btns;
  var EVC={sig:'',ev:[]};
  function evs(){var sig=(localStorage.getItem('erp_stock_transactions')||'').length+'|'+(localStorage.getItem('erpProd1')||'').length+'|'+(localStorage.getItem('erp_po_records')||'').length+'|'+(localStorage.getItem('erp_grn_records')||'').length+'|'+(localStorage.getItem('erp_ret_records')||'').length;
   if(sig!==EVC.sig){try{EVC.ev=window.__ivBuild?window.__ivBuild():[]}catch(e){EVC.ev=[]}EVC.sig=sig}return EVC.ev}
- function grpPost(log){var g={},chg=0;evs().forEach(function(e){if(e.type==='production_consumption'||e.type==='production_rm_return'){var iss=e.type==='production_consumption',k='PR-'+(iss?'ISS':'RET')+'|'+(e.ref||'-')+'|'+e.date;var o=g[k]||(g[k]={iss:iss,ref:e.ref||'-',date:e.date,val:0});o.val+=Math.abs(+e.val||0)}});
-  Object.keys(log).forEach(function(k){if(log[k].grp&&!g[k]&&N(log[k].amount)!==0)g[k]={iss:log[k].iss,ref:log[k].ref,date:log[k].date,val:0}});
-  Object.keys(g).forEach(function(k){var o=g[k],e0=log[k]||{},tot=R2(o.val),posted=N(e0.amount),d=R2(tot-posted);if(Math.abs(d)<0.01)return;
-   var a=Math.abs(d),pos=d>0,dr=(o.iss===pos)?'wip':'inv',cr=(o.iss===pos)?'inv':'wip';
-   if(!M.wip||!M.inv||!C0[M.wip]||!C0[M.inv]){var m='GL account not mapped / not found: Work in Progress / Inventory';if(e0.msg!==m){log[k]={sid:k,grp:1,iss:o.iss,mod:'PROD',src:o.iss?'RM Issue to Production':'RM Return from Production',ref:o.ref,date:o.date,amount:posted,status:'Error',msg:m,at:new Date().toISOString()};chg=1}return}
-   var je=writeJe(o.date||today(),'',(o.iss?'RM Issue to Production ':'RM Return from Production ')+o.ref+(posted?' (adjustment)':''),[[M[dr],a,0],[M[cr],0,a]],'PROD',{source_ref:o.ref});
-   log[k]={sid:k,grp:1,iss:o.iss,mod:'PROD',src:o.iss?'RM Issue to Production':'RM Return from Production',ref:o.ref,date:o.date,amount:tot,je:je,status:'Posted',msg:'',at:new Date().toISOString(),by:currentUser.name||currentUser.id};chg=1});return chg}
+ /* Stock-movement based postings (valued by the inventory engine, delta-posted so edits / reversals are followed).
+  base = [debit purpose, credit purpose] for a positive amount; '*' = item's own stock account (Finished Goods or Inventory). */
+ var GRP=[
+  {id:'PR-ISS',types:['production_consumption'],mod:'PROD',src:'RM Issue to Production',dr:'wip',cr:'*'},
+  {id:'PR-RET',types:['production_rm_return'],mod:'PROD',src:'RM Return from Production',dr:'*',cr:'wip'},
+  {id:'SL-COGS',types:['sale'],mod:'SD',src:'Cost of Goods Sold (Sale)',dr:'cogs',cr:'*'},
+  {id:'SL-RET',types:['sale_return'],mod:'SD',src:'Sales Return - stock back (COGS reversal)',dr:'*',cr:'cogs'},
+  {id:'MI-ISS',types:['consumption','material_direct_issue','issue'],mod:'MM',src:'Materials Issue (Consumption)',dr:'mexp',cr:'*'},
+  {id:'MI-RET',types:['materials_issue_return'],mod:'MM',src:'Materials Issue Return',dr:'*',cr:'mexp'},
+  {id:'WS-ISS',types:['wastage'],mod:'MM',src:'Wastage / Spoilage',dr:'waste',cr:'*'},
+  {id:'WS-RET',types:['wastage_reversal'],mod:'MM',src:'Wastage Reversal',dr:'*',cr:'waste'}];
+ var GBY={};GRP.forEach(function(x){x.types.forEach(function(t){GBY[t]=x})});
+ function itemAcct(e){var k=String(e.key||e.code||e.name||'').trim().toLowerCase(),n=String(e.name||'').trim().toLowerCase(),r=null;
+  Object.values(J('erp_item_master',{})).forEach(function(x){if(r||!x)return;if((x.code&&String(x.code).trim().toLowerCase()===k)||(x.name&&String(x.name).trim().toLowerCase()===n))r=x});
+  return (r&&/finished|fg/i.test((r.type||'')+' '+(r.group||'')))?'fg':'inv'}
+ function grpPost(log){var g={},chg=0;
+  evs().forEach(function(e){var G=GBY[e.type];if(!G)return;var ac=(G.dr==='*'||G.cr==='*')?(G.id.indexOf('PR-')===0?'inv':itemAcct(e)):'';
+   var k=G.id+'|'+(e.ref||'-')+'|'+e.date+(ac&&G.id.indexOf('PR-')!==0?'|'+ac:'');var o=g[k]||(g[k]={G:G,ac:ac,ref:e.ref||'-',date:e.date,val:0});o.val+=Math.abs(+e.val||0)});
+  Object.keys(log).forEach(function(k){var l=log[k];if(l.grp&&!g[k]&&N(l.amount)!==0){var id=k.split('|')[0],G=GRP.filter(function(x){return x.id===id})[0];if(G)g[k]={G:G,ac:l.ac||'inv',ref:l.ref,date:l.date,val:0}}});
+  Object.keys(g).forEach(function(k){var o=g[k],G=o.G,e0=log[k]||{},tot=R2(o.val),posted=N(e0.amount),d=R2(tot-posted);if(Math.abs(d)<0.01)return;
+   var a=Math.abs(d),pos=d>0,p1=(G.dr==='*'?o.ac:G.dr),p2=(G.cr==='*'?o.ac:G.cr),dr=pos?p1:p2,cr=pos?p2:p1;
+   var nm=function(x){var q=PURP.filter(function(p){return p[0]===x})[0];return q?q[1]:x};
+   var miss=[dr,cr].filter(function(x){return !M[x]||!C0[M[x]]||C0[M[x]].status==='Blocked'});
+   if(miss.length){var m='GL account not mapped / not found: '+miss.map(nm).join(' / ');if(e0.msg!==m){log[k]={sid:k,grp:1,ac:o.ac,mod:G.mod,src:G.src,ref:o.ref,date:o.date,amount:posted,status:'Error',msg:m,at:new Date().toISOString()};chg=1}return}
+   var je=writeJe(o.date||today(),'',G.src+' '+o.ref+(posted?' (adjustment)':''),[[M[dr],a,0],[M[cr],0,a]],G.mod,{source_ref:o.ref});
+   log[k]={sid:k,grp:1,ac:o.ac,mod:G.mod,src:G.src,ref:o.ref,date:o.date,amount:tot,je:je,status:'Posted',msg:'',at:new Date().toISOString(),by:currentUser.name||currentUser.id};chg=1});return chg}
  var C0={};
  var M={},busy=0;
  function run(){if(busy)return;busy=1;try{
@@ -45811,4 +45869,40 @@ return btns;
 })();
 </script>
 
+<script id="defaultItemsJs">
+(function(){
+ if(window.__defItemsInit)return;window.__defItemsInit=1;
+ /* Default Item Master: Additives (FA-xxxx) + Raw Materials (FRM-xxxx). [group, code, name, sheet(A=Additives,R=Raw Material)]
+    Added once (missing codes only, never overwrites existing items). Flag: erp_item_seeded_v1 */
+ var ROWS=[["Synthetic Amino acid","FA-0001","DL-Methionine","A"],["Synthetic Amino acid","FA-0002","L-Lysine","A"],["Synthetic Amino acid","FA-0003","L-Lysine Sulphate","A"],["Synthetic Amino acid","FA-0004","L-Thrionine","A"],["Synthetic Amino acid","FA-0005","L-Valine","A"],["Synthetic Amino acid","FA-0006","Tryptophan","A"],["Summer Product","FA-0007","Beta Key","A"],["Summer Product","FA-0008","Chromflex c Dry","A"],["Summer Product","FA-0009","Hepatron 75%","A"],["Phytogenic","FA-0010","Activo Powder","A"],["Phytogenic","FA-0011","Alliam Plus","A"],["Phytogenic","FA-0012","Allicom","A"],["Phytogenic","FA-0013","Alquernat Nebsui","A"],["Phytogenic","FA-0014","Bio Strong 510","A"],["Phytogenic","FA-0015","Curcumol","A"],["Phytogenic","FA-0016","Laymore","A"],["Phytogenic","FA-0017","Magni Phi","A"],["Phytogenic","FA-0018","Orego Stim Powder","A"],["Phytogenic","FA-0019","Turmeric","A"],["Vitamins","FA-0020","Bio-Choline","A"],["Vitamins","FA-0021","Breeder Vitamin","A"],["Vitamins","FA-0022","Broiler Vitamin","A"],["Vitamins","FA-0023","Choline Chloride","A"],["Vitamins","FA-0024","Eskavit D3","A"],["Vitamins","FA-0025","Eskavit E 40","A"],["Vitamins","FA-0026","Fish Vitamin","A"],["Vitamins","FA-0027","Herbal-C","A"],["Vitamins","FA-0028","Layer Vitamin","A"],["Vitamins","FA-0029","Vitamin-C","A"],["Flevour","FA-0030","Feed Attractant - Aquabite S","A"],["Flevour","FA-0031","Fish Flavour","A"],["Flevour","FA-0032","Molasses Aoma","A"],["Vitamins & minerals","FA-0033","Aquatic Compound Premix","A"],["Vitamins & minerals","FA-0034","Breeder Premix","A"],["Vitamins & minerals","FA-0035","Broiler Premix","A"],["Vitamins & minerals","FA-0036","Carp Compound Premix","A"],["Vitamins & minerals","FA-0037","Catfish Compound Premix","A"],["Vitamins & minerals","FA-0038","Cattle Premix","A"],["Vitamins & minerals","FA-0039","Fish Premix","A"],["Vitamins & minerals","FA-0040","Kemtrace Layer SPL Dry","A"],["Vitamins & minerals","FA-0041","KemTrace Maxim Dry","A"],["Vitamins & minerals","FA-0042","Kemtrace Supreme Dry","A"],["Vitamins & minerals","FA-0043","Layer Premix","A"],["Vitamins & minerals","FA-0044","Tilapia Compound Premix","A"],["Coccidiostate","FA-0045","Adicox","A"],["Coccidiostate","FA-0046","Alquernat Zycox","A"],["Coccidiostate","FA-0047","Avatec","A"],["Coccidiostate","FA-0048","Aviax Plus","A"],["Coccidiostate","FA-0049","Coxidin","A"],["Coccidiostate","FA-0050","Coxiril","A"],["Coccidiostate","FA-0051","Coxistac","A"],["Coccidiostate","FA-0052","Coyden","A"],["Coccidiostate","FA-0053","Cycostat","A"],["Coccidiostate","FA-0054","Decbate","A"],["Coccidiostate","FA-0055","Deccox","A"],["Coccidiostate","FA-0056","Decopex 6","A"],["Coccidiostate","FA-0057","Diclapex","A"],["Coccidiostate","FA-0058","Dicox","A"],["Coccidiostate","FA-0059","Econase XT","A"],["Coccidiostate","FA-0060","Gromax","A"],["Coccidiostate","FA-0061","Maxiban","A"],["Coccidiostate","FA-0062","Monicox","A"],["Coccidiostate","FA-0063","Nicsal","A"],["Coccidiostate","FA-0064","Nimax","A"],["Coccidiostate","FA-0065","Robiclin","A"],["Coccidiostate","FA-0066","Zamidine100","A"],["Coccidiostate","FA-0067","Zycox","A"],["Minerals","FA-0068","Aminochel -Breeder","A"],["Minerals","FA-0069","Bioplex Poultry Pak","A"],["Minerals","FA-0070","Bioplex Premium Pak","A"],["Minerals","FA-0071","Breeder Mineral","A"],["Minerals","FA-0072","Broiler Mineral","A"],["Minerals","FA-0073","Copper Sulphate","A"],["Minerals","FA-0074","Di Calsium Phosphate","A"],["Minerals","FA-0075","Fish Mineral","A"],["Minerals","FA-0076","Glymet Copper","A"],["Minerals","FA-0077","KemTrace Supreme-Broiler","A"],["Minerals","FA-0078","KemTrace-Breeder","A"],["Minerals","FA-0079","Layer Mineral","A"],["Minerals","FA-0080","Magnesium Oxide","A"],["Minerals","FA-0081","Mineralate Poultry Pack","A"],["Minerals","FA-0082","Mono Calsium Phosphate","A"],["Minerals","FA-0083","Salt","A"],["Minerals","FA-0084","Selplex","A"],["Minerals","FA-0085","Sodium Bi Cardonate","A"],["Minerals","FA-0086","Sodium Sulphate","A"],["Enzyme","FA-0087","AGal- Pro280","A"],["Enzyme","FA-0088","Allzyme S.S.F","A"],["Enzyme","FA-0089","Betazyme Phytase","A"],["Enzyme","FA-0090","Extra Phy 100","A"],["Enzyme","FA-0091","Fullzyme","A"],["Enzyme","FA-0092","Fullzyme-P","A"],["Enzyme","FA-0093","Fullzyme-X","A"],["Enzyme","FA-0094","Hemicell","A"],["Enzyme","FA-0095","Hostazym","A"],["Enzyme","FA-0096","Kemzyme","A"],["Enzyme","FA-0097","Mannanase Enzyme-Ctczyme","A"],["Enzyme","FA-0098","Mannanase Enzyme-Econase MP 100","A"],["Enzyme","FA-0099","Multi-Kemzyme XPF Advance Dry","A"],["Enzyme","FA-0100","NSP-Axxes XY","A"],["Enzyme","FA-0101","Nutrase Xyla","A"],["Enzyme","FA-0102","Nutrikem 5.0","A"],["Enzyme","FA-0103","Optiphos 10000","A"],["Enzyme","FA-0104","Phytase-Cibenza Phytaverse","A"],["Enzyme","FA-0105","Phytase-Optiphos Plus","A"],["Enzyme","FA-0106","Protease-Allzyme Vegpro","A"],["Enzyme","FA-0107","Protease-Protdase","A"],["Enzyme","FA-0108","Quantum Blue","A"],["Enzyme","FA-0109","Ronozyme ProAct","A"],["Enzyme","FA-0110","Rovabio","A"],["Enzyme","FA-0111","Xylamax","A"],["Emulsifier","FA-0112","Laci Max","A"],["Emulsifier","FA-0113","Liposorb","A"],["Emulsifier","FA-0114","Lysoforte","A"],["Emulsifier","FA-0115","Napisol","A"],["Emulsifier","FA-0116","Runeon","A"],["Emulsifier","FA-0117","Runeon","A"],["Emulsifier","FA-0118","Truemulsi","A"],["Emulsifier","FA-0119","Volamel Extra","A"],["Antibiotics","FA-0120","Avimax","A"],["Antibiotics","FA-0121","CTC Gold","A"],["Antibiotics","FA-0122","Lincomix","A"],["Antibiotics","FA-0123","Zinc Bac","A"],["Acidifier","FA-0124","Salcurb","A"],["Acidifier","FA-0125","Alpha CID P","A"],["Acidifier","FA-0126","Citrinal Powder","A"],["Acidifier","FA-0127","Fordex","A"],["Acidifier","FA-0128","Gallimix L3","A"],["Acidifier","FA-0129","Salkil","A"],["Acidifier","FA-0130","Salrid","A"],["Acidifier","FA-0131","Termin-8","A"],["Toxin binder","FA-0132","Aflasorb","A"],["Toxin binder","FA-0133","BetaFix","A"],["Toxin binder","FA-0134","Bio Tox","A"],["Toxin binder","FA-0135","Escent's","A"],["Toxin binder","FA-0136","Klino Feed","A"],["Toxin binder","FA-0137","Mastersorb Gold","A"],["Toxin binder","FA-0138","Micocid Pro","A"],["Toxin binder","FA-0139","Mycofix Plus","A"],["Toxin binder","FA-0140","Mycofix Secure","A"],["Toxin binder","FA-0141","Mycosorb A+","A"],["Toxin binder","FA-0142","Novasil Plus","A"],["Toxin binder","FA-0143","Pro Sid TB 101","A"],["Toxin binder","FA-0144","Sorbasafe","A"],["Toxin binder","FA-0145","Toxfin 360 Dry","A"],["Toxin binder","FA-0146","Toxi Adsorber","A"],["Toxin binder","FA-0147","Toxifin Dry","A"],["Toxin binder","FA-0148","Toxin binder-T 150","A"],["Toxin binder","FA-0149","Toxo MX","A"],["Toxin binder","FA-0150","Toxo XL","A"],["Mold inhibitor","FA-0151","Alquermold","A"],["Mold inhibitor","FA-0152","Micofung","A"],["Mold inhibitor","FA-0153","MoldCid","A"],["Mold inhibitor","FA-0154","Mould Guard Diamond","A"],["Mold inhibitor","FA-0155","Mycocurb Extend Plus Liquid","A"],["Mold inhibitor","FA-0156","Mycocurb Liquid","A"],["Mold inhibitor","FA-0157","Mycocurb-Dry","A"],["Mold inhibitor","FA-0158","Pros Acid MQ","A"],["Non-antibiotic growth promotor","FA-0159","Cygqnol","A"],["Non-antibiotic growth promotor","FA-0160","Hal Q 12.5%","A"],["Non-antibiotic growth promotor","FA-0161","Hal Q 98%","A"],["Non-antibiotic growth promotor","FA-0162","Hal Q DS","A"],["Non-antibiotic growth promotor","FA-0163","Intellibond C Pre/TBCC","A"],["Non-antibiotic growth promotor","FA-0164","Presan FY","A"],["Non-antibiotic growth promotor","FA-0165","Quixalud","A"],["Probiotic","FA-0166","Aleta","A"],["Probiotic","FA-0167","B-Act","A"],["Probiotic","FA-0168","B-Act Gold","A"],["Probiotic","FA-0169","B-Act Plus","A"],["Probiotic","FA-0170","Calsporin","A"],["Probiotic","FA-0171","Clostat","A"],["Probiotic","FA-0172","Clostat 365","A"],["Probiotic","FA-0173","Gallipro Tech","A"],["Probiotic","FA-0174","I-Care","A"],["Probiotic","FA-0175","MFeed+","A"],["Probiotic","FA-0176","Pro-B","A"],["Probiotic","FA-0177","Protexin Concentrate","A"],["Probiotic","FA-0178","Rapigrow","A"],["Probiotic","FA-0179","Saltose","A"],["Probiotic","FA-0180","Technocare","A"],["Probiotic","FA-0181","Ye Plus","A"],["Probiotic","FA-0182","Zoobiotico","A"],["Prebiotic","FA-0183","BG Moss","A"],["Prebiotic","FA-0184","GlucanMOS","A"],["Prebiotic","FA-0185","Hilyses","A"],["Prebiotic","FA-0186","Immunowall","A"],["Prebiotic","FA-0187","Safmannan","A"],["Pellet binder","FA-0188","Betabond AQ","A"],["Pellet binder","FA-0189","Denubond CS","A"],["Pellet binder","FA-0190","Hybond","A"],["Pellet binder","FA-0191","KDN Pellet Binder","A"],["Pellet binder","FA-0192","Ligno Bond DD","A"],["Pellet binder","FA-0193","Maize Starch","A"],["Pellet binder","FA-0194","Sunny Binder","A"],["NPN","FA-0195","Optizen","A"],["NPN","FA-0196","Rumisan","A"],["NPN","FA-0197","Urea","A"],["NPN","FA-0198","ZENITRO","A"],["Ammonia Binder","FA-0199","Bio-Curb","A"],["Ammonia Binder","FA-0200","De-Odorase","A"],["Medium Chain Fatty Acid/ Butyric Acid","FA-0201","Adimix","A"],["Medium Chain Fatty Acid/ Butyric Acid","FA-0202","Adimix Precision","A"],["Medium Chain Fatty Acid/ Butyric Acid","FA-0203","Bergaprime","A"],["Medium Chain Fatty Acid/ Butyric Acid","FA-0204","Beta Tri Butyrin","A"],["Medium Chain Fatty Acid/ Butyric Acid","FA-0205","Butipearl","A"],["Medium Chain Fatty Acid/ Butyric Acid","FA-0206","Butiphorce 1065","A"],["Medium Chain Fatty Acid/ Butyric Acid","FA-0207","Butyrin","A"],["Medium Chain Fatty Acid/ Butyric Acid","FA-0208","Gustor","A"],["Medium Chain Fatty Acid/ Butyric Acid","FA-0209","Intest Plus","A"],["Medium Chain Fatty Acid/ Butyric Acid","FA-0210","Pro-Phorce SR","A"],["Bypass Fat","FA-0211","NL-100","A"],["Bypass Fat","FA-0212","Bergafat F-100","A"],["Bypass Fat","FA-0213","Bergafat T-300","A"],["Bypass Fat","FA-0214","Osmofat-100","A"],["Antioxidant","FA-0215","Endox","A"],["Antioxidant","FA-0216","Liptosa","A"],["Antioxidant","FA-0217","Oxidex premix","A"],["Antioxidant","FA-0218","Oxihold","A"],["Antioxidant","FA-0219","Pro Tain OT 102","A"],["Antioxidant","FA-0220","Randox Forte Liquid","A"],["Nucleotide","FA-0221","Nupro","A"],["Bypass","FA-0222","Bypass Protein","A"],["Yest Extract","FA-0223","Avitor SCP","A"],["Fertility Enhencer","FA-0224","CarnEon Poultry (L-Carnitine)","A"],["Energy","FRM-0001","Maize 13%","R"],["Energy","FRM-0002","Maize 14%","R"],["Energy","FRM-0003","Maize (Dust)","R"],["Energy","FRM-0004","Molasses","R"],["Energy","FRM-0005","Wheat","R"],["Vegetable Protein","FRM-0006","Propak Protein Concentrate","R"],["Vegetable Protein","FRM-0007","Protein Concentrate-Corn","R"],["Vegetable Protein","FRM-0008","Protein Concentrate-Soy","R"],["Vegetable Protein","FRM-0009","Rape Seed Meal","R"],["Vegetable Protein","FRM-0010","Soyabean Hull","R"],["Vegetable Protein","FRM-0011","Soyabean Meal 42","R"],["Vegetable Protein","FRM-0012","Soyabean Meal 43","R"],["Vegetable Protein","FRM-0013","Soyabean Meal 44","R"],["Vegetable Protein","FRM-0014","Soyabean Meal 45","R"],["Vegetable Protein","FRM-0015","Soyabean Meal 46","R"],["Vegetable Protein","FRM-0016","Soyabean Meal 47","R"],["Vegetable Protein","FRM-0017","Soyabean Meal 48","R"],["Vegetable Protein","FRM-0018","Soyabean Meal 50","R"],["Vegetable Protein","FRM-0019","Yellow Peas","R"],["Animal protein","FRM-0020","Dry Fish (Crushing)","R"],["Animal protein","FRM-0021","Fish Meal 50%","R"],["Animal protein","FRM-0022","Fish Meal 55%","R"],["Animal protein","FRM-0023","Poultry Meal 55","R"],["Animal protein","FRM-0024","Poultry Meal 60","R"],["Energy & Protein","FRM-0025","Broken Rice","R"],["Energy & Protein","FRM-0026","Coconut Meal","R"],["Energy & Protein","FRM-0027","Corn Gluten Meal -55%","R"],["Energy & Protein","FRM-0028","Cotton Seed Meal","R"],["Energy & Protein","FRM-0029","DDGS","R"],["Energy & Protein","FRM-0030","DDGS (Rice)","R"],["Energy & Protein","FRM-0031","DORB","R"],["Energy & Protein","FRM-0032","Palm Karnel Meal","R"],["Energy & Protein","FRM-0033","Rice Polish (Atab )","R"],["Energy & Protein","FRM-0034","Rice Polish (Boiled)","R"],["Energy & Protein","FRM-0035","Rice Polish (Cattle)","R"],["Energy & Protein","FRM-0036","Soya Grain-Full Fat (Boiled)","R"],["Energy & Protein","FRM-0037","Soya Grain-Full Fat (Extruded)","R"],["Energy & Protein","FRM-0038","Soya Grain-Full Fat (Non Boiled)","R"],["Energy & Protein","FRM-0039","Sunflower Meal","R"],["Energy & Protein","FRM-0040","Waste Seed Rice","R"],["Energy & Protein","FRM-0041","Wheat Flour","R"],["Protein & Fiber","FRM-0042","Wheat Bran","R"],["Fats & oils (Energy)","FRM-0043","Crude Oil","R"],["Fats & oils (Energy)","FRM-0044","Fish Oil","R"],["Fats & oils (Energy)","FRM-0045","Palm Oil","R"],["Fats & oils (Energy)","FRM-0046","Poultry Oil","R"],["Fats & oils (Energy)","FRM-0047","Rice Bran Oil","R"],["Fats & oils (Energy)","FRM-0048","Soyabean Oil","R"],["Fats & oils (Energy)","FRM-0049","Turmeric Oil","R"],["Minerals","FRM-0050","Lime Stone Powder","R"],["Minerals","FRM-0051","Lime Stone-Sujee","R"],["Minerals","FRM-0052","Lime Stone 1-2mm","R"],["Minerals","FRM-0053","Lime Stone 2-3mm","R"],["Minerals","FRM-0054","Lime Stone 3-4mm","R"]];
+ var KEY='erp_item_master',FLAG='erp_item_seeded_v1';
+ function run(){try{
+  if(typeof currentUser==='undefined'||!currentUser)return;
+  var srv=false;try{var sb0=JSON.parse(localStorage.getItem('erp_sb_cfg')||'{}');srv=!!(sb0.url&&sb0.anon&&sb0.on!==false)}catch(e){}
+  if(srv)return;
+  /* one-time: remove every item that is not a default (old codes / old test items); copy kept in erp_item_master_removed_backup */
+  var CODES={};ROWS.forEach(function(r){CODES[r[1]]=1});
+  var justCleaned=false;
+  if(!localStorage.getItem('erp_item_cleanup_v2')){justCleaned=true;var m0={};try{m0=JSON.parse((window.__rawGet?window.__rawGet(KEY):localStorage.getItem(KEY))||'{}')||{}}catch(e){}
+   var gone={},cnt=0;Object.keys(m0).forEach(function(k){if(!m0[k]||!CODES[k]){gone[k]=m0[k];delete m0[k];cnt++}});
+   if(cnt){Storage.prototype.setItem.call(localStorage,'erp_item_master_removed_backup',JSON.stringify(gone));Storage.prototype.setItem.call(localStorage,KEY,JSON.stringify(m0))}
+   Storage.prototype.setItem.call(localStorage,'erp_item_cleanup_v2',String(cnt));
+   if(typeof window.renderImTable==='function'){try{window.renderImTable()}catch(e){}}
+   if(typeof window.__prItemsRefresh==='function'){try{window.__prItemsRefresh()}catch(e){}}}
+  if(localStorage.getItem(FLAG)&&!justCleaned){var mm={};try{mm=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}if(Object.keys(mm).length)return}
+  try{var sb=JSON.parse(localStorage.getItem('erp_sb_cfg')||'{}');if(sb.url&&sb.anon&&sb.on!==false)return}catch(e){}   // server mode: the server is the source of truth (admin uploads defaults with 'Upload all')
+  var raw=window.__rawGet?window.__rawGet(KEY):localStorage.getItem(KEY),m={};try{m=JSON.parse(raw||'{}')||{}}catch(e){m={}}
+  var have={};Object.keys(m).forEach(function(k){var r=m[k]||{};have[String(r.name||'').trim().toLowerCase()+'|'+String(r.group||'').trim().toLowerCase()]=1});
+  var now=new Date().toISOString(),n=0;
+  ROWS.forEach(function(r){var g=r[0],c=r[1],nm=r[2];if(m[c])return;if(have[nm.toLowerCase()+'|'+g.toLowerCase()])return;
+   m[c]={code:c,name:nm,type:'Raw Material',group:g,uom:'kg',alt_uom:'',conv:'',pack:'',spec:'',brand:'',status:'Active',batch:'No',shelf:'',min:'',max:'',reorder:'',lead:'',remarks:'',valuation:'Moving Average',rate:'',hsn:'',vat:'',barcode:'',class:r[3]==='A'?'Additives':'Raw Material (RM)',default_seed:1,created_by:'Default',created_at:now};n++});
+  Storage.prototype.setItem.call(localStorage,KEY,JSON.stringify(m));Storage.prototype.setItem.call(localStorage,FLAG,'1');
+  if(typeof window.renderImTable==='function'){try{window.renderImTable()}catch(e){}}
+  if(typeof window.__prItemsRefresh==='function'){try{window.__prItemsRefresh()}catch(e){}}
+  if(typeof window.__prodItemsRefresh==='function'){try{window.__prodItemsRefresh()}catch(e){}}
+ }catch(e){console.warn('default items',e)}}
+ setInterval(run,1500);run();
+ var lastSig='';setInterval(function(){try{if(typeof window.__prItemsRefresh!=='function'||typeof currentUser==='undefined'||!currentUser)return;var sg=(localStorage.getItem(KEY)||'').length;if(sg!==lastSig){lastSig=sg;window.__prItemsRefresh();if(typeof window.__prodItemsRefresh==='function')window.__prodItemsRefresh()}}catch(e){}},3000);
+})();
+</script>
 </body></html>
