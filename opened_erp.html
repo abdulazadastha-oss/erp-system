@@ -3229,7 +3229,7 @@ footer{background:#fff;border-top:1px solid #e2e8f0}
  <div class="m"><a>⚙️ Setup</a><div class="dd">
   <a data-ws="582"><span class="arrow">▶</span> BOM (Finished Product)</a></div></div>
  <div class="m"><a>📋 Plan</a><div class="dd">
-  <a data-ws="581"><span class="arrow">▶</span> Daily Production Plan</a><a data-ws="583"><span class="arrow">▶</span> Production Plan for RM Requirement</a></div></div>
+  <a data-ws="581"><span class="arrow">▶</span> Daily Production Plan</a><a data-ws="583"><span class="arrow">▶</span> Production Forecast</a></div></div>
  <div class="m"><a>🏭 Production</a><div class="dd">
   <a data-ws="630"><span class="arrow">▶</span> Production Process</a><a data-ws="631"><span class="arrow">▶</span> Actual Consumption</a><a data-ws="632"><span class="arrow">▶</span> Finished Goods Receive From Production</a><a data-ws="633"><span class="arrow">▶</span> Batch Close</a></div></div>
  <div class="m"><a>🧪 QC</a><div class="dd">
@@ -3796,7 +3796,7 @@ const qcCols=(c,nm,raw,sc)=>{const tt=nrm(sc.titles.map(t=>t.filter(x=>String(x)
  return f?[rnd(ok),hold?'<b style="color:#d97706">'+rnd(hold)+'</b>':0]:[raw,0]};
 const qcExtra=q=>{let h='',n=0;Object.keys(D.qcs).forEach(w=>{const rows=[];Object.keys(D.qcs[w]).forEach(g=>{const e=D.qcs[w][g];if(QCM[w+'|'+g]||!(e.ok>0||e.hold>0))return;if(q&&(g+' '+w).toLowerCase().indexOf(q)<0)return;rows.push(['—',qEsc(g),rnd(e.ok+e.hold),rnd(e.ok),e.hold?'<b style="color:#d97706">'+e.hold+'</b>':0])});
  if(rows.length){n+=rows.length;h+='<div style="padding:6px 12px;font-weight:700;background:#eef2f7">Finished Goods (QC) · '+qEsc(w)+'</div>'+T(QCH,rows)}});return {h,n}};
-/* ===== Production Plan for RM Requirement (ws 583) ===== */
+/* ===== Production Forecast (ws 583) ===== */
 let RMM='draft';
 const rmItemRow=()=>itemRow().replace('</select></td><td><input class="iqty"','</select></td><td><select class="ifm" data-chg="rmcalc" style="min-width:210px"><option value="">[ Select Formula ]</option></select></td><td><input class="iqty"').replace('data-act="delItem"','data-act="rmdelItem"');
 const rmFms=fg=>D.recipes.filter(r=>r.fg==fg).sort((x,y)=>String(y.fd||'').localeCompare(String(x.fd||'')));
@@ -3825,10 +3825,10 @@ const rmUsed=no=>{if(D.plans.some(p=>p.rpp==no))return true;try{const o=JSON.par
 const rmRevOK=p=>p.st=='Completed'&&!rmUsed(p.no);
 const rmActs=p=>'<button class="btn sv" data-act="rmview" data-id="'+p.no+'">View</button> '+(p.st=='Draft'?'<button class="btn ex" data-act="rmedit" data-id="'+p.no+'">Edit</button> ':'')+'<button class="btn pr" data-act="rmprn" data-id="'+p.no+'">🖶 Print</button>'+(rmRevOK(p)?' <button class="btn ex" style="background:#f59e0b;color:#fff" data-act="rmrevert" data-id="'+p.no+'">↩ Revert</button>':'')+(p.st=='Draft'?' <button class="btn sv" style="background:#16a34a" data-act="rmsubmit" data-id="'+p.no+'">Submit</button> <button class="btn ex" style="background:#d9342b;color:#fff" data-act="rmdel" data-id="'+p.no+'">Delete</button>':'');
 R.rmplan=()=>{const L=D.rmplans.filter(p=>(p.st=='Draft')==(RMM!='complete'));
- return '<div class="ttl" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><span>Production Plan for RM Requirement</span><select id="rpmode" data-chg="rpmode" style="margin:0 auto;min-width:150px;font-weight:700"><option value="draft"'+(RMM=='complete'?'':' selected')+'>Draft</option><option value="complete"'+(RMM=='complete'?' selected':'')+'>Complete</option></select><button class="btn sv" data-act="rmnew">＋ New Plan</button></div>'+
+ return '<div class="ttl" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><span>Production Forecast</span><select id="rpmode" data-chg="rpmode" style="margin:0 auto;min-width:150px;font-weight:700"><option value="draft"'+(RMM=='complete'?'':' selected')+'>Draft</option><option value="complete"'+(RMM=='complete'?' selected':'')+'>Complete</option></select><button class="btn sv" data-act="rmnew">＋ New Plan</button></div>'+
  '<div class="pn"><div class="ph"><span class="mn">−</span>RM Requirement Plan – '+(RMM=='complete'?'Complete':'Draft')+' ('+L.length+')</div>'+
  T(['RM Plan Ref. No','Plan Date','Start','End','Company','BU','Profit Center','Plant','Items (Product × Qty Kg)','Raw Materials','Total Qty (Kg)','Status','Action'],L.map(p=>[p.no,p.date,p.s,p.e,p.co||'—',p.bu||'—',p.pc||'—',qEsc(p.pl),p.items.map(i=>qEsc((i.pl||p.pl)+' · '+i.fg)+' × '+rnd(i.qty)).join('<br>'),(p.req||[]).length,rnd(p.items.reduce((a,i)=>a+i.qty,0)),Bd(p.st),rmActs(p)]))+'</div>'+
- '<div class="modal" id="ins"><div class="pn"><div class="ih">Production Plan for RM Requirement ['+(PE?'Edit '+PE:'Insert')+' mode]<span class="x" data-act="hide">✕</span></div><div class="fg">'+inp('d','Plan Date',td(),'date')+inp('s','Start Time','08:00','time')+inp('e','End Time','17:00','time')+sel('co','Company',orgCo(),'data-chg="org"')+sel('bu','Business Unit',[],'data-chg="org"')+sel('pc','Profit Center',[],'data-chg="org"')+inp('rm','Remarks')+'</div>'+
+ '<div class="modal" id="ins"><div class="pn"><div class="ih">Production Forecast ['+(PE?'Edit '+PE:'Insert')+' mode]<span class="x" data-act="hide">✕</span></div><div class="fg">'+inp('d','Plan Date',td(),'date')+inp('s','Start Time','08:00','time')+inp('e','End Time','17:00','time')+sel('co','Company',orgCo(),'data-chg="org"')+sel('bu','Business Unit',[],'data-chg="org"')+sel('pc','Profit Center',[],'data-chg="org"')+inp('rm','Remarks')+'</div>'+
  '<div class="wrap" style="padding:0 12px"><table id="itb"><tr><th>Plant Name</th><th>Product Name</th><th>Formula</th><th>Qty (Kg)</th><th>Batch Size (Kg)</th><th>Batches</th><th></th></tr>'+rmItemRow()+'</table><button class="btn sv" data-act="rmaddItem" style="margin:6px 0">＋ Add Item</button></div>'+
  '<div class="ph" style="margin-top:8px"><span class="mn">−</span>Raw Material Requirement (auto calculated from the selected formula)</div><div id="rmreq">'+rmHtml({bd:[],req:[]})+'</div>'+BT('rmsave','hide')+'</div></div>'+(PWV?rmView(PWV):'')};
 M[583]='rmplan';
@@ -8120,7 +8120,7 @@ go('home');
   <div class="weight-modal-overlay" id="vuFormOverlay" onclick="if(event.target===this) closeVuForm()">
     <div class="erp-form-outer" style="max-width:1100px;">
       <div class="erp-form-titlebar"><h2>🚚 Vehicle Unload</h2></div>
-      <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Vehicle &amp; Challan Information (1)</span></div>
+      <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>2nd QC Information (Auto-filled) (1)</span></div>
       <div class="erp-form-card">
         <div class="erp-form-header">
           <span>Vehicle Unload [Insert mode]</span>
@@ -8130,32 +8130,42 @@ go('home');
           <div class="erp-form-body">
             <div class="erp-field-grid" style="grid-template-columns: repeat(4, 1fr);">
               <div class="erp-field"><div class="erp-field-label-row"><label for="vu_ref">Ref No</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_ref" readonly="" style="font-weight:700; color:#2563eb;"></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_gate_entry_no">Gate Entry No (hang from)</label><span class="erp-info-icon">i</span></div><select id="vu_gate_entry_no" onchange="autofillVuFromGateEntry(this.value)"><option value="">[ Select Gate Entry No ]</option></select></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_qc2_ref">2nd QC Ref# (hang from)</label><span class="erp-info-icon">i</span></div><select id="vu_qc2_ref" onchange="onVuQc2Change(this.value)"><option value="">[ Select 2nd QC Ref# ]</option></select></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="vu_date">Date</label><span class="erp-info-icon">i</span></div><input type="date" id="vu_date" required=""></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_supplier">Supplier Name</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_supplier" required=""></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_material">Materials Name</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_material" required=""></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_origin">Origin</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_origin" readonly="" style="background:#f0f0f0; font-weight:700;"></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_truck_no">Truck No</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_truck_no" required=""></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_challan_no">Challan No</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_challan_no"></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_truck_fare">Truck Fare</label><span class="erp-info-icon">i</span></div><input type="number" id="vu_truck_fare" step="0.01" placeholder="0.00"></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_lpo_mpo_no">LPO No/MPO No</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_lpo_mpo_no"></div>
-              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_grn_sto_no">GRN/STO No</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_grn_sto_no"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_status">Status</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_status" readonly="" value="Pending" style="background:#e2e8f0;"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_unloaded_by">Unloaded By</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_unloaded_by" readonly="" ></div>
+            </div>
+            <div class="erp-field-grid" style="grid-template-columns: repeat(4, 1fr);">
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_supplier">Supplier Name</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_supplier" readonly="" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_material">Materials Name</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_material" readonly="" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_item_code">Item Code</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_item_code" readonly="" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_origin">Origin</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_origin" readonly="" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_truck_no">Truck No</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_truck_no" readonly="" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_challan_no">Challan No</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_challan_no" readonly="" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_qc_result">QC Result</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_qc_result" readonly="" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_gate_entry_no">Challan Entry No</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_gate_entry_no" readonly="" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_scale_id">Scale ID (2nd Weight)</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_scale_id" readonly="" ></div>
             </div>
           </div>
 
-          <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Weight &amp; Bag Information (2)</span></div>
+          <div class="erp-form-subrow"><span class="erp-collapse-icon">−</span><span>Unloading Details (2)</span></div>
           <div class="erp-form-card">
-            <div class="erp-form-header"><span>Weight Details</span></div>
+            <div class="erp-form-header"><span>Unload Parameters</span></div>
             <div class="erp-form-body">
-              <div class="erp-field-grid" style="grid-template-columns: repeat(2, 1fr); gap: 14px 30px;">
-                <div class="erp-field"><div class="erp-field-label-row"><label for="vu_challan_weight">Challan Weight</label><span class="erp-info-icon">i</span></div><div style="display:flex;align-items:center;gap:6px;"><input type="number" id="vu_challan_weight" step="0.01" placeholder="0.00" style="flex:1;"><span style="font-weight:700;color:#0d6e3a;white-space:nowrap;">KG</span></div></div>
-                <div class="erp-field"><div class="erp-field-label-row"><label for="vu_factory_weight">Factory Weight</label><span class="erp-info-icon">i</span></div><div style="display:flex;align-items:center;gap:6px;"><input type="number" id="vu_factory_weight" step="0.01" placeholder="0.00" readonly="" style="background:#f0f0f0; font-weight:700;flex:1;"><span style="font-weight:700;color:#0d6e3a;white-space:nowrap;">KG</span></div></div>
-                <div class="erp-field"><div class="erp-field-label-row"><label for="vu_received_weight">Received Weight</label><span class="erp-info-icon">i</span></div><div style="display:flex;align-items:center;gap:6px;"><input type="number" id="vu_received_weight" step="0.01" placeholder="0.00" oninput="calcVuNetWeight()" style="flex:1;"><span style="font-weight:700;color:#0d6e3a;white-space:nowrap;">KG</span></div></div>
-                <div class="erp-field"><div class="erp-field-label-row"><label for="vu_bag_qty">Bag Quantity</label><span class="erp-info-icon">i</span></div><div style="display:flex;align-items:center;gap:6px;"><input type="number" id="vu_bag_qty" step="1" placeholder="0" oninput="calcVuNetWeight()" style="flex:1;"><span style="font-weight:700;color:#0d6e3a;white-space:nowrap;">Pcs</span></div></div>
-                <div class="erp-field"><div class="erp-field-label-row"><label for="vu_bag_type">Bag Type</label><span class="erp-info-icon">i</span></div><select id="vu_bag_type" class="vu-bagtype-select" onchange="onVuBagTypeChange()"><option value="">-- Select --</option></select></div>
-                <div class="erp-field"><div class="erp-field-label-row"><label for="vu_bag_weight">Bag Weight (per bag)</label><span class="erp-info-icon">i</span></div><div style="display:flex;align-items:center;gap:6px;"><input type="number" id="vu_bag_weight" step="0.01" placeholder="0.00" readonly="" style="background:#f0f0f0; font-weight:700;flex:1;" oninput="calcVuNetWeight()"><span style="font-weight:700;color:#0d6e3a;white-space:nowrap;">KG</span></div></div>
-                <div class="erp-field"><div class="erp-field-label-row"><label for="vu_net_weight">Net Weight</label><span class="erp-info-icon">i</span></div><div style="display:flex;align-items:center;gap:6px;"><input type="number" id="vu_net_weight" step="0.01" placeholder="0.00" readonly="" style="background:#f0f0f0; font-weight:700;flex:1;"><span style="font-weight:700;color:#0d6e3a;white-space:nowrap;">KG</span></div></div>
-                <div class="erp-field"><div class="erp-field-label-row"><label for="vu_moisture">Moisture</label><span class="erp-info-icon">i</span></div><div style="display:flex;align-items:center;gap:6px;"><input type="number" id="vu_moisture" step="0.01" placeholder="0.00" style="flex:1;"><span style="font-weight:700;color:#0d6e3a;white-space:nowrap;">%</span></div></div>
+              <div class="erp-field-grid" style="grid-template-columns: repeat(4, 1fr);">
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_challan_weight">Challan Weight (KG)</label><span class="erp-info-icon">i</span></div><input type="number" id="vu_challan_weight" step="0.01" placeholder="0.00" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_factory_weight">Factory Weight (KG)</label><span class="erp-info-icon">i</span></div><input type="number" id="vu_factory_weight" step="0.01" placeholder="0.00" readonly="" style="background:#f0f0f0; font-weight:700;"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_received_weight">Received Weight (KG)</label><span class="erp-info-icon">i</span></div><input type="number" id="vu_received_weight" step="0.01" placeholder="0.00" oninput="calcVuNetWeight()"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_bag_qty">Bag Quantity (Pcs)</label><span class="erp-info-icon">i</span></div><input type="number" id="vu_bag_qty" step="1" placeholder="0" oninput="calcVuNetWeight()"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_bag_type">Bag Type</label><span class="erp-info-icon">i</span></div><select id="vu_bag_type" class="vu-bagtype-select" onchange="onVuBagTypeChange()"><option value="">-- Select --</option></select></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_bag_weight">Bag Weight per bag (KG)</label><span class="erp-info-icon">i</span></div><input type="number" id="vu_bag_weight" step="0.01" placeholder="0.00" readonly="" oninput="calcVuNetWeight()" style="background:#f0f0f0; font-weight:700;"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_net_weight">Net Weight (KG)</label><span class="erp-info-icon">i</span></div><input type="number" id="vu_net_weight" step="0.01" placeholder="0.00" readonly="" style="background:#f0f0f0; font-weight:700;"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_moisture">Moisture %</label><span class="erp-info-icon">i</span></div><input type="number" id="vu_moisture" step="0.01" placeholder="0.00" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_truck_fare">Truck Fare</label><span class="erp-info-icon">i</span></div><input type="number" id="vu_truck_fare" step="0.01" placeholder="0.00" ></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_truck_owner">Truck Owner</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_truck_owner" list="vuTruckOwnerList" autocomplete="off" placeholder="Owner / transporter (required if fare)"><datalist id="vuTruckOwnerList"></datalist></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_lpo_mpo_no">LPO No/MPO No</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_lpo_mpo_no"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_grn_sto_no">GRN/STO No</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_grn_sto_no"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="vu_remarks">Remarks</label><span class="erp-info-icon">i</span></div><input type="text" id="vu_remarks" placeholder="Additional notes..."></div>
               </div>
             </div>
           </div>
@@ -9036,6 +9046,7 @@ go('home');
               <div class="erp-field"><div class="erp-field-label-row"><label for="je_cost_center">Cost Center</label><span class="erp-info-icon">i</span></div><select id="je_cost_center" required=""><option value="">-- Select Cost Center --</option></select></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="je_currency">Currency</label><span class="erp-info-icon">i</span></div><input type="text" id="je_currency" value="BDT"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="je_reference">Reference / Header Text</label><span class="erp-info-icon">i</span></div><input type="text" id="je_reference"></div>
+              <div class="erp-field" id="je_src_wrap" style="grid-column:1 / -1; display:none;"><div class="erp-field-label-row"><label>Source Details (Truck / Owner / PO / DO)</label></div><div id="je_src_info" style="padding:6px 8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;font-size:12.5px;color:#14532d;"></div></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="je_status">Status</label><span class="erp-info-icon">i</span></div><select id="je_status"><option value="Draft">Draft</option><option value="Posted">Posted</option></select></div>
             </div>
 
@@ -9048,19 +9059,19 @@ go('home');
                 <table class="pr-items-table">
                   <thead>
                     <tr>
-                      <th>Line No.</th><th>GL Account</th><th>Account Name</th><th>Debit</th><th>Credit</th><th>Narration</th><th></th>
+                      <th>Line No.</th><th>GL Account</th><th>Account Name</th><th>Vendor / Customer</th><th>Debit</th><th>Credit</th><th>Narration</th><th></th>
                     </tr>
                   </thead>
                   <tbody id="jeItemsBody"></tbody>
                   <tfoot>
                     <tr>
-                      <td colspan="3" style="text-align:right; font-weight:700;">Total:</td>
+                      <td colspan="4" style="text-align:right; font-weight:700;">Total:</td>
                       <td id="jeTotalDebit" style="font-weight:700;">0.00</td>
                       <td id="jeTotalCredit" style="font-weight:700;">0.00</td>
                       <td colspan="2"></td>
                     </tr>
                     <tr>
-                      <td colspan="3" style="text-align:right; font-weight:700;">Difference (Dr - Cr):</td>
+                      <td colspan="4" style="text-align:right; font-weight:700;">Difference (Dr - Cr):</td>
                       <td colspan="2" id="jeDifference" style="font-weight:700;">0.00</td>
                       <td colspan="2"></td>
                     </tr>
@@ -9179,6 +9190,7 @@ go('home');
               <div class="erp-field"><div class="erp-field-label-row"><label for="ap_inv_due_date">Due Date</label><span class="erp-info-icon">i</span></div><input type="date" id="ap_inv_due_date"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="ap_inv_vendor">Vendor Name</label><span class="erp-info-icon">i</span></div><input type="text" id="ap_inv_vendor" required=""></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="ap_inv_vendor_invoice_no">Vendor Invoice No</label><span class="erp-info-icon">i</span></div><input type="text" id="ap_inv_vendor_invoice_no"></div>
+              <div class="erp-field"><div class="erp-field-label-row"><label for="ap_inv_grn">Against GRN (GR/IR match)</label><span class="erp-info-icon">i</span></div><select id="ap_inv_grn" onchange="onApInvGrnChange()"><option value="">-- None (direct invoice) --</option></select></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="ap_inv_company">Company</label><span class="erp-info-icon">i</span></div><input type="text" id="ap_inv_company"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="ap_inv_currency">Currency</label><span class="erp-info-icon">i</span></div><input type="text" id="ap_inv_currency" value="BDT"></div>
               <div class="erp-field"><div class="erp-field-label-row"><label for="ap_inv_expense_account">Expense / Purchase GL Account (Debit)</label><span class="erp-info-icon">i</span></div><select id="ap_inv_expense_account" class="ap-gl-account-select" required=""><option value="">-- Select --</option></select></div>
@@ -18313,6 +18325,9 @@ return btns;
 
       // Populate no_of_bag from weight record if available
       if (weightRecord.no_of_bag) document.getElementById('grn_no_of_bag').value = weightRecord.no_of_bag;
+      // bags counted at unloading, when the weighbridge record has no count
+      var vuRec2 = vuSubmittedForQc(qc2Record.qc_ref || '');
+      if (vuRec2 && vuRec2.bag_qty && !document.getElementById('grn_no_of_bag').value) document.getElementById('grn_no_of_bag').value = vuRec2.bag_qty;
 
       document.getElementById('grnFormOverlay').classList.add('active');
     }
@@ -21831,6 +21846,7 @@ return btns;
         opt.value = g; opt.textContent = g;
         sel.appendChild(opt);
       });
+      if (sel._srch) jeSyncSearch(sel);
     }
 
     // =====================================================================
@@ -22062,11 +22078,17 @@ return btns;
 
       var catSel = document.getElementById('pr_item_cat_' + rowId);
       prFillCategorySelect(catSel);
+      var nameSelEl = document.getElementById('pr_item_name_' + rowId);
+      nameSelEl.setAttribute('data-empty-msg', 'Select Item Category first');
+      jeMakeSearchable(catSel);
+      jeMakeSearchable(nameSelEl);
 
       if (existingItem) {
         catSel.value = existingItem.item_category || '';
+        jeSyncSearch(catSel);
         onPrRowCategoryChange(rowId);
         document.getElementById('pr_item_name_' + rowId).value = existingItem.item_name || '';
+        jeSyncSearch(document.getElementById('pr_item_name_' + rowId));
         document.getElementById('pr_item_code_' + rowId).value = existingItem.item_code || '';
         document.getElementById('pr_item_uom_' + rowId).value = existingItem.uom || '';
         document.getElementById('pr_item_qty_' + rowId).value = (existingItem.plan_qty != null && existingItem.plan_qty !== '') ? existingItem.plan_qty : (existingItem.qty || '');
@@ -22140,6 +22162,7 @@ return btns;
           nameSel.appendChild(opt);
         });
       }
+      jeSyncSearch(nameSel);
       updatePrRowStockAndHistory(rowId);
     }
 
@@ -22269,6 +22292,7 @@ return btns;
         var o = document.createElement('option'); o.value = val; o.textContent = val; el.appendChild(o);
       }
       el.value = val;
+      if (el._srch) jeSyncSearch(el);
     }
 
     // ----- Vendor Master -----
@@ -22327,6 +22351,9 @@ return btns;
       tbody.appendChild(vtr);
 
       prFillCategorySelect(rfqEl('cat', id));
+      rfqEl('name', id).setAttribute('data-empty-msg', 'Select Item Category first');
+      jeMakeSearchable(rfqEl('cat', id));
+      jeMakeSearchable(rfqEl('name', id));
       if (it) {
         rfqSetSelect(rfqEl('cat', id), it.item_category || '');
         onRfqRowCategoryChange(id);
@@ -22355,6 +22382,7 @@ return btns;
       if (entry) entry.items.forEach(function(name) {
         var opt = document.createElement('option'); opt.value = name; opt.textContent = name; nameSel.appendChild(opt);
       });
+          jeSyncSearch(nameSel);
     }
 
     function onRfqRowItemChange(id) {
@@ -22751,11 +22779,17 @@ return btns;
 
       var catSel = document.getElementById('str_item_cat_' + rowId);
       prFillCategorySelect(catSel);
+      var nameSelEl = document.getElementById('str_item_name_' + rowId);
+      nameSelEl.setAttribute('data-empty-msg', 'Select Item Category first');
+      jeMakeSearchable(catSel);
+      jeMakeSearchable(nameSelEl);
 
       if (existingItem) {
         catSel.value = existingItem.item_category || '';
+        jeSyncSearch(catSel);
         onStrRowCategoryChange(rowId);
         document.getElementById('str_item_name_' + rowId).value = existingItem.item_name || '';
+        jeSyncSearch(document.getElementById('str_item_name_' + rowId));
         document.getElementById('str_item_code_' + rowId).value = existingItem.item_code || '';
         document.getElementById('str_item_uom_' + rowId).value = existingItem.uom || '';
         document.getElementById('str_item_qty_' + rowId).value = existingItem.qty || '';
@@ -22798,6 +22832,7 @@ return btns;
           nameSel.appendChild(opt);
         });
       }
+      jeSyncSearch(nameSel);
       updateStrRowStock(rowId);
     }
 
@@ -23041,11 +23076,17 @@ return btns;
 
       var catSel = document.getElementById('sr_item_cat_' + rowId);
       prFillCategorySelect(catSel);
+      var nameSelEl = document.getElementById('sr_item_name_' + rowId);
+      nameSelEl.setAttribute('data-empty-msg', 'Select Item Category first');
+      jeMakeSearchable(catSel);
+      jeMakeSearchable(nameSelEl);
 
       if (existingItem) {
         catSel.value = existingItem.item_category || '';
+        jeSyncSearch(catSel);
         onSrRowCategoryChange(rowId);
         document.getElementById('sr_item_name_' + rowId).value = existingItem.item_name || '';
+        jeSyncSearch(document.getElementById('sr_item_name_' + rowId));
         document.getElementById('sr_item_code_' + rowId).value = existingItem.item_code || '';
         document.getElementById('sr_item_uom_' + rowId).value = existingItem.uom || '';
         document.getElementById('sr_item_qty_' + rowId).value = existingItem.qty || '';
@@ -23090,6 +23131,7 @@ return btns;
           nameSel.appendChild(opt);
         });
       }
+      jeSyncSearch(nameSel);
       updateSrRowStock(rowId);
     }
 
@@ -26131,7 +26173,7 @@ return btns;
       var out = [];
       Object.keys(qc).sort().forEach(function(k) {
         var q = qc[k], ref = q && getQcStoRef(q);
-        if (!q || !q.qc_ref || q.status === 'Draft' || q.qc_result !== 'Passed' || used[q.qc_ref] || !isStoRef(ref) || !to[ref]) return;
+        if (!q || !q.qc_ref || q.status === 'Draft' || q.qc_result !== 'Passed' || used[q.qc_ref] || !isStoRef(ref) || !to[ref] || !vuSubmittedForQc(q.qc_ref)) return;
         var w = wr[q.scale_id] || {}, t = to[ref];
         out.push({ scale_id: q.scale_id, qc_ref: q.qc_ref, to_ref: ref, date: q.date || '', item_name: t.item_name || '', item_code: t.item_code || '', from_warehouse: t.from_warehouse || '',
           to_warehouse: t.to_warehouse || '', transfer_qty: t.qty || '', net: w.net_weight || w.gross || q.net_weight || '', uom: t.uom || '' });
@@ -26367,6 +26409,7 @@ return btns;
         received_by: currentUser ? currentUser.name : '',
         received_by_id: currentUser ? currentUser.id : '',
         qc2_ref: stnCtx.qc2_ref || '', scale_id: stnCtx.scale_id || '', gate_entry_no: stnCtx.gate_entry_no || '',
+        vu_ref: (vuSubmittedForQc(stnCtx.qc2_ref || '') || {}).ref || '',
         received_at: new Date().toISOString(),
         status: 'Draft'
       };
@@ -26417,11 +26460,11 @@ return btns;
         return !search || [w.qc_ref, w.scale_id, w.to_ref, w.item_name, w.item_code, w.to_warehouse].join(' ').toLowerCase().indexOf(search) !== -1;
       }) : [];
       var secStyle = 'background:#e2e8f0;font-weight:700;color:#0f172a;padding:8px 12px;text-align:left;';
-      var qHtml = qRows.length ? '<tr><td colspan="16" style="' + secStyle + '">📋 Submitted 2nd QC (STN pending) · ' + qRows.length + '</td></tr>' +
+      var qHtml = qRows.length ? '<tr><td colspan="16" style="' + secStyle + '">📋 Submitted Vehicle Unload (STN pending) · ' + qRows.length + '</td></tr>' +
         qRows.map(function(w, i) {
           return '<tr style="background:#f0fdf4;"><td style="text-align:center;">' + (i + 1) + '</td><td><span style="color:#64748b;">New</span></td><td><strong>' + w.to_ref + '</strong></td><td>' + w.date + '</td>' +
             '<td>' + w.item_name + '</td><td>' + w.item_code + '</td><td>' + w.from_warehouse + '</td><td>' + w.to_warehouse + '</td><td>' + w.transfer_qty + '</td><td style="font-weight:700;">' + w.net + '</td><td>-</td><td>' + w.uom + '</td><td>-</td>' +
-            '<td><span class="pr-status-badge pr-status-approved">2nd QC Passed</span></td><td></td>' +
+            '<td><span class="pr-status-badge pr-status-approved">Unloaded</span></td><td></td>' +
             '<td><button class="str-action-btn" style="background:#16a34a;color:#fff;width:auto;padding:4px 10px;" onclick="startStnFromQc2(\'' + w.scale_id + '\')" title="Create STN for this 2nd QC">➕ STN</button></td></tr>';
         }).join('') : '';
       var sHead = (stnListMode === 'draft' && (qRows.length || filtered.length)) ? '<tr><td colspan="16" style="' + secStyle + '">📝 STN Draft · ' + filtered.length + '</td></tr>' : '';
@@ -27919,7 +27962,7 @@ return btns;
       var qc = safeParse('erp_qc2_records', {}), grn = safeParse('erp_grn_records', {}), wr = safeParse('erp_weight_records', {}), gi = safeParse('erp_gi_records', {}), used = {};
       Object.keys(grn).forEach(function(k) { if (grn[k] && grn[k].qc2_ref) used[grn[k].qc2_ref] = true; });
       return Object.keys(qc).sort().map(function(k) { return qc[k]; }).filter(function(q) {
-        return q && q.qc_ref && q.status !== 'Draft' && q.qc_result === 'Passed' && !used[q.qc_ref] && !isStoQc(q);
+        return q && q.qc_ref && q.status !== 'Draft' && q.qc_result === 'Passed' && !used[q.qc_ref] && !isStoQc(q) && vuSubmittedForQc(q.qc_ref);
       }).map(function(q) {
         var w = wr[q.scale_id] || {}, g = gi[w.gate_entry_no] || {};
         return { scale_id: q.scale_id, qc_ref: q.qc_ref, date: q.date || '', po: g.po_no || g.gi_po_no || '', supplier: w.supplier || q.supplier || '', item_name: w.item_name || q.item_name || '',
@@ -28091,7 +28134,7 @@ return btns;
         return !search || [w.qc_ref, w.scale_id, w.po, w.supplier, w.item_name, w.item_code].join(' ').toLowerCase().indexOf(search) !== -1;
       }) : [];
       var secStyle = 'background:#e2e8f0;font-weight:700;color:#0f172a;padding:8px 12px;text-align:left;';
-      var wHtml = wRows.length ? '<tr><td colspan="15" style="' + secStyle + '">📋 Submitted 2nd QC (GRN pending) · ' + wRows.length + '</td></tr>' +
+      var wHtml = wRows.length ? '<tr><td colspan="15" style="' + secStyle + '">📋 Submitted Vehicle Unload (GRN pending) · ' + wRows.length + '</td></tr>' +
         wRows.map(function(w, i) {
           return '<tr style="background:#f0fdf4;"><td>' + (i + 1) + '</td><td><span style="color:#64748b;">New</span></td><td>' + w.date + '</td><td><strong>' + w.qc_ref + '</strong></td>' +
             '<td>' + w.po + '</td><td>' + w.supplier + '</td><td>' + w.item_name + '</td><td>' + w.item_code + '</td><td>' + (w.pc || '-') + '</td><td>-</td><td>-</td>' +
@@ -28215,12 +28258,12 @@ return btns;
 
       var available = Object.keys(qc2Records).filter(function(scaleId) {
         var r = qc2Records[scaleId];
-        return r && r.qc_ref && r.status !== 'Draft' && !usedQc2Refs[r.qc_ref];
+        return r && r.qc_ref && r.status !== 'Draft' && !usedQc2Refs[r.qc_ref] && vuSubmittedForQc(r.qc_ref);
       }).sort();
 
       var options = '<option value="">[ Select QC2 Ref# ]</option>';
       if (available.length === 0) {
-        options += '<option value="" disabled>No QC2 records found — complete 2nd QC first</option>';
+        options += '<option value="" disabled>No unloaded trucks found — submit Vehicle Unload first</option>';
       } else {
         available.forEach(function(scaleId) {
           var r = qc2Records[scaleId];
@@ -28287,6 +28330,9 @@ return btns;
 
       // Auto-fill no_of_bag from weight record if available
       if (weightRecord.no_of_bag) document.getElementById('grn_no_of_bag').value = weightRecord.no_of_bag;
+      // bags counted at unloading, when the weighbridge record has no count
+      var vuRec = vuSubmittedForQc(qc2Ref);
+      if (vuRec && vuRec.bag_qty && !document.getElementById('grn_no_of_bag').value) document.getElementById('grn_no_of_bag').value = vuRec.bag_qty;
 
       // Recalculate weights
       calcGrnWeights();
@@ -28366,6 +28412,7 @@ return btns;
         grn_no: grnNo,
         date: document.getElementById('grn_date').value,
         qc2_ref: document.getElementById('grn_qc2_ref').value,
+        vu_ref: (vuSubmittedForQc(document.getElementById('grn_qc2_ref').value) || {}).ref || '',
         po_no: document.getElementById('grn_po_no').value,
         supplier: document.getElementById('grn_supplier').value,
         item_name: document.getElementById('grn_item_name').value,
@@ -28673,9 +28720,15 @@ return btns;
 
       document.getElementById('vu_ref').value = isEdit ? ref : getNextVuRef();
 
-      // Populate the "Gate Entry No (hang from)" dropdown with every saved Challan Entry
-      populateChainDropdown('vu_gate_entry_no', 'erp_gi_records');
+      // "2nd QC Ref# (hang from)": only QC-Passed trucks that have not been unloaded yet
+      fillVuQc2Select(isEdit ? ref : '', record.qc2_ref || '', record);
       document.getElementById('vu_gate_entry_no').value = record.gate_entry_no || '';
+      document.getElementById('vu_scale_id').value = record.scale_id || '';
+      document.getElementById('vu_item_code').value = record.item_code || '';
+      document.getElementById('vu_qc_result').value = record.qc_result || '';
+      document.getElementById('vu_remarks').value = record.remarks || '';
+      document.getElementById('vu_status').value = isEdit ? (record.status === 'Draft' ? 'Draft' : 'Unloaded') : 'Pending';
+      document.getElementById('vu_unloaded_by').value = record.unloaded_by || (currentUser ? (currentUser.name || currentUser.id) : '');
 
       var today = new Date();
       var yyyy = today.getFullYear();
@@ -28689,6 +28742,8 @@ return btns;
       document.getElementById('vu_truck_no').value = record.truck_no || '';
       document.getElementById('vu_challan_no').value = record.challan_no || '';
       document.getElementById('vu_truck_fare').value = record.truck_fare || '';
+      document.getElementById('vu_truck_owner').value = record.truck_owner || '';
+      fillTruckOwnerList('vuTruckOwnerList');
       document.getElementById('vu_lpo_mpo_no').value = record.lpo_mpo_no || '';
       document.getElementById('vu_grn_sto_no').value = record.grn_sto_no || '';
       document.getElementById('vu_challan_weight').value = record.challan_weight || '';
@@ -28716,6 +28771,85 @@ return btns;
       document.getElementById('vu_net_weight').value = net.toFixed(2);
     }
 
+    // The submitted (not Draft) Vehicle Unload of a 2nd QC, or null. GRN (PO trucks) and STN (STO trucks) start from this.
+    function vuSubmittedForQc(qcRef) {
+      var vu = {}, found = null;
+      if (!qcRef) return null;
+      try { vu = JSON.parse(localStorage.getItem('erp_vu_records') || '{}') || {}; } catch (e) {}
+      Object.keys(vu).forEach(function(k) { var v = vu[k]; if (v && v.qc2_ref === qcRef && v.status !== 'Draft') found = Object.assign({ ref: k }, v); });
+      return found;
+    }
+    // ---- Vehicle Unload hangs from the 2nd QC (only QC "Passed" trucks that are not unloaded yet) ----
+    function vuEligibleQcs(selfRef) {
+      var qc = {}, vu = {}, used = {};
+      try { qc = JSON.parse(localStorage.getItem('erp_qc2_records') || '{}') || {}; } catch (e) {}
+      try { vu = JSON.parse(localStorage.getItem('erp_vu_records') || '{}') || {}; } catch (e) {}
+      Object.keys(vu).forEach(function(k) { if (k !== selfRef && vu[k] && vu[k].qc2_ref) used[vu[k].qc2_ref] = true; });
+      ['erp_grn_records', 'erp_stn_records'].forEach(function(key) {
+        var o = {}; try { o = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (e) {}
+        Object.keys(o).forEach(function(k) { if (o[k] && o[k].qc2_ref) used[o[k].qc2_ref] = true; });
+      });
+      return Object.keys(qc).map(function(k) { return qc[k]; }).filter(function(q) {
+        return q && q.qc_ref && q.status !== 'Draft' && q.qc_result === 'Passed' && !used[q.qc_ref];
+      }).sort(function(a, b) { return (b.date || '').localeCompare(a.date || '') || String(b.qc_ref).localeCompare(String(a.qc_ref)); });
+    }
+    function fillVuQc2Select(selfRef, selected, rec) {
+      var sel = document.getElementById('vu_qc2_ref');
+      if (!sel) return;
+      var seen = {}, html = '<option value="">[ Select 2nd QC Ref# ]</option>';
+      vuEligibleQcs(selfRef).forEach(function(q) {
+        seen[q.qc_ref] = 1;
+        html += '<option value="' + jeEscHtml(q.qc_ref) + '">' + jeEscHtml(q.qc_ref + ' | ' + (q.supplier || '') + ' | ' + (q.item_name || '') + ' | ' + (q.vehicle_no || '') + (q.challan_no ? ' | ' + q.challan_no : '')) + '</option>';
+      });
+      if (selected && !seen[selected]) html += '<option value="' + jeEscHtml(selected) + '">' + jeEscHtml(selected + ' | ' + ((rec && rec.supplier) || '') + ' | ' + ((rec && rec.material) || '') + ' | ' + ((rec && rec.truck_no) || '')) + '</option>';
+      sel.innerHTML = html;
+      sel.value = selected || '';
+      jeMakeSearchable(sel);
+      jeSyncSearch(sel);
+    }
+    function onVuQc2Change(qcRef) {
+      var set = function(id, v) { var e = document.getElementById(id); if (e) e.value = (v === undefined || v === null) ? '' : v; };
+      var autoIds = ['vu_supplier', 'vu_material', 'vu_item_code', 'vu_origin', 'vu_truck_no', 'vu_challan_no', 'vu_qc_result', 'vu_gate_entry_no', 'vu_scale_id', 'vu_factory_weight', 'vu_challan_weight'];
+      if (!qcRef) { autoIds.forEach(function(i) { set(i, ''); }); calcVuNetWeight(); return; }
+      var qcs = {}, wrs = {}, gis = {};
+      try { qcs = JSON.parse(localStorage.getItem('erp_qc2_records') || '{}') || {}; } catch (e) {}
+      try { wrs = JSON.parse(localStorage.getItem('erp_weight_records') || '{}') || {}; } catch (e) {}
+      try { gis = JSON.parse(localStorage.getItem('erp_gi_records') || '{}') || {}; } catch (e) {}
+      var qc = Object.keys(qcs).map(function(k) { return qcs[k]; }).filter(function(q) { return q && q.qc_ref === qcRef; })[0];
+      if (!qc) return;
+      var wr = wrs[qc.scale_id] || {}, geNo = qc.gate_entry_no || wr.gate_entry_no || '', gi = gis[geNo] || {};
+      set('vu_supplier', qc.supplier || wr.supplier || gi.supplier);
+      set('vu_material', qc.item_name || wr.item_name || gi.item_name);
+      set('vu_item_code', qc.item_code || wr.item_code);
+      set('vu_origin', gi.origin || (gi.items && gi.items[0] && gi.items[0].origin) || '');
+      set('vu_truck_no', qc.vehicle_no || wr.vehicle_no || gi.vehicle_no);
+      set('vu_challan_no', qc.challan_no || wr.challan_no || gi.challan_no);
+      set('vu_qc_result', qc.qc_result);
+      set('vu_gate_entry_no', geNo);
+      set('vu_scale_id', qc.scale_id);
+      set('vu_factory_weight', wr.net_weight || qc.net_weight);
+      var cq = gi.qty;
+      if ((cq === undefined || cq === '') && gi.items && gi.items.length) { cq = gi.items.reduce(function(a, it) { return a + (parseFloat(it.qty) || 0); }, 0) || ''; }
+      set('vu_challan_weight', cq);
+      var lpo = document.getElementById('vu_lpo_mpo_no');
+      if (lpo && !lpo.value) lpo.value = gi.po_no || gi.gi_po_no || '';
+      calcVuNetWeight();
+    }
+
+    // Suggestions for the Truck Owner box: previous truck owners + vendor master names
+    function fillTruckOwnerList(listId) {
+      var dl = document.getElementById(listId);
+      if (!dl) return;
+      var seen = {}, names = [];
+      function add(n) { n = String(n || '').trim(); if (n && !seen[n.toLowerCase()]) { seen[n.toLowerCase()] = 1; names.push(n); } }
+      ['erp_vu_records', 'erp_gate_out_fg_records'].forEach(function(k) {
+        try { var o = JSON.parse(localStorage.getItem(k) || '{}') || {}; Object.keys(o).forEach(function(i) { add(o[i] && o[i].truck_owner); }); } catch (e) {}
+      });
+      try { var v = JSON.parse(localStorage.getItem('erp_vendor_records') || '{}') || {}; Object.keys(v).forEach(function(i) { if (v[i] && v[i].status !== 'Inactive') add(v[i].name); }); } catch (e) {}
+      names.sort(function(a, b) { return a.localeCompare(b); });
+      dl.innerHTML = names.map(function(n) { return '<option value="' + n.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '"></option>'; }).join('');
+    }
+
     function submitVuForm(e) {
       e.preventDefault();
       var errEl = document.getElementById('vuFormError');
@@ -28728,8 +28862,28 @@ return btns;
       var material = document.getElementById('vu_material').value.trim();
       var truckNo = document.getElementById('vu_truck_no').value.trim();
 
+      // A new Vehicle Unload must hang from a 2nd QC that passed (old records without a QC link can still be edited)
+      var qc2Ref = document.getElementById('vu_qc2_ref').value;
+      var vuPrev = JSON.parse(localStorage.getItem('erp_vu_records') || '{}')[ref] || null;
+      if (!qc2Ref && !(vuPrev && !vuPrev.qc2_ref)) {
+        errEl.textContent = '❌ Select the 2nd QC Ref# (hang from) — only trucks with QC Passed can be unloaded.';
+        errEl.classList.add('show');
+        return false;
+      }
+      if (qc2Ref && !(vuPrev && vuPrev.qc2_ref === qc2Ref) && !vuEligibleQcs(ref).some(function(q) { return q.qc_ref === qc2Ref; })) {
+        errEl.textContent = '❌ This 2nd QC is not available (already unloaded, or QC is not Passed).';
+        errEl.classList.add('show');
+        return false;
+      }
+
       if (!supplier || !material || !truckNo) {
         errEl.textContent = '❌ Supplier Name, Materials Name and Truck No are required.';
+        errEl.classList.add('show');
+        return false;
+      }
+
+      if ((parseFloat(document.getElementById('vu_truck_fare').value) || 0) > 0 && !document.getElementById('vu_truck_owner').value.trim()) {
+        errEl.textContent = '❌ Truck Owner is required when Truck Fare is entered.';
         errEl.classList.add('show');
         return false;
       }
@@ -28737,6 +28891,12 @@ return btns;
       var data = {
         ref: ref,
         gate_entry_no: document.getElementById('vu_gate_entry_no').value.trim(),
+        qc2_ref: qc2Ref,
+        scale_id: document.getElementById('vu_scale_id').value.trim(),
+        item_code: document.getElementById('vu_item_code').value.trim(),
+        qc_result: document.getElementById('vu_qc_result').value.trim(),
+        remarks: document.getElementById('vu_remarks').value.trim(),
+        unloaded_by: document.getElementById('vu_unloaded_by').value.trim(),
         date: document.getElementById('vu_date').value,
         supplier: supplier,
         material: material,
@@ -28744,6 +28904,7 @@ return btns;
         truck_no: truckNo,
         challan_no: document.getElementById('vu_challan_no').value.trim(),
         truck_fare: document.getElementById('vu_truck_fare').value,
+        truck_owner: document.getElementById('vu_truck_owner').value.trim(),
         lpo_mpo_no: document.getElementById('vu_lpo_mpo_no').value.trim(),
         grn_sto_no: document.getElementById('vu_grn_sto_no').value.trim(),
         challan_weight: document.getElementById('vu_challan_weight').value,
@@ -28761,7 +28922,13 @@ return btns;
       records[ref] = data;
       localStorage.setItem('erp_vu_records', JSON.stringify(records));
 
-      successEl.textContent = '✅ Vehicle Unload record saved! (Ref: ' + ref + ')';
+      var vuDest = '';
+      if (qc2Ref) {
+        var vuQcAll = JSON.parse(localStorage.getItem('erp_qc2_records') || '{}'), vuQc = null;
+        Object.keys(vuQcAll).forEach(function(k) { if (vuQcAll[k] && vuQcAll[k].qc_ref === qc2Ref) vuQc = vuQcAll[k]; });
+        vuDest = vuQc ? (isStoRef(getQcStoRef(vuQc)) ? ' → sent to STN (pending)' : ' → sent to GRN (pending)') : '';
+      }
+      successEl.textContent = '✅ Vehicle Unload record saved! (Ref: ' + ref + ')' + vuDest;
       successEl.classList.add('show');
 
       setTimeout(closeVuForm, 1400);
@@ -28851,12 +29018,15 @@ return btns;
         '<div class="info-grid">' +
         '<div class="info-item"><label>Date:</label> ' + (r.date || '') + '</div>' +
         '<div class="info-item"><label>Gate Entry No:</label> ' + (r.gate_entry_no || '') + '</div>' +
+        '<div class="info-item"><label>2nd QC Ref#:</label> ' + (r.qc2_ref || '') + '</div>' +
+        '<div class="info-item"><label>QC Result:</label> ' + (r.qc_result || '') + '</div>' +
         '<div class="info-item"><label>Supplier Name:</label> ' + (r.supplier || '') + '</div>' +
         '<div class="info-item"><label>Materials Name:</label> ' + (r.material || '') + '</div>' +
         '<div class="info-item"><label>Origin:</label> ' + (r.origin || '') + '</div>' +
         '<div class="info-item"><label>Truck No:</label> ' + (r.truck_no || '') + '</div>' +
         '<div class="info-item"><label>Challan No:</label> ' + (r.challan_no || '') + '</div>' +
         '<div class="info-item"><label>Truck Fare:</label> ' + (r.truck_fare || '') + '</div>' +
+        '<div class="info-item"><label>Truck Owner:</label> ' + (r.truck_owner || '') + '</div>' +
         '<div class="info-item"><label>LPO No/MPO No:</label> ' + (r.lpo_mpo_no || '') + '</div>' +
         '<div class="info-item"><label>GRN/STO No:</label> ' + (r.grn_sto_no || '') + '</div>' +
         '<div class="info-item"><label>Challan Weight Kg:</label> ' + (r.challan_weight || '') + '</div>' +
@@ -29109,21 +29279,190 @@ return btns;
         '<td><input type="text" readonly class="pr-line-no" value="' + lineNo + '"></td>' +
         '<td><select class="je-gl-account-select" id="je_gl_account_' + rowId + '" onchange="onJeGlAccountChange(' + rowId + ')"><option value="">-- Select --</option></select></td>' +
         '<td><input type="text" id="je_account_name_' + rowId + '" readonly style="background:#f0f0f0;"></td>' +
+        '<td><select id="je_party_' + rowId + '" data-ptype="" disabled style="min-width:170px;"><option value="">&mdash;</option></select></td>' +
         '<td><input type="number" step="0.01" placeholder="0.00" id="je_debit_' + rowId + '" oninput="calcJeTotals()"></td>' +
         '<td><input type="number" step="0.01" placeholder="0.00" id="je_credit_' + rowId + '" oninput="calcJeTotals()"></td>' +
         '<td><input type="text" id="je_narration_' + rowId + '" placeholder="Line narration"></td>' +
         '<td><button type="button" class="pr-remove-item-btn" onclick="removeJeItemRow(' + rowId + ')">✕</button></td>';
       tbody.appendChild(tr);
       jeFillGlAccountSelect(document.getElementById('je_gl_account_' + rowId));
+      jeMakeSearchable(document.getElementById('je_party_' + rowId));
 
       if (existingItem) {
         document.getElementById('je_gl_account_' + rowId).value = existingItem.gl_account || '';
+        jeSyncSearch(document.getElementById('je_gl_account_' + rowId));
         document.getElementById('je_account_name_' + rowId).value = existingItem.account_name || '';
         document.getElementById('je_debit_' + rowId).value = existingItem.debit || '';
         document.getElementById('je_credit_' + rowId).value = existingItem.credit || '';
         document.getElementById('je_narration_' + rowId).value = existingItem.narration || '';
+        jeUpdatePartyCell(rowId, existingItem.party_code || '', existingItem.party_name || '');
       }
       return rowId;
+    }
+
+    // ===== JE sub-ledger support: AP / AR control accounts must carry a Vendor / Customer =====
+    // Control accounts = the GL accounts mapped to "Accounts Payable" and "Accounts Receivable"
+    // in FICO > Auto-Posting Map (defaults 2016 / 1056).
+    function jeControlAccounts() {
+      var m = {}, coa = {};
+      try { m = JSON.parse(localStorage.getItem('erp_fpost_map') || '{}') || {}; } catch (e) {}
+      try { coa = JSON.parse(localStorage.getItem('erp_coa_records') || '{}') || {}; } catch (e) {}
+      var ap = (m.ap !== undefined && m.ap !== '') ? m.ap : (coa['2016'] ? '2016' : '');
+      var ar = (m.ar !== undefined && m.ar !== '') ? m.ar : (coa['1056'] ? '1056' : '');
+      return { ap: String(ap), ar: String(ar) };
+    }
+    function jePartyList(type) {
+      var k = type === 'V' ? 'erp_vendor_records' : 'erp_sdcustomer_records', o = {};
+      try { o = JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) {}
+      return Object.keys(o).map(function(id) {
+        var r = o[id] || {};
+        return { code: String(type === 'V' ? (r.no || id) : (r.ref_no || r.no || id)), name: String(r.name || r.customer_name || ''), status: r.status || 'Active' };
+      }).filter(function(r) { return r.name && r.status !== 'Inactive'; })
+        .sort(function(a, b) { return a.name.localeCompare(b.name); });
+    }
+    function jeEscHtml(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    function jeUpdatePartyCell(rowId, selCode, selName) {
+      var sel = document.getElementById('je_party_' + rowId);
+      if (!sel) return;
+      var acc = document.getElementById('je_gl_account_' + rowId).value, c = jeControlAccounts();
+      var type = (acc && acc === c.ap) ? 'V' : ((acc && acc === c.ar) ? 'C' : '');
+      sel.setAttribute('data-ptype', type);
+      if (!type) { sel.innerHTML = '<option value="">&mdash;</option>'; sel.disabled = true; jeSyncSearch(sel); return; }
+      var list = jePartyList(type), found = false;
+      var html = '<option value="">-- ' + (type === 'V' ? 'Vendor' : 'Customer') + ' --</option>' + list.map(function(p) {
+        if (p.code === selCode) found = true;
+        return '<option value="' + jeEscHtml(p.code) + '">' + jeEscHtml(p.code + ' - ' + p.name) + '</option>';
+      }).join('');
+      if (selCode && !found) html += '<option value="' + jeEscHtml(selCode) + '">' + jeEscHtml(selCode + ' - ' + (selName || '')) + '</option>';
+      sel.innerHTML = html;
+      sel.disabled = false;
+      sel.value = selCode || '';
+      jeSyncSearch(sel);
+    }
+    function jeRowParty(rowId) {
+      var sel = document.getElementById('je_party_' + rowId);
+      if (!sel || sel.disabled || !sel.value) return { party_type: '', party_code: '', party_name: '' };
+      var code = sel.value, txt = sel.options[sel.selectedIndex].text;
+      return { party_type: sel.getAttribute('data-ptype') === 'V' ? 'Vendor' : 'Customer', party_code: code, party_name: txt.indexOf(code + ' - ') === 0 ? txt.slice(code.length + 3) : txt };
+    }
+
+    // ===== Searchable dropdown for the JE line GL Account and Vendor / Customer fields =====
+    // The native <select> stays as the source of truth (hidden); a search box + floating list sits on top.
+    function jeSrchList() {
+      var l = document.getElementById('jeSrchList');
+      if (!l) {
+        l = document.createElement('div');
+        l.id = 'jeSrchList';
+        l.style.cssText = 'position:fixed;display:none;z-index:2147483000;background:#fff;color:#111;border:1px solid #94a3b8;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:260px;overflow-y:auto;font-size:13px;';
+        document.body.appendChild(l);
+        if (!window.__jeSrchBound) {
+          window.__jeSrchBound = true;
+          var hide = function(e) {
+            var x = document.getElementById('jeSrchList');
+            if (x && x.style.display === 'block' && !(e && e.target && x.contains && x.contains(e.target))) { x.style.display = 'none'; x._owner = null; }
+          };
+          window.addEventListener('scroll', hide, true);
+          window.addEventListener('resize', hide);
+        }
+      }
+      return l;
+    }
+    function jeSyncSearch(sel) {
+      var st = sel && sel._srch;
+      if (!st) return;
+      var o = sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex] : null;
+      st.inp.value = (o && sel.value !== '') ? o.text : '';
+      st.inp.disabled = !!sel.disabled;
+      st.inp.placeholder = sel.disabled ? '\u2014' : 'Type to search\u2026';
+    }
+    function jeMakeSearchable(sel) {
+      if (!sel || sel._srch || !sel.parentNode) return;
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;min-width:' + (sel.style.minWidth || '190px') + ';';
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.setAttribute('autocomplete', 'off');
+      inp.style.width = '100%';
+      inp.style.boxSizing = 'border-box';
+      sel.parentNode.insertBefore(wrap, sel);
+      wrap.appendChild(inp);
+      wrap.appendChild(sel);
+      // visually hidden but still focusable, so a native "required" check can point at it
+      sel.style.position = 'absolute'; sel.style.left = '0'; sel.style.bottom = '0';
+      sel.style.width = '100%'; sel.style.height = '1px'; sel.style.minWidth = '0';
+      sel.style.opacity = '0'; sel.style.pointerEvents = 'none'; sel.tabIndex = -1;
+      sel.addEventListener('focus', function() { inp.focus(); });
+      if (window.MutationObserver) new MutationObserver(function() { inp.disabled = !!sel.disabled; }).observe(sel, { attributes: true, attributeFilter: ['disabled'] });
+      var st = { inp: inp, act: -1, items: [] };
+      sel._srch = st;
+      var list = jeSrchList();
+      function close() { if (list._owner === sel) { list.style.display = 'none'; list._owner = null; } }
+      function paint() {
+        Array.prototype.forEach.call(list.children, function(d, ix) { d.style.background = (ix === st.act) ? '#dbeafe' : ''; });
+        var a = list.children[st.act];
+        if (a && a.scrollIntoView) a.scrollIntoView({ block: 'nearest' });
+      }
+      function pick(o) {
+        sel.value = o.value;
+        jeSyncSearch(sel);
+        close();
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      function render() {
+        var q = inp.value.trim().toLowerCase().split(/\s+/).filter(Boolean), out = [];
+        for (var i = 0; i < sel.options.length && out.length < 80; i++) {
+          var o = sel.options[i];
+          if (o.value === '') continue;
+          var t = o.text.toLowerCase();
+          if (q.every(function(w) { return t.indexOf(w) !== -1; })) out.push(o);
+        }
+        st.items = out;
+        st.act = out.length ? 0 : -1;
+        list.innerHTML = '';
+        if (!out.length) {
+          var n = document.createElement('div');
+          n.textContent = sel.options.length > 1 ? 'No match' : (sel.getAttribute('data-empty-msg') || 'No options available');
+          n.style.cssText = 'padding:8px 10px;color:#64748b;';
+          list.appendChild(n);
+        }
+        out.forEach(function(o) {
+          var d = document.createElement('div');
+          d.textContent = o.text;
+          d.style.cssText = 'padding:7px 10px;cursor:pointer;border-bottom:1px solid #f1f5f9;';
+          d.addEventListener('mousedown', function(e) { e.preventDefault(); pick(o); });
+          list.appendChild(d);
+        });
+        paint();
+      }
+      function place() {
+        var r = inp.getBoundingClientRect(), w = Math.max(r.width, 300);
+        list.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+        list.style.width = w + 'px';
+        var below = window.innerHeight - r.bottom;
+        if (below < 200 && r.top > below) { list.style.top = 'auto'; list.style.bottom = (window.innerHeight - r.top + 2) + 'px'; }
+        else { list.style.bottom = 'auto'; list.style.top = (r.bottom + 2) + 'px'; }
+      }
+      function open() { list._owner = sel; render(); place(); list.style.display = 'block'; }
+      inp.addEventListener('focus', function() { inp.select(); open(); });
+      inp.addEventListener('input', function() { open(); });
+      inp.addEventListener('keydown', function(e) {
+        var isOpen = list._owner === sel && list.style.display === 'block';
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (!isOpen) { open(); return; } st.act = Math.min(st.act + 1, st.items.length - 1); paint(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); if (!isOpen) { open(); return; } st.act = Math.max(st.act - 1, 0); paint(); }
+        else if (e.key === 'Enter') { e.preventDefault(); if (isOpen && st.items[st.act]) pick(st.items[st.act]); }
+        else if (e.key === 'Escape') { close(); jeSyncSearch(sel); }
+      });
+      inp.addEventListener('blur', function() {
+        close();
+        if (inp.value.trim() === '' && sel.value !== '') {
+          sel.value = '';
+          jeSyncSearch(sel);
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+          jeSyncSearch(sel);
+        }
+      });
+      jeSyncSearch(sel);
     }
 
     function jeFillGlAccountSelect(sel) {
@@ -29134,12 +29473,15 @@ return btns;
         return '<option value="' + a.code + '">' + a.code + ' - ' + a.name + '</option>';
       }).join('');
       if (current) sel.value = current;
+      jeMakeSearchable(sel);
+      jeSyncSearch(sel);
     }
 
     function onJeGlAccountChange(rowId) {
       var code = document.getElementById('je_gl_account_' + rowId).value;
       var accounts = JSON.parse(localStorage.getItem('erp_coa_records') || '{}');
       document.getElementById('je_account_name_' + rowId).value = accounts[code] ? accounts[code].name : '';
+      jeUpdatePartyCell(rowId);
     }
 
     function removeJeItemRow(rowId) {
@@ -29171,7 +29513,10 @@ return btns;
           account_name: document.getElementById('je_account_name_' + rowId).value,
           debit: parseFloat(document.getElementById('je_debit_' + rowId).value) || 0,
           credit: parseFloat(document.getElementById('je_credit_' + rowId).value) || 0,
-          narration: document.getElementById('je_narration_' + rowId).value.trim()
+          narration: document.getElementById('je_narration_' + rowId).value.trim(),
+          party_type: jeRowParty(rowId).party_type,
+          party_code: jeRowParty(rowId).party_code,
+          party_name: jeRowParty(rowId).party_name
         });
       });
       return items;
@@ -29227,6 +29572,8 @@ return btns;
       document.getElementById('je_cost_center').value = record.cost_center || '';
       document.getElementById('je_currency').value = record.currency || 'BDT';
       document.getElementById('je_reference').value = record.reference || '';
+      var srcWrap = document.getElementById('je_src_wrap'), srcInfo = document.getElementById('je_src_info');
+      if (srcWrap && srcInfo) { srcInfo.textContent = record.source_info || ''; srcWrap.style.display = record.source_info ? '' : 'none'; }
       document.getElementById('je_status').value = record.status || 'Draft';
 
       document.getElementById('jeItemsBody').innerHTML = '';
@@ -29266,7 +29613,18 @@ return btns;
         return false;
       }
 
+      var jeCtl = jeControlAccounts();
+      for (var pi = 0; pi < items.length; pi++) {
+        var it0 = items[pi];
+        if ((it0.gl_account === jeCtl.ap || it0.gl_account === jeCtl.ar) && !it0.party_code) {
+          errEl.textContent = '❌ Line ' + it0.line_no + ': ' + (it0.account_name || it0.gl_account) + ' is a control account — select the ' + (it0.gl_account === jeCtl.ap ? 'Vendor' : 'Customer') + ' for this line.';
+          errEl.classList.add('show');
+          return false;
+        }
+      }
+
       var data = {
+        manual_je: 1,
         ref: ref,
         posting_date: document.getElementById('je_posting_date').value,
         doc_date: document.getElementById('je_doc_date').value,
@@ -29284,7 +29642,7 @@ return btns;
       };
 
       var records = JSON.parse(localStorage.getItem('erp_je_records') || '{}');
-      records[ref] = data;
+      records[ref] = Object.assign({}, records[ref] || {}, data);
       localStorage.setItem('erp_je_records', JSON.stringify(records));
 
       successEl.textContent = '✅ Journal Entry saved! (Ref: ' + ref + ')';
@@ -29353,7 +29711,7 @@ return btns;
 
       var itemRows = (r.items || []).map(function(it) {
         return '<tr><td style="border:1px solid #333; padding:5px;">' + (it.gl_account || '') + '</td>' +
-          '<td style="border:1px solid #333; padding:5px;">' + (it.account_name || '') + '</td>' +
+          '<td style="border:1px solid #333; padding:5px;">' + (it.account_name || '') + (it.party_name ? '<br><small>' + (it.party_type || '') + ': ' + (it.party_code || '') + ' - ' + it.party_name + '</small>' : '') + '</td>' +
           '<td style="border:1px solid #333; padding:5px;">' + (it.narration || '') + '</td>' +
           '<td style="border:1px solid #333; padding:5px; text-align:right;">' + (it.debit ? Number(it.debit).toFixed(2) : '') + '</td>' +
           '<td style="border:1px solid #333; padding:5px; text-align:right;">' + (it.credit ? Number(it.credit).toFixed(2) : '') + '</td></tr>';
@@ -29519,11 +29877,79 @@ return btns;
       });
     }
 
-    // Posts a simple two-line balanced Journal Entry into the GL and returns its ref
-    function postApJournalEntry(postingDate, company, currency, reference, debitAccount, creditAccount, amount) {
+    // ---- GR/IR (3-way match) helpers ----
+    function fpAcct(purpose) {
+      var defs = { grir: '2023', ppv: '6045' }, m = {}, coa = {};
+      try { m = JSON.parse(localStorage.getItem('erp_fpost_map') || '{}') || {}; } catch (e) {}
+      try { coa = JSON.parse(localStorage.getItem('erp_coa_records') || '{}') || {}; } catch (e) {}
+      if (m[purpose]) return String(m[purpose]);
+      return (defs[purpose] && coa[defs[purpose]]) ? defs[purpose] : '';
+    }
+    // GRNs that were posted to GR/IR and have no Vendor Invoice yet (selfRef = the invoice being edited, whose own GRN stays selectable)
+    function grirOpenGrns(selfRef) {
+      var log = {}, inv = {}, grn = {};
+      try { log = JSON.parse(localStorage.getItem('erp_fpost_log') || '{}') || {}; } catch (e) {}
+      try { inv = JSON.parse(localStorage.getItem('erp_ap_inv_records') || '{}') || {}; } catch (e) {}
+      try { grn = JSON.parse(localStorage.getItem('erp_grn_records') || '{}') || {}; } catch (e) {}
+      var used = {}, byRef = {};
+      Object.keys(inv).forEach(function(k) { var g = inv[k] && inv[k].grn_ref; if (g && k !== selfRef) used[g] = 1; });
+      Object.keys(grn).forEach(function(k) { var r = grn[k] || {}; byRef[r.ref_no || r.ref || r.grn_no || k] = r; });
+      return Object.keys(log).map(function(k) { return log[k]; }).filter(function(e) {
+        return e && e.sid && e.sid.indexOf('MM-GRN|') === 0 && e.status === 'Posted' && e.grir && !used[e.ref];
+      }).map(function(e) {
+        var r = byRef[e.ref] || {};
+        return { ref: e.ref, vendor: e.party || r.supplier || '', amount: Math.round((Number(e.amount) || 0) * 100) / 100, date: e.date || '', po: r.po_no || '', je: e.je };
+      }).sort(function(a, b) { return (b.date || '').localeCompare(a.date || '') || a.ref.localeCompare(b.ref); });
+    }
+    function fillApInvGrnSelect(selfRef, selected, rec) {
+      var sel = document.getElementById('ap_inv_grn');
+      if (!sel) return;
+      window.__apGrnMap = {};
+      var html = '<option value="">-- None (direct invoice) --</option>';
+      grirOpenGrns(selfRef).forEach(function(g) {
+        window.__apGrnMap[g.ref] = g;
+        html += '<option value="' + jeEscHtml(g.ref) + '">' + jeEscHtml(g.ref + ' | ' + g.vendor + (g.po ? ' | ' + g.po : '') + ' | ' + g.amount.toFixed(2)) + '</option>';
+      });
+      if (selected && !window.__apGrnMap[selected]) {
+        html += '<option value="' + jeEscHtml(selected) + '">' + jeEscHtml(selected + ' | ' + ((rec && rec.vendor_name) || '') + ' | ' + (parseFloat(rec && rec.grn_amount) || 0).toFixed(2)) + '</option>';
+      }
+      sel.innerHTML = html;
+      sel.value = selected || '';
+      jeMakeSearchable(sel);
+      jeSyncSearch(sel);
+    }
+    function onApInvGrnChange() {
+      var ref = document.getElementById('ap_inv_grn').value;
+      if (!ref) return;
+      var g = (window.__apGrnMap || {})[ref];
+      if (!g) return;
+      document.getElementById('ap_inv_vendor').value = g.vendor;
+      var grir = fpAcct('grir');
+      if (grir) document.getElementById('ap_inv_expense_account').value = grir;
+      document.getElementById('ap_inv_amount').value = g.amount.toFixed(2);
+      var nar = document.getElementById('ap_inv_narration');
+      if (!nar.value) nar.value = 'Against ' + g.ref + (g.po ? ' / PO ' + g.po : '');
+      calcApInvBalance();
+    }
+
+    // builds the journal lines: default is Dr debitAccount / Cr creditAccount; `lines` ([account, debit, credit]) overrides it
+    function apJeItems(reference, debitAccount, creditAccount, amount, lines) {
+      var accounts = JSON.parse(localStorage.getItem('erp_coa_records') || '{}');
+      var arr = (lines && lines.length) ? lines : [[debitAccount, amount, 0], [creditAccount, 0, amount]];
+      var items = [], td = 0, tc = 0;
+      arr.forEach(function(l) {
+        if (!l[1] && !l[2]) return;
+        items.push({ line_no: String(items.length + 1), gl_account: l[0], account_name: accounts[l[0]] ? accounts[l[0]].name : '', debit: l[1] || 0, credit: l[2] || 0, narration: reference });
+        td += l[1] || 0; tc += l[2] || 0;
+      });
+      return { items: items, td: Math.round(td * 100) / 100, tc: Math.round(tc * 100) / 100 };
+    }
+
+    // Posts a balanced Journal Entry (two lines by default, or the given `lines`) into the GL and returns its ref
+    function postApJournalEntry(postingDate, company, currency, reference, debitAccount, creditAccount, amount, lines) {
       var ref = getNextJeRef();
       var records = JSON.parse(localStorage.getItem('erp_je_records') || '{}');
-      var accounts = JSON.parse(localStorage.getItem('erp_coa_records') || '{}');
+      var built = apJeItems(reference, debitAccount, creditAccount, amount, lines);
       records[ref] = {
         ref: ref,
         posting_date: postingDate,
@@ -29532,16 +29958,36 @@ return btns;
         currency: currency || 'BDT',
         reference: reference,
         status: 'Posted',
-        items: [
-          { line_no: '1', gl_account: debitAccount, account_name: accounts[debitAccount] ? accounts[debitAccount].name : '', debit: amount, credit: 0, narration: reference },
-          { line_no: '2', gl_account: creditAccount, account_name: accounts[creditAccount] ? accounts[creditAccount].name : '', debit: 0, credit: amount, narration: reference }
-        ],
-        total_debit: amount,
-        total_credit: amount,
+        items: built.items,
+        total_debit: built.td,
+        total_credit: built.tc,
         submitted_by: currentUser ? currentUser.id : ''
       };
       localStorage.setItem('erp_je_records', JSON.stringify(records));
       return ref;
+    }
+
+    // Editing a saved Vendor Invoice / Payment must REVISE its existing journal (same JV no.), not post a second one.
+    // Other fields of that JV (e.g. auto-post source flags) are kept; falls back to a new JV if the old one is gone.
+    function upsertApJournalEntry(existingRef, postingDate, company, currency, reference, debitAccount, creditAccount, amount, lines) {
+      var records = JSON.parse(localStorage.getItem('erp_je_records') || '{}');
+      if (existingRef && records[existingRef]) {
+        var built = apJeItems(reference, debitAccount, creditAccount, amount, lines);
+        var je = records[existingRef];
+        je.posting_date = postingDate;
+        je.doc_date = postingDate;
+        je.company = company;
+        je.currency = currency || 'BDT';
+        je.reference = reference;
+        je.status = 'Posted';
+        je.items = built.items;
+        je.total_debit = built.td;
+        je.total_credit = built.tc;
+        je.last_edited_by = currentUser ? currentUser.id : '';
+        localStorage.setItem('erp_je_records', JSON.stringify(records));
+        return existingRef;
+      }
+      return postApJournalEntry(postingDate, company, currency, reference, debitAccount, creditAccount, amount, lines);
     }
 
     // ----- Vendor Invoice -----
@@ -29604,6 +30050,7 @@ return btns;
       document.getElementById('ap_inv_payable_account').value = record.payable_account || '';
       document.getElementById('ap_inv_amount').value = record.amount || '';
       document.getElementById('ap_inv_narration').value = record.narration || '';
+      fillApInvGrnSelect(isEdit ? ref : '', record.grn_ref || '', record);
       calcApInvBalance();
 
       document.querySelector('#apInvFormOverlay .erp-form-header span').textContent =
@@ -29642,10 +30089,52 @@ return btns;
       var company = document.getElementById('ap_inv_company').value.trim();
       var currency = document.getElementById('ap_inv_currency').value.trim() || 'BDT';
 
-      // Post the balancing Journal Entry (Dr Expense, Cr Accounts Payable) into the GL
-      var jeRef = postApJournalEntry(invoiceDate, company, currency, 'Vendor Invoice ' + ref + ' - ' + vendor, expenseAccount, payableAccount, amount);
+      // Invoice raised against a GRN (3-way match): Dr GR/IR (GRN value), price difference to PPV, Cr Accounts Payable (invoice amount)
+      var grnRef = (document.getElementById('ap_inv_grn') || {}).value || '', grnAmt = 0, grnDiff = 0, grnInfo = null, jeLines = null;
+      if (grnRef) {
+        var prevRec = records[ref] || {};
+        grnInfo = grirOpenGrns(ref).filter(function(g) { return g.ref === grnRef; })[0] || null;
+        if (!grnInfo && prevRec.grn_ref === grnRef) grnInfo = { ref: grnRef, vendor: prevRec.vendor_name, amount: parseFloat(prevRec.grn_amount) || 0, po: prevRec.po_no || '' };
+        var grirAcct = fpAcct('grir'), ppvAcct = fpAcct('ppv'), gMsg = '';
+        if (!grnInfo) gMsg = 'This GRN is not available for matching (already invoiced, or not posted through GR/IR).';
+        else if (String(grnInfo.vendor || '').trim().toLowerCase() !== vendor.toLowerCase()) gMsg = 'Vendor must be the GRN supplier (' + grnInfo.vendor + ').';
+        else if (!grirAcct) gMsg = 'GR/IR Clearing account is not mapped (FICO > Auto-Posting Setup).';
+        else if (Math.abs(amount - grnInfo.amount) > 0.009 && !ppvAcct) gMsg = 'Purchase Price Variance account is not mapped (FICO > Auto-Posting Setup).';
+        if (gMsg) {
+          errEl.textContent = '❌ ' + gMsg;
+          errEl.classList.add('show');
+          return false;
+        }
+        expenseAccount = grirAcct;
+        grnAmt = grnInfo.amount;
+        grnDiff = Math.round((amount - grnAmt) * 100) / 100;
+        jeLines = [[grirAcct, grnAmt, 0]];
+        if (grnDiff > 0.009) jeLines.push([ppvAcct, grnDiff, 0]);
+        else if (grnDiff < -0.009) jeLines.push([ppvAcct, 0, -grnDiff]);
+        jeLines.push([payableAccount, 0, amount]);
+      }
 
-      records[ref] = {
+      // Integrity checks when editing an invoice that already has payments against it
+      if (isEdit) {
+        var paidSoFar = getApInvoicePaidAmount(ref), prev = records[ref];
+        if (paidSoFar > 0.009) {
+          var msg = '';
+          if (amount < paidSoFar - 0.009) msg = 'Invoice amount cannot be less than the amount already paid (' + paidSoFar.toFixed(2) + ').';
+          else if (prev.payable_account && payableAccount !== prev.payable_account) msg = 'Payable Account cannot be changed after payments have been made against this invoice.';
+          else if (prev.vendor_name && vendor !== prev.vendor_name) msg = 'Vendor cannot be changed after payments have been made against this invoice.';
+          if (msg) {
+            errEl.textContent = '❌ ' + msg;
+            errEl.classList.add('show');
+            return false;
+          }
+        }
+      }
+
+      // Post (or, when editing, revise) the balancing Journal Entry (Dr Expense, Cr Accounts Payable) in the GL
+      var jeRef = upsertApJournalEntry(isEdit ? records[ref].je_ref : '', invoiceDate, company, currency, 'Vendor Invoice ' + ref + ' - ' + vendor + (grnRef ? ' (GRN ' + grnRef + ')' : ''), expenseAccount, payableAccount, amount, jeLines);
+
+      // keep fields this form does not own (e.g. auto-post source link of a GRN-created invoice)
+      records[ref] = Object.assign({}, records[ref] || {}, {
         ref: ref,
         invoice_date: invoiceDate,
         due_date: document.getElementById('ap_inv_due_date').value,
@@ -29658,11 +30147,15 @@ return btns;
         amount: amount,
         narration: document.getElementById('ap_inv_narration').value.trim(),
         je_ref: jeRef,
+        grn_ref: grnRef,
+        grn_amount: grnRef ? grnAmt : '',
+        variance: grnRef ? grnDiff : '',
         submitted_by: currentUser ? currentUser.id : ''
-      };
+      });
+      if (grnInfo && grnInfo.po) records[ref].po_no = grnInfo.po;
       localStorage.setItem('erp_ap_inv_records', JSON.stringify(records));
 
-      successEl.textContent = '✅ Vendor Invoice saved and posted to GL! (Ref: ' + ref + ', JV: ' + jeRef + ')';
+      successEl.textContent = isEdit ? ('✅ Vendor Invoice updated; GL entry ' + jeRef + ' revised. (Ref: ' + ref + ')') : ('✅ Vendor Invoice saved and posted to GL! (Ref: ' + ref + ', JV: ' + jeRef + ')');
       successEl.classList.add('show');
       setTimeout(closeApInvForm, 1400);
       return false;
@@ -29896,10 +30389,10 @@ return btns;
       var currency = document.getElementById('ap_pay_currency').value.trim() || 'BDT';
       var vendor = document.getElementById('ap_pay_vendor').value.trim();
 
-      // Post the balancing Journal Entry (Dr Accounts Payable, Cr Bank/Cash) into the GL
-      var jeRef = postApJournalEntry(paymentDate, company, currency, 'Payment ' + ref + ' against ' + invoiceRef + ' - ' + vendor, payableAccount, bankAccount, amount);
+      // Post (or, when editing, revise) the balancing Journal Entry (Dr Accounts Payable, Cr Bank/Cash) in the GL
+      var jeRef = upsertApJournalEntry(isEdit ? records[ref].je_ref : '', paymentDate, company, currency, 'Payment ' + ref + ' against ' + invoiceRef + ' - ' + vendor, payableAccount, bankAccount, amount);
 
-      records[ref] = {
+      records[ref] = Object.assign({}, records[ref] || {}, {
         ref: ref,
         invoice_ref: invoiceRef,
         vendor_name: vendor,
@@ -29914,10 +30407,10 @@ return btns;
         narration: document.getElementById('ap_pay_narration').value.trim(),
         je_ref: jeRef,
         submitted_by: currentUser ? currentUser.id : ''
-      };
+      });
       localStorage.setItem('erp_ap_pay_records', JSON.stringify(records));
 
-      successEl.textContent = '✅ Payment Voucher saved and posted to GL! (Ref: ' + ref + ', JV: ' + jeRef + ')';
+      successEl.textContent = isEdit ? ('✅ Payment Voucher updated; GL entry ' + jeRef + ' revised. (Ref: ' + ref + ')') : ('✅ Payment Voucher saved and posted to GL! (Ref: ' + ref + ', JV: ' + jeRef + ')');
       successEl.classList.add('show');
       setTimeout(closeApPayForm, 1400);
       return false;
@@ -30030,6 +30523,7 @@ return btns;
       var current = sel.value;
       var vendorNames = [];
       getAllApInvRecords().forEach(function(r) { if (r.vendor_name && vendorNames.indexOf(r.vendor_name) === -1) vendorNames.push(r.vendor_name); });
+      getAllJeRecords().forEach(function(je) { if (je.status !== 'Posted' || !je.manual_je) return; (je.items || []).forEach(function(it) { if (it.party_type === 'Vendor' && it.party_name && vendorNames.indexOf(it.party_name) === -1) vendorNames.push(it.party_name); }); });
       vendorNames.sort();
       sel.innerHTML = '<option value="">[ Select Vendor ]</option>' + vendorNames.map(function(v) {
         return '<option value="' + v + '">' + v + '</option>';
@@ -30066,6 +30560,17 @@ return btns;
         if (fromDate && r.payment_date && r.payment_date < fromDate) return;
         if (toDate && r.payment_date && r.payment_date > toDate) return;
         lines.push({ date: r.payment_date, type: 'Payment', ref: r.ref, narration: r.narration || ('Against ' + r.invoice_ref), invoiceAmt: 0, paymentAmt: parseFloat(r.amount) || 0 });
+      });
+      var apCtl = jeControlAccounts().ap;
+      getAllJeRecords().forEach(function(je) {
+        if (je.status !== 'Posted' || !je.manual_je) return;
+        var d = je.posting_date || '';
+        if (fromDate && d && d < fromDate) return;
+        if (toDate && d && d > toDate) return;
+        (je.items || []).forEach(function(it) {
+          if (it.party_type !== 'Vendor' || it.party_name !== vendor || it.gl_account !== apCtl) return;
+          lines.push({ date: d, type: 'Journal', ref: je.ref, narration: it.narration || je.reference || '', invoiceAmt: parseFloat(it.credit) || 0, paymentAmt: parseFloat(it.debit) || 0 });
+        });
       });
       lines.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
 
@@ -30225,10 +30730,27 @@ return btns;
       var company = document.getElementById('ar_inv_company').value.trim();
       var currency = document.getElementById('ar_inv_currency').value.trim() || 'BDT';
 
-      // Post the balancing Journal Entry (Dr Accounts Receivable, Cr Sales/Income) into the GL
-      var jeRef = postApJournalEntry(invoiceDate, company, currency, 'Customer Invoice ' + ref + ' - ' + customer, receivableAccount, salesAccount, amount);
+      // Integrity checks when editing an invoice that already has receipts against it
+      var isEdit = !!records[ref];
+      if (isEdit) {
+        var recvdSoFar = getArInvoiceReceivedAmount(ref), prev = records[ref];
+        if (recvdSoFar > 0.009) {
+          var msg = '';
+          if (amount < recvdSoFar - 0.009) msg = 'Invoice amount cannot be less than the amount already received (' + recvdSoFar.toFixed(2) + ').';
+          else if (prev.receivable_account && receivableAccount !== prev.receivable_account) msg = 'Receivable Account cannot be changed after receipts have been made against this invoice.';
+          else if (prev.customer_name && customer !== prev.customer_name) msg = 'Customer cannot be changed after receipts have been made against this invoice.';
+          if (msg) {
+            errEl.textContent = '❌ ' + msg;
+            errEl.classList.add('show');
+            return false;
+          }
+        }
+      }
 
-      records[ref] = {
+      // Post (or, when editing, revise) the balancing Journal Entry (Dr Accounts Receivable, Cr Sales/Income) in the GL
+      var jeRef = upsertApJournalEntry(isEdit ? records[ref].je_ref : '', invoiceDate, company, currency, 'Customer Invoice ' + ref + ' - ' + customer, receivableAccount, salesAccount, amount);
+
+      records[ref] = Object.assign({}, records[ref] || {}, {
         ref: ref,
         invoice_date: invoiceDate,
         due_date: document.getElementById('ar_inv_due_date').value,
@@ -30242,10 +30764,10 @@ return btns;
         narration: document.getElementById('ar_inv_narration').value.trim(),
         je_ref: jeRef,
         submitted_by: currentUser ? currentUser.id : ''
-      };
+      });
       localStorage.setItem('erp_ar_inv_records', JSON.stringify(records));
 
-      successEl.textContent = '✅ Customer Invoice saved and posted to GL! (Ref: ' + ref + ', JV: ' + jeRef + ')';
+      successEl.textContent = isEdit ? ('✅ Customer Invoice updated; GL entry ' + jeRef + ' revised. (Ref: ' + ref + ')') : ('✅ Customer Invoice saved and posted to GL! (Ref: ' + ref + ', JV: ' + jeRef + ')');
       successEl.classList.add('show');
       setTimeout(closeArInvForm, 1400);
       return false;
@@ -30479,10 +31001,10 @@ return btns;
       var currency = document.getElementById('ar_rec_currency').value.trim() || 'BDT';
       var customer = document.getElementById('ar_rec_customer').value.trim();
 
-      // Post the balancing Journal Entry (Dr Bank/Cash, Cr Accounts Receivable) into the GL
-      var jeRef = postApJournalEntry(receiptDate, company, currency, 'Receipt ' + ref + ' against ' + invoiceRef + ' - ' + customer, bankAccount, receivableAccount, amount);
+      // Post (or, when editing, revise) the balancing Journal Entry (Dr Bank/Cash, Cr Accounts Receivable) in the GL
+      var jeRef = upsertApJournalEntry(isEdit ? records[ref].je_ref : '', receiptDate, company, currency, 'Receipt ' + ref + ' against ' + invoiceRef + ' - ' + customer, bankAccount, receivableAccount, amount);
 
-      records[ref] = {
+      records[ref] = Object.assign({}, records[ref] || {}, {
         ref: ref,
         invoice_ref: invoiceRef,
         customer_name: customer,
@@ -30497,10 +31019,10 @@ return btns;
         narration: document.getElementById('ar_rec_narration').value.trim(),
         je_ref: jeRef,
         submitted_by: currentUser ? currentUser.id : ''
-      };
+      });
       localStorage.setItem('erp_ar_rec_records', JSON.stringify(records));
 
-      successEl.textContent = '✅ Receipt Voucher saved and posted to GL! (Ref: ' + ref + ', JV: ' + jeRef + ')';
+      successEl.textContent = isEdit ? ('✅ Receipt Voucher updated; GL entry ' + jeRef + ' revised. (Ref: ' + ref + ')') : ('✅ Receipt Voucher saved and posted to GL! (Ref: ' + ref + ', JV: ' + jeRef + ')');
       successEl.classList.add('show');
       setTimeout(closeArRecForm, 1400);
       return false;
@@ -30614,6 +31136,7 @@ return btns;
       var current = sel.value;
       var customerNames = [];
       getAllArInvRecords().forEach(function(r) { if (r.customer_name && customerNames.indexOf(r.customer_name) === -1) customerNames.push(r.customer_name); });
+      getAllJeRecords().forEach(function(je) { if (je.status !== 'Posted' || !je.manual_je) return; (je.items || []).forEach(function(it) { if (it.party_type === 'Customer' && it.party_name && customerNames.indexOf(it.party_name) === -1) customerNames.push(it.party_name); }); });
       customerNames.sort();
       sel.innerHTML = '<option value="">[ Select Customer ]</option>' + customerNames.map(function(v) {
         return '<option value="' + v + '">' + v + '</option>';
@@ -30650,6 +31173,17 @@ return btns;
         if (fromDate && r.receipt_date && r.receipt_date < fromDate) return;
         if (toDate && r.receipt_date && r.receipt_date > toDate) return;
         lines.push({ date: r.receipt_date, type: 'Receipt', ref: r.ref, narration: r.narration || ('Against ' + r.invoice_ref), invoiceAmt: 0, receiptAmt: parseFloat(r.amount) || 0 });
+      });
+      var arCtl = jeControlAccounts().ar;
+      getAllJeRecords().forEach(function(je) {
+        if (je.status !== 'Posted' || !je.manual_je) return;
+        var d = je.posting_date || '';
+        if (fromDate && d && d < fromDate) return;
+        if (toDate && d && d > toDate) return;
+        (je.items || []).forEach(function(it) {
+          if (it.party_type !== 'Customer' || it.party_name !== customer || it.gl_account !== arCtl) return;
+          lines.push({ date: d, type: 'Journal', ref: je.ref, narration: it.narration || je.reference || '', invoiceAmt: parseFloat(it.debit) || 0, receiptAmt: parseFloat(it.credit) || 0 });
+        });
       });
       lines.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
 
@@ -31181,10 +31715,11 @@ return btns;
       var company = document.getElementById('ft_company').value.trim();
       var currency = document.getElementById('ft_currency').value.trim() || 'BDT';
 
-      // Post the balancing Journal Entry (Dr To Account, Cr From Account) into the GL
-      var jeRef = postApJournalEntry(transferDate, company, currency, 'Fund Transfer ' + ref + ' - ' + fromAccount + ' to ' + toAccount, toAccount, fromAccount, amount);
+      // Post (or, when editing, revise) the balancing Journal Entry (Dr To Account, Cr From Account) in the GL
+      var isEdit = !!records[ref];
+      var jeRef = upsertApJournalEntry(isEdit ? records[ref].je_ref : '', transferDate, company, currency, 'Fund Transfer ' + ref + ' - ' + fromAccount + ' to ' + toAccount, toAccount, fromAccount, amount);
 
-      records[ref] = {
+      records[ref] = Object.assign({}, records[ref] || {}, {
         ref: ref,
         transfer_date: transferDate,
         from_account: fromAccount,
@@ -31197,10 +31732,10 @@ return btns;
         narration: document.getElementById('ft_narration').value.trim(),
         je_ref: jeRef,
         submitted_by: currentUser ? currentUser.id : ''
-      };
+      });
       localStorage.setItem('erp_fund_transfer_records', JSON.stringify(records));
 
-      successEl.textContent = '✅ Fund Transfer saved and posted to GL! (Ref: ' + ref + ', JV: ' + jeRef + ')';
+      successEl.textContent = isEdit ? ('✅ Fund Transfer updated; GL entry ' + jeRef + ' revised. (Ref: ' + ref + ')') : ('✅ Fund Transfer saved and posted to GL! (Ref: ' + ref + ', JV: ' + jeRef + ')');
       successEl.classList.add('show');
       setTimeout(closeFundTransferForm, 1400);
       return false;
@@ -39233,6 +39768,7 @@ return btns;
       block: function (id) {
         var q = LS('erp_qc2_records')[id] || {};
         if (q.qc_ref && anyOf(LS('erp_grn_records'), function (g) { return g.qc2_ref === q.qc_ref; })) return 'a GRN has already been made from this 2nd QC';
+        if (q.qc_ref && anyOf(LS('erp_vu_records'), function (v) { return v.qc2_ref === q.qc_ref && v.status !== 'Draft'; })) return 'a Vehicle Unload has already been made from this 2nd QC (revert the Vehicle Unload first)';
         return '';
       },
       revert: function (id) { setDraft('erp_qc2_records', id); window.renderQc2Table(); window.viewQc2(id); },
@@ -39497,7 +40033,12 @@ return btns;
     mr:  { render: 'renderMrTable', body: 'mrTableBody', view: 'viewMr', key: 'erp_mr_records', label: 'Materials Issue Return', block: mrBlock, revert: mrRevert, edit: mrEdit },
     grn: { render: 'renderGrnTable', body: 'grnTableBody', view: 'viewGrn', key: 'erp_grn_records', label: 'GRN', block: function (id) { return grnStockGuard(LS('erp_grn_records')[id] || {}); }, revert: grnRevert, edit: grnEdit },
     stn: { render: 'renderStnTable', body: 'stnTableBody', view: 'viewStn', key: 'erp_stn_records', label: 'Stock Transfer Note', block: stnBlock, revert: stnRevert, edit: function (id) { window.editStnDraft(id); } },
-    vu:  { render: 'renderVuTable', body: 'vuTableBody', view: 'viewVu', key: 'erp_vu_records', label: 'Vehicle Unload', block: function () { return ''; }, revert: vuRevert, edit: vuEdit },
+    vu:  { render: 'renderVuTable', body: 'vuTableBody', view: 'viewVu', key: 'erp_vu_records', label: 'Vehicle Unload', block: function (id) {
+      var v = LS('erp_vu_records')[id] || {};
+      if (!v.qc2_ref) return '';
+      var hit = function (k) { var o = LS(k); return Object.keys(o).some(function (x) { return o[x] && (o[x].qc2_ref === v.qc2_ref || o[x].vu_ref === id); }); };
+      return (hit('erp_grn_records') || hit('erp_stn_records')) ? 'a GRN / STN has already been made from this Vehicle Unload' : '';
+    }, revert: vuRevert, edit: vuEdit },
     mi:  { render: 'renderMiTable', body: 'miTableBody', view: 'viewMi', key: 'erp_mi_records', label: 'Materials Issue', block: miBlock, revert: miRevert, edit: null }
   };
   var CONFIRM = {
@@ -39687,9 +40228,11 @@ return btns;
       '<td><button type="button" class="pr-remove-item-btn" onclick="removeObItemRow(' + id + ')">✕</button></td>';
     tb.appendChild(tr);
     prFillCategorySelect($('ob_item_cat_' + id));
+    $('ob_item_name_' + id).setAttribute('data-empty-msg', 'Select Item Category first');
+    jeMakeSearchable($('ob_item_cat_' + id)); jeMakeSearchable($('ob_item_name_' + id));
     if (it) {
-      $('ob_item_cat_' + id).value = it.item_category || ''; window.onObRowCategoryChange(id);
-      $('ob_item_name_' + id).value = it.item_name || '';
+      $('ob_item_cat_' + id).value = it.item_category || ''; jeSyncSearch($('ob_item_cat_' + id)); window.onObRowCategoryChange(id);
+      $('ob_item_name_' + id).value = it.item_name || ''; jeSyncSearch($('ob_item_name_' + id));
       $('ob_item_code_' + id).value = it.item_code || ''; $('ob_item_uom_' + id).value = it.uom || '';
       $('ob_item_qty_' + id).value = it.qty || ''; $('ob_item_rate_' + id).value = it.rate || ''; window.calcObRow(id); $('ob_item_spec_' + id).value = it.specification || ''; $('ob_item_pack_' + id).value = it.pack_size || '';
     }
@@ -39708,6 +40251,7 @@ return btns;
     sel.innerHTML = '<option value="">-- Select --</option>'; $('ob_item_code_' + id).value = ''; $('ob_item_uom_' + id).value = '';
     var e = PR_ITEM_DATA.hierarchy && PR_ITEM_DATA.hierarchy[cat];
     if (e) e.items.forEach(function (n) { var op = document.createElement('option'); op.value = n; op.textContent = n; sel.appendChild(op); });
+   jeSyncSearch(sel);
   };
   window.onObRowItemNameChange = function (id) {
     var cat = $('ob_item_cat_' + id).value, n = $('ob_item_name_' + id).value;
@@ -39974,9 +40518,11 @@ return btns;
       '<td><button type="button" class="pr-remove-item-btn" onclick="removeRtItemRow(' + id + ')">✕</button></td>';
     tb.appendChild(tr);
     prFillCategorySelect($('rt_item_cat_' + id));
+    $('rt_item_name_' + id).setAttribute('data-empty-msg', 'Select Item Category first');
+    jeMakeSearchable($('rt_item_cat_' + id)); jeMakeSearchable($('rt_item_name_' + id));
     if (it) {
-      $('rt_item_cat_' + id).value = it.item_category || ''; window.onRtRowCategoryChange(id);
-      $('rt_item_name_' + id).value = it.item_name || '';
+      $('rt_item_cat_' + id).value = it.item_category || ''; jeSyncSearch($('rt_item_cat_' + id)); window.onRtRowCategoryChange(id);
+      $('rt_item_name_' + id).value = it.item_name || ''; jeSyncSearch($('rt_item_name_' + id));
       $('rt_item_code_' + id).value = it.item_code || ''; $('rt_item_uom_' + id).value = it.uom || '';
       $('rt_item_qty_' + id).value = it.qty || ''; $('rt_item_rate_' + id).value = it.rate || ''; window.calcRtRow(id);
       if (it.batches) $('rt_item_batch_' + id).value = batchTxt(it.batches); else if (it.batch_no) $('rt_item_batch_' + id).value = it.batch_no;
@@ -40000,6 +40546,7 @@ return btns;
     sel.innerHTML = '<option value="">-- Select --</option>'; $('rt_item_code_' + id).value = ''; $('rt_item_uom_' + id).value = '';
     var e = PR_ITEM_DATA.hierarchy && PR_ITEM_DATA.hierarchy[cat];
     if (e) e.items.forEach(function (n) { var op = document.createElement('option'); op.value = n; op.textContent = n; sel.appendChild(op); });
+   jeSyncSearch(sel);
   };
   window.onRtRowItemNameChange = function (id) {
     var cat = $('rt_item_cat_' + id).value, n = $('rt_item_name_' + id).value;
@@ -42607,9 +43154,11 @@ return btns;
       '<td><input type="text" id="va_i_remarks_' + n + '"></td><td><button type="button" class="pr-remove-item-btn va-rm" onclick="removeVaItemRow(' + n + ')">✕</button></td>';
     tb.appendChild(tr);
     prFillCategorySelect($('va_i_cat_' + n));
+    $('va_i_name_' + n).setAttribute('data-empty-msg', 'Select Item Category first');
+    jeMakeSearchable($('va_i_cat_' + n)); jeMakeSearchable($('va_i_name_' + n));
     if (it) {
-      setSel($('va_i_cat_' + n), it.item_category || ''); vaRowCat(n);
-      setSel($('va_i_name_' + n), it.item_name || '');
+      setSel($('va_i_cat_' + n), it.item_category || ''); jeSyncSearch($('va_i_cat_' + n)); vaRowCat(n);
+      setSel($('va_i_name_' + n), it.item_name || ''); jeSyncSearch($('va_i_name_' + n));
       $('va_i_code_' + n).value = it.item_code || ''; $('va_i_uom_' + n).value = it.uom || '';
       [['rate', 'rate'], ['min', 'min_qty'], ['max', 'max_qty'], ['vat', 'vat'], ['tax', 'tax'], ['remarks', 'remarks']].forEach(function (p) { $('va_i_' + p[0] + '_' + n).value = it[p[1]] || ''; });
     }
@@ -42619,6 +43168,7 @@ return btns;
     $('va_i_code_' + n).value = ''; $('va_i_uom_' + n).value = '';
     var e = PR_ITEM_DATA.hierarchy && PR_ITEM_DATA.hierarchy[$('va_i_cat_' + n).value];
     if (e) e.items.forEach(function (nm) { var o = document.createElement('option'); o.value = nm; o.textContent = nm; sel.appendChild(o); });
+   jeSyncSearch(sel);
   };
   window.vaRowItem = function (n) {
     var e = PR_ITEM_DATA.hierarchy && PR_ITEM_DATA.hierarchy[$('va_i_cat_' + n).value], it = e && e.itemMap[$('va_i_name_' + n).value];
@@ -44883,12 +45433,14 @@ return btns;
    '<div><label>Party Name</label><input readonly value="'+esc(r.party)+'"></div><div><label>Vehicle No</label><input readonly value="'+esc(r.vehicle)+'"></div><div><label>Driver</label><input id="fo_drv" value="'+esc(r.driver)+'"></div>'+
    '<div><label>Scale ID</label><input readonly value="'+esc(r.scale_id)+'"></div><div><label>Delivery Note(s)</label><input readonly value="'+esc((r.dns||[]).join(', '))+'"></div><div><label>Delivery Order(s)</label><input readonly value="'+esc((r.dos||[]).join(', '))+'"></div>'+
    '<div><label>Items</label><input readonly value="'+esc(r.items)+'"></div><div><label>Total Qty</label><input readonly value="'+esc(r.qty)+'"></div><div><label>Net Weight</label><input readonly value="'+esc(r.net)+'"></div>'+
-   '<div><label>Invoice(s)</label><input readonly value="'+esc(curInv(r)||'Not invoiced yet')+'"></div><div style="grid-column:span 2"><label>Remarks</label><input id="fo_rem" value="'+esc(r.remarks||'')+'"></div></div><div style="padding:0 18px 16px">'+
+   '<div><label>Invoice(s)</label><input readonly value="'+esc(curInv(r)||'Not invoiced yet')+'"></div><div style="grid-column:span 2"><label>Remarks</label><input id="fo_rem" value="'+esc(r.remarks||'')+'"></div>'+
+   '<div><label>Truck Owner</label><input id="fo_owner" list="foOwnerList" autocomplete="off" placeholder="Owner / transporter" value="'+esc(r.truck_owner||'')+'"><datalist id="foOwnerList"></datalist></div><div><label>Truck Fare</label><input type="number" step="0.01" id="fo_fare" placeholder="0.00" value="'+esc(r.truck_fare||'')+'"></div></div><div style="padding:0 18px 16px">'+
    (RO?'<span style="color:#166534;font-weight:700;margin-right:12px">✔ Gate Out complete — vehicle has left the factory</span>':'<button class="fo-b" style="background:#27ae60" onclick="__fgo.save(\'Draft\')">💾 Save as Draft</button><button class="fo-b" style="background:#dc2626" onclick="__fgo.save(\'Complete\')">✅ Complete — Gate Out</button>')+'<button class="fo-b" style="background:#94a3b8" onclick="__fgo.close()">← Back</button>'+(id&&!RO?'<button class="fo-b" style="background:#7f1d1d" onclick="__fgo.del()">🗑 Delete</button>':'')+'</div></div>';
-  if(!ov){ov=document.createElement('div');ov.className='fo-ov';document.body.appendChild(ov)}ov.innerHTML=h;ov.style.display='flex';if(RO)ov.querySelectorAll('input').forEach(function(x){x.disabled=true})}
+  if(!ov){ov=document.createElement('div');ov.className='fo-ov';document.body.appendChild(ov)}ov.innerHTML=h;ov.style.display='flex';try{fillTruckOwnerList('foOwnerList')}catch(e){}if(RO)ov.querySelectorAll('input').forEach(function(x){x.disabled=true})}
  window.__fgo={draw:draw,add:function(k){var g=groups().filter(function(x){return x.key===k})[0];if(g)form(g,null)},edit:function(i){form(null,i)},close:function(){if(ov)ov.style.display='none';draw()},
   del:function(){if(!confirm('Delete this Gate Out?'))return;var o=outs();delete o[cur.id];localStorage.setItem(K,JSON.stringify(o));this.close()},
-  save:function(m){var r=cur.rec;r.date=E('fo_date').value;r.time=E('fo_time').value;r.driver=E('fo_drv').value;r.remarks=E('fo_rem').value;if(m==='Complete'&&!r.date)return alert('Gate Out Date is required.');
+  save:function(m){var r=cur.rec;r.date=E('fo_date').value;r.time=E('fo_time').value;r.driver=E('fo_drv').value;r.remarks=E('fo_rem').value;r.truck_owner=E('fo_owner').value.trim();r.truck_fare=E('fo_fare').value;if(m==='Complete'&&!r.date)return alert('Gate Out Date is required.');
+   if(m==='Complete'&&(parseFloat(r.truck_fare)||0)>0&&!r.truck_owner)return alert('Truck Owner is required when Truck Fare is entered.');
    if(m==='Complete'&&window.__fiscalCheck){var f=window.__fiscalCheck(r.date,'MM');if(f)return alert('🔒 '+f)}
    var o=outs(),id=cur.id;if(!id){id='fgo_'+Date.now();var n=(+localStorage.getItem(SK)||0)+1;localStorage.setItem(SK,n);r.ref_no='FGO-'+String(n).padStart(6,'0')}
    r.doc_state=m;r.entry_by=(window.currentUser&&currentUser.id)||'';o[id]=r;localStorage.setItem(K,JSON.stringify(o));
@@ -45145,9 +45697,14 @@ return btns;
   ['othd','Other Deductions Payable','HR: Payslip other deductions','Liabilities','Current Liabilities','2006','Other Liabilities'],
   ['cogs','Cost of Goods Sold','Sale: stock cost of goods delivered (moving average) / sales return reversal','Expenses','Factory Overhead (Cost of Goods Sold)','6041','Cost of Goods Sold'],
   ['mexp','Materials Consumed Expense','Materials issue / direct issue / consumption','Expenses','Factory Overhead (Cost of Goods Sold)','6042','Materials Consumed (Factory)'],
-  ['waste','Wastage & Spoilage','Stock wastage write-off','Expenses','Factory Overhead (Cost of Goods Sold)','6043','Wastage & Spoilage Expense']
+  ['waste','Wastage & Spoilage','Stock wastage write-off','Expenses','Factory Overhead (Cost of Goods Sold)','6043','Wastage & Spoilage Expense'],
+  ['frin','Freight & Carriage Inward','Vehicle Unload: truck fare for inward goods (payable to Truck Owner)','Expenses','Factory Overhead (Cost of Goods Sold)','6044','Freight & Carriage Inward'],
+  ['grir','GR/IR Clearing','GRN: goods received, not yet invoiced (cleared by the Vendor Invoice raised against the GRN)','Liabilities','Current Liabilities','2023','GR/IR Clearing (Goods Received Not Invoiced)'],
+  ['ppv','Purchase Price Variance','Vendor Invoice amount vs GRN value difference','Expenses','Factory Overhead (Cost of Goods Sold)','6045','Purchase Price Variance'],
+  ['frout','Freight & Carriage Outward','Gate Out (Finished Goods): truck fare for outward goods (payable to Truck Owner)','Expenses','Marketing & Selling Expenses (General & Administrative expenses)','8017','Freight & Carriage Outward']
  ];
  function coa(){return J('erp_coa_records',{})}
+ function grirOn(){return J(MAPK,{}).__grir!=='0'}
  function map(){var m=J(MAPK,{}),c=coa(),o={};PURP.forEach(function(p){o[p[0]]=(m[p[0]]!==undefined&&m[p[0]]!=='')?m[p[0]]:(c[p[5]]?p[5]:'')});return o}
 /* Default Chart of Accounts (4-digit codes). Loaded once into a fresh COA; a COA that already has your own accounts is not touched. */
  var DEFCOA=[["Assets","Current Assets","Advance Income Tax","1001",1100000.0],["Assets","Current Assets","Advance Salary","1002",125500.0],["Assets","Current Assets","Advance To Other Expense","1003",1235000.0],["Assets","Current Assets","Advance To Supplier and Contractor","1004",1190000.0],["Assets","Current Assets","Security Deposit","1005",1234000.0],["Assets","Current Assets","Margin On Bank Gurantee","1006",1180000.0],["Assets","Current Assets","Advance For Machinary","1007",1090000.0],["Assets","Bank Account","Cash In Hand","1008",234000.0],["Assets","Bank Account","Standard Chartered Bank","1009",987000.0],["Assets","Bank Account","HSBC Bank","1010",885000.0],["Assets","Bank Account","Prime Bank Limited","1011",1245000.0],["Assets","Bank Account","The City Bank Limited","1012",1140000.0],["Assets","Bank Account","Commercial Bank Of Cylon","1013",876000.0],["Assets","Bank Account","Bank Alfalah Limited","1014",950000.0],["Assets","Bank Account","janata Bank Limited","1015",1060000.0],["Assets","Bank Account","Mutual Trust Bank Limited","1016",887000.0],["Assets","Bank Account","Dutch Bangla Bank Limited","1017",22500000.0],["Assets","Bank Account","Islami Bank Bangladesh Limited","1018",12500000.0],["Assets","Stock in Hand","Stocks of Raw Materials","1019",1250000.0],["Assets","Stock in Hand","Stocks of Work In Progress","1020",35600.0],["Assets","Stock in Hand","Stocks of Finished Goods","1021",12560.0],["Assets","Fixed Assets","Land & Land Development","1022",10250.0],["Assets","Fixed Assets","Building Factory & Utility","1023",112670.0],["Assets","Fixed Assets","Buildings-Others & Sheds","1024",170860.0],["Assets","Fixed Assets","Plant & Machinary","1025",1250000.0],["Assets","Fixed Assets","Sheds-Farming","1026",2250000.0],["Assets","Fixed Assets","Laboratory Equipment","1027",12500000.0],["Assets","Fixed Assets","Electrical Installation","1028",235000.0],["Assets","Fixed Assets","Gas Line Installation","1029",125000.0],["Assets","Fixed Assets","Motor Vehicles","1030",100000.0],["Assets","Fixed Assets","Office Equipments","1031",12500000.0],["Assets","Fixed Assets","Furniture & Fixtures","1032",1260000.0],["Assets","Fixed Assets","Computer","1033",1265000.0],["Assets","Fixed Assets","Hardware & Software","1034",112000.0],["Assets","Fixed Assets","Boundary Wall","1035",12000000.0],["Assets","Fixed Assets","Deep Tube Well","1036",22000000.0],["Assets","Fixed Assets","Safety & Security Equipment","1037",13500000.0],["Assets","Fixed Assets","Communication & Network Equipment","1038",22500000.0],["Assets","Fixed Assets","Other Assets","1039",12500000.0],["Assets","Fixed Assets","Accumulated Depreciation-Building-Factory & Utility","1040",11000000.0],["Assets","Fixed Assets","Accumulated Depreciation-Buildings & Others","1041",286500.0],["Assets","Fixed Assets","Accumulated Depreciation-Sheds","1042",870600.0],["Assets","Fixed Assets","Accumulated Depreciation-Plant & Machinary","1043",1020000.0],["Assets","Fixed Assets","Accumulated Depreciation-Laboratory Equipment","1044",1025000.0],["Assets","Fixed Assets","Accumulated Depreciation-Electrical Installation","1045",1030000.0],["Assets","Fixed Assets","Accumulated Depreciation- Gas Line Installation","1046",12500000.0],["Assets","Fixed Assets","Accumulated Depreciation-Motor Vehicles","1047",45000.0],["Assets","Fixed Assets","Accumulated Depreciation-Office Equipments","1048",22500000.0],["Assets","Fixed Assets","Accumulated Depreciation-Furniture & Fixtures","1049",12500000.0],["Assets","Fixed Assets","Accumulated Depreciation-Computer","1050",220560.0],["Assets","Fixed Assets","Accumulated Depreciation-Hardware & Software","1051",125000.0],["Assets","Fixed Assets","Accumulated Depreciation-Boundary Wall","1052",1200000.0],["Assets","Fixed Assets","Accumulated Depreciation-Deep Tubewell","1053",125000.0],["Assets","Fixed Assets","Accumulated Depreciation-Safety & Security Equipment","1054",225000.0],["Assets","Fixed Assets","Accumulated Depreciation-Other Asset","1055",123450.0],["Liabilities","Current Liabilities","Loan & Export Bill Discount","2001",2267000.0],["Liabilities","Current Liabilities","L/C Liabilities","2002",225000.0],["Liabilities","Current Liabilities","Retention Money","2003",1250000.0],["Liabilities","Current Liabilities","PF, WPPF and Other Fund","2004",2550000.0],["Liabilities","Current Liabilities","Dividend Payable","2005",12565000.0],["Liabilities","Current Liabilities","Other Liabilities","2006",876500.0],["Liabilities","Long Term Liability","Meghna Bank Limited (Cash Credit)","2007",765400.0],["Liabilities","Long Term Liability","Meghna Bank Limited (LTR)","2008",125000.0],["Liabilities","Long Term Liability","Jamuna Bank Limited (LTR)","2009",125670.0],["Liabilities","Long Term Liability","Meghna Bank Limited (Term Loan)","2010",112760.0],["Liabilities","Provision","Provision For Audit Fees","2011",11280000.0],["Liabilities","Provision","Provision For Utility Bill","2012",12890000.0],["Liabilities","Provision","Provision For Salary and allowances","2013",1265000.0],["Liabilities","Provision","Provision For Gratuity","2014",225000.0],["Liabilities","Provision","Provision For Income Tax","2015",125000.0],["Equity","Capital","Owners Capital","3001",120000.0],["Equity","Capital","Common Shares","3002",875000.0],["Equity","Capital","Owners Contribution","3003",124500.0],["Equity","Capital","Owners Withdrawal","3004",122000.0],["Equity","Retained Earnings","Retained Earnings","3005",780000.0],["Equity","Retained Earnings","Retained Earnings - prior years","3006",210500.0],["Income","Direct Income","Export Sales","4001",11444000.0],["Income","Indirect Income","Interest Income","4002",226000.0],["Income","Indirect Income","Gain / (Loss) Disposal Of Assets","4003",765000.0],["Income","Indirect Income","Bank Interest","4004",665000.0],["Income","Indirect Income","Fish/Vagetable Sale","4005",225000.0],["Income","Indirect Income","Miscellaneous Sale","4006",440000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Salary & Allowances","5001",256600.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Directors Remuneration","5002",985000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Travelling & Conveyance","5003",1050000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Overseas Travelling","5004",1165500.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Recruitment & Training Expense","5005",225000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Head Office Employee Free Lunch","5006",112450.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Uniform and Liveries","5007",425000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Printing Expense","5008",223000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Stationary Expense","5009",225000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Software & Hardware Support Expense","5010",1155000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Postage, Telephone, Fax & Telex","5011",334000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Electricity, Gas, Water","5012",1050000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Office Consumeable Expense","5013",986700.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Rental Expense","5014",1125000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Vehicles Running & Maintenance","5015",345000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Medical Expense","5016",225500.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Group Insurance","5017",112570.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Bank Charges & Commission","5018",345780.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Commission","5019",112000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Fees & Subscriptions","5020",20000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Security Service","5021",200000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Govt. Tax, VAT & License Fees","5022",112500.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Annual General Meeting","5023",780000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Audit Fees","5024",885000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Festival Bonus","5025",125000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Donation Expense","5026",1126000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Fine & Penalties","5027",985000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","General Expense","5028",112000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Insurance Premium","5029",1215000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Ifter Bill","5030",225000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Meeting Fees","5031",325000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Mobile Bill","5032",12565000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Photocopy Bill","5033",965000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Paper & Periodic","5034",1060000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Renewal Fee","5035",1145000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Amortization Of Intangible Assets","5036",675000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Realized Foreign Currency Gain / Loss","5037",77690.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Service Charge","5038",12560.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Annual Listing Fee","5039",11230.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Design Bill","5040",12760.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Fooding Allowances","5041",12700.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Computer Accessories","5042",12500000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Legal Fees","5043",20000000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Building & Others","5044",2200000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Motor Vehicles","5045",22500000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Office Equipment","5046",12500000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Furnitures & Fixtures","5047",12600000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Computer","5048",1200000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Hardware & Software","5049",2250000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Safety & Security Equipment","5050",125000.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Communication & Network Equipment","5051",12500.0],["Expenses","Administrative Overhead (General & Administrative expenses)","Depreciation Expense-Other Assets","5052",12000000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Factory Wages, Salary & Allowance","6001",210500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Travelling & Conveyance-Fact","6002",256000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Overseas Travelling-Fact","6003",245500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Recruitment & Training Expense-Fact","6004",12500000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Printing Expense-Fact","6005",1150000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Stationary Expense-Fact","6006",1245000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Software & Hardware Support Expense-Fact","6007",1265000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Production Workers Free Lunch","6008",2250000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Uniform and Liveries-Fact","6009",1265000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Fuel, Petrol, Light, Diesel Etc","6010",1245000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Electricity, Gas, Water-Fact","6011",1189000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Factory Consumeable Expense","6012",12500000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Medical Expense-Fact","6013",112600.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Repair & Maintenance Of Vehicles","6014",225000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Papers, Books & Periodicals-Fact","6015",335500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Industrial All Risk Insurance Premium","6016",125000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Postage, Telephone, Fax & Telex-Fact","6017",1129000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Govt. Tax, VAT & License Fees-Fact","6018",325000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Security Service-Fact","6019",145000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Spare Parts-Machinary-Fact","6020",1250000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Group Insurance-Fact","6021",1140000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Festival Bonus-Worker-Fact","6022",1260000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Entertainment-Fact","6023",225000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Chilling Center Expense","6024",125000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Factory Maintenance-Fact","6025",1255000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Farming Expense-Fact","6026",1176000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Generator Maintenance-Fact","6027",1189000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Internet Bill-Fact","6028",1235000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Fair Expense-Fact","6029",109870.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Picnic Expense-Fact","6030",11980.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Public Relation Expense-Fact","6031",12560.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Building-Factory & Utlity","6032",13500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Sheds","6033",110000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Plant & Machinary","6034",12500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Laboratory Equipment","6035",12600.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Electrical Installation","6036",110000.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Gas Line Installation","6037",11500.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Boundary Wall","6038",12250.0],["Expenses","Factory Overhead (Cost of Goods Sold)","Depreciation Expense-Deep Tubewell","6039",11440.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On Deferred L/C Loan","7001",10870.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On Loan Export Bill Document","7002",11200.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On OD","7003",12500.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On Short Term Loan","7004",11200.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On Sister Concerns","7005",11760.0],["Expenses","Finance Cost (General & Administrative expenses)","Interest On Long Term Loan","7006",12450.0],["Expenses","Finance Cost (General & Administrative expenses)","Bank Charges & Commission","7007",11440.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Salary & Allowances-MKT","8001",10230.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","TA/DA","8002",12780.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Carrying Charges","8003",11000.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Advertising & Publcity","8004",11500.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Business Promotion","8005",12250.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Tour & Travels-Mkt","8006",11440.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Export Sales Expense","8007",10870.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Loading & Unloading","8008",11200.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Research & Development","8009",12500.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Free Sample","8010",11200.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Depot Expense","8011",11760.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Vehicle Maintenance","8012",12450.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Toll Charge","8013",11440.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Incentive","8014",10230.0],["Expenses","Marketing & Selling Expenses (General & Administrative expenses)","Expected Credit Loss","8015",12780.0]];
@@ -45184,7 +45741,7 @@ return btns;
  {id:'SD-RR',mod:'SD',name:'Sales Return (Received)',key:'erp_sdrr_records',active:done,spec:function(r){var rate=0,inv=invByRef(r.inv_ref);if(inv)LN(inv).forEach(function(l){if(!rate&&l.item===r.item)rate=N(l.rate)});
    var a=R2(N(r.recv_qty)*rate);return {date:r.date,party:r.customer,amount:a,lines:[['sret',a,0],['ar',0,a]]}}},
  {id:'MM-GRN',mod:'MM',name:'GRN',key:'erp_grn_records',active:function(r){return r&&r.status==='Approved'},spec:function(r){var q=N(r.invoice_qty)||N(r.inventory_qty),rate=poRate(r.po_no,r.item_name,r.item_code),a=R2(q*rate);
-   return {date:(r.approved_date||'').slice(0,10)||r.date||r.grn_date||today(),company:r.company,party:r.supplier,amount:a,lines:[['inv',a,0],['ap',0,a]],sub:{t:'apinv',amt:a,vendor:r.supplier},noval:'No PO rate found for this GRN'}}},
+   var g=grirOn();return {date:(r.approved_date||'').slice(0,10)||r.date||r.grn_date||today(),company:r.company,party:r.supplier,amount:a,grir:g,lines:g?[['inv',a,0],['grir',0,a]]:[['inv',a,0],['ap',0,a]],sub:g?null:{t:'apinv',amt:a,vendor:r.supplier},noval:'No PO rate found for this GRN'}}},
  {id:'MM-RET',mod:'MM',name:'Direct GRN / Purchase Return',key:'erp_ret_records',active:function(r){return r&&r.status==='Completed'&&(r.kind==='direct_grn'||r.kind==='purchase_return')},spec:function(r){var a=0;(r.items||[]).forEach(function(i){a+=N(i.qty)*N(i.rate)});a=R2(a);var g=r.kind==='direct_grn';
    return {date:r.date,company:r.company,party:r.party,amount:a,label:g?'Direct GRN':'Purchase Return',lines:g?[['inv',a,0],['ap',0,a]]:[['ap',a,0],['inv',0,a]],sub:g?{t:'apinv',amt:a,vendor:r.party}:null}}},
  {id:'MM-LCP',mod:'MM',name:'LC Payment',key:'erp_lcp_records',active:function(r){return r&&r.doc_state!=='Draft'&&r.status!=='Cancelled'&&N(r.amount_bdt)>0},spec:function(r){var b=R2(N(r.amount_bdt)),f=R2(N(r.fx_diff));
@@ -45195,18 +45752,32 @@ return btns;
    evs().forEach(function(e){if(e.d<0&&e.ref===r.bn)c+=-(+e.val||0)});var den=+b.rq||+r.qty||0,a=R2(den>0?c*(+r.qty||0)/den:0);
    return {date:r.date,party:r.fg,amount:a,lines:[['fg',a,0],['wip',0,a]],noval:'No RM consumption cost found for batch '+r.bn}}},
  {id:'MM-ADJ',mod:'MM',name:'Stock Adjustment',key:'erp_adj_records',active:function(r){return r&&r.status==='Approved'},spec:function(r){var g=0,l=0;(r.lines||[]).forEach(function(x){var v=N(x.diff)*(lastRate(x.code,x.name)||poRate('',x.name,x.code));if(v>0)g+=v;else l+=-v});g=R2(g);l=R2(l);
-   var L=[];if(g)L.push(['inv',g,0],['adjg',0,g]);if(l)L.push(['adjl',l,0],['inv',0,l]);return {date:r.date,party:r.warehouse,amount:R2(g+l),lines:L,noval:'No purchase rate found for the adjusted items'}}}
+   var L=[];if(g)L.push(['inv',g,0],['adjg',0,g]);if(l)L.push(['adjl',l,0],['inv',0,l]);return {date:r.date,party:r.warehouse,amount:R2(g+l),lines:L,noval:'No purchase rate found for the adjusted items'}}},
+ /* Carriage Inward: truck fare entered on Vehicle Unload -> Dr Freight & Carriage Inward, Cr Accounts Payable (+ vendor invoice for the Truck Owner) */
+ {id:'MM-FRI',mod:'MM',name:'Carriage Inward (Truck Fare)',key:'erp_vu_records',track:1,active:function(r){return r&&N(r.truck_fare)>0&&String(r.truck_owner||'').trim()!==''},spec:function(r){
+   var a=R2(N(r.truck_fare)),own=String(r.truck_owner).trim();
+   var info='Truck: '+(r.truck_no||'-')+' | Owner: '+own+' | PO: '+(r.lpo_mpo_no||'-')+' | GRN/STO: '+(r.grn_sto_no||'-')+' | Challan: '+(r.challan_no||'-')+' | Supplier: '+(r.supplier||'-')+' | Material: '+(r.material||'-')+' | Truck Fare: '+a.toFixed(2);
+   return {date:r.date||today(),party:own,amount:a,label:'Carriage Inward',info:info,lines:[['frin',a,0],['ap',0,a]],
+    extra:{source_info:info,line_narr:info,truck_no:r.truck_no||'',truck_owner:own,truck_fare:a,po_no:r.lpo_mpo_no||'',grn_no:r.grn_sto_no||'',challan_no:r.challan_no||''},
+    sub:{t:'apinv',amt:a,vendor:own,exp:'frin',inv_no:r.challan_no||r.truck_no||'',nar:'Carriage Inward (truck fare) - '+info,meta:{truck_no:r.truck_no||'',truck_owner:own,po_no:r.lpo_mpo_no||'',grn_no:r.grn_sto_no||''}}}}},
+ /* Carriage Outward: truck fare entered on Finished Goods Gate Out (when completed) -> Dr Freight & Carriage Outward, Cr Accounts Payable (+ vendor invoice for the Truck Owner) */
+ {id:'SD-FRO',mod:'SD',name:'Carriage Outward (Truck Fare)',key:'erp_gate_out_fg_records',track:1,active:function(r){return r&&(r.doc_state||'Complete')==='Complete'&&N(r.truck_fare)>0&&String(r.truck_owner||'').trim()!==''},spec:function(r){
+   var a=R2(N(r.truck_fare)),own=String(r.truck_owner).trim(),dos=(r.dos||[]).join(', '),dns=(r.dns||[]).join(', ');
+   var info='Truck: '+(r.vehicle||'-')+' | Owner: '+own+' | DO: '+(dos||'-')+' | DN: '+(dns||'-')+' | Gate Out: '+(r.ref_no||'-')+' | Party: '+(r.party||'-')+' | Items: '+(r.items||'-')+' | Truck Fare: '+a.toFixed(2);
+   return {date:r.date||today(),party:own,amount:a,label:'Carriage Outward',info:info,lines:[['frout',a,0],['ap',0,a]],
+    extra:{source_info:info,line_narr:info,truck_no:r.vehicle||'',truck_owner:own,truck_fare:a,do_no:dos,dn_no:dns,gate_out_ref:r.ref_no||''},
+    sub:{t:'apinv',amt:a,vendor:own,exp:'frout',inv_no:r.ref_no||'',nar:'Carriage Outward (truck fare) - '+info,meta:{truck_no:r.vehicle||'',truck_owner:own,do_no:dos,dn_no:dns}}}}}
  ];
  // ---- posting ----
  function nextJe(){var n=parseInt(localStorage.getItem('erp_je_serial')||'0',10)+1;localStorage.setItem('erp_je_serial',String(n));return 'JV-'+String(n).padStart(6,'0')}
  function writeJe(date,company,ref,lines,mod,extra){var je=J('erp_je_records',{}),c=coa(),id=nextJe(),items=[],td=0,tc=0;
-  lines.forEach(function(l,i){if(!l[1]&&!l[2])return;items.push({line_no:String(items.length+1),gl_account:l[0],account_name:c[l[0]]?c[l[0]].name:'',debit:l[1]||0,credit:l[2]||0,narration:ref});td+=l[1]||0;tc+=l[2]||0});
+  lines.forEach(function(l,i){if(!l[1]&&!l[2])return;items.push({line_no:String(items.length+1),gl_account:l[0],account_name:c[l[0]]?c[l[0]].name:'',debit:l[1]||0,credit:l[2]||0,narration:(extra&&extra.line_narr)||ref});td+=l[1]||0;tc+=l[2]||0});
   je[id]=Object.assign({ref:id,posting_date:date,doc_date:date,company:company||'',currency:'BDT',reference:ref,status:'Posted',items:items,total_debit:R2(td),total_credit:R2(tc),submitted_by:(typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'',auto_post:1,source_module:mod},extra||{});
   localStorage.setItem('erp_je_records',JSON.stringify(je));return id}
  function subPost(S,sref,sp,jeRef){var s=sp.sub;if(!s)return;var u=(typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'';
   if(s.t==='arinv'){var o=J('erp_ar_inv_records',{});o[sref]={ref:sref,invoice_date:sp.date,due_date:sp.date,customer_name:s.cust,customer_ref:sref,company:sp.company||'',bu:sp.bu||'',pc:sp.pc||'',profit_center:sp.pc||'',currency:'BDT',receivable_account:M.ar,sales_account:M.rev,amount:s.amt,narration:'Auto-posted from SD '+sref,je_ref:jeRef,auto_source:S.id,submitted_by:u};localStorage.setItem('erp_ar_inv_records',JSON.stringify(o))}
   else if(s.t==='arrec'){var o2=J('erp_ar_rec_records',{});o2[sref]={ref:sref,invoice_ref:s.inv,customer_name:s.cust,receipt_date:sp.date,receivable_account:M.ar,bank_account:/^cash$/i.test(s.method||'')?M.cash:M.bank,amount:s.amt,mode:s.method||'',cheque_no:'',company:sp.company||'',bu:sp.bu||'',pc:sp.pc||'',profit_center:sp.pc||'',currency:'BDT',narration:'Auto-posted from SD '+sref,je_ref:jeRef,auto_source:S.id,submitted_by:u};localStorage.setItem('erp_ar_rec_records',JSON.stringify(o2))}
-  else if(s.t==='apinv'){var o3=J('erp_ap_inv_records',{});o3[sref]={ref:sref,invoice_date:sp.date,due_date:sp.date,vendor_name:s.vendor,vendor_invoice_no:sref,company:sp.company||'',bu:sp.bu||'',pc:sp.pc||'',profit_center:sp.pc||'',currency:'BDT',expense_account:M.inv,payable_account:M.ap,amount:s.amt,narration:'Auto-posted from MM '+sref,je_ref:jeRef,auto_source:S.id,submitted_by:u};localStorage.setItem('erp_ap_inv_records',JSON.stringify(o3))}}
+  else if(s.t==='apinv'){var o3=J('erp_ap_inv_records',{});o3[sref]=Object.assign({ref:sref,invoice_date:sp.date,due_date:sp.date,vendor_name:s.vendor,vendor_invoice_no:s.inv_no||sref,company:sp.company||'',bu:sp.bu||'',pc:sp.pc||'',profit_center:sp.pc||'',currency:'BDT',expense_account:s.exp?M[s.exp]:M.inv,payable_account:M.ap,amount:s.amt,narration:s.nar||('Auto-posted from MM '+sref),je_ref:jeRef,auto_source:S.id,submitted_by:u},s.meta||{});localStorage.setItem('erp_ap_inv_records',JSON.stringify(o3))}}
  function subDel(sref,t){var k=t==='arinv'?'erp_ar_inv_records':t==='arrec'?'erp_ar_rec_records':'erp_ap_inv_records';var o=J(k,{});if(o[sref]&&o[sref].auto_source){delete o[sref];localStorage.setItem(k,JSON.stringify(o))}}
  var EVC={sig:'',ev:[]};
  function evs(){var sig=(localStorage.getItem('erp_stock_transactions')||'').length+'|'+(localStorage.getItem('erpProd1')||'').length+'|'+(localStorage.getItem('erp_po_records')||'').length+'|'+(localStorage.getItem('erp_grn_records')||'').length+'|'+(localStorage.getItem('erp_ret_records')||'').length;
@@ -45243,15 +45814,19 @@ return btns;
   if(typeof currentUser==='undefined'||!currentUser)return;
   M=map();var C=coa(),log=J(LOGK,{}),seen={},chg=0;C0=C;
   SRC.forEach(function(S){var recs=S.list?S.list():J(S.key,{});Object.keys(recs).forEach(function(id){var r=recs[id];if(!r||typeof r!=='object')return;var ref=r.ref_no||r.ref||r.grn_no||id,sid=S.id+'|'+ref;seen[sid]=1;var act=false;try{act=S.active(r)}catch(e){}var e0=log[sid];
+   if(act&&e0&&e0.status==='Posted'&&S.track){var spA=null;try{spA=S.spec(r)}catch(x){}var sgA=spA?JSON.stringify([spA.amount,spA.date,spA.party,spA.info]):'';
+    if(sgA&&e0.sig&&sgA!==e0.sig){var paidA=0;try{paidA=(e0.sub==='apinv'&&typeof getApInvoicePaidAmount==='function')?getApInvoicePaidAmount(ref):0}catch(x){}
+     if(paidA>0.009){if(e0.msg!=='Edited after payment - not re-posted'){e0.msg='Edited after payment - not re-posted';chg=1}}
+     else{revert(log,sid);chg=1;e0=log[sid]}}}
    if(act&&(!e0||e0.status==='Reversed'||e0.status==='Error'||e0.status==='Skipped')){
      var sp;try{sp=S.spec(r)}catch(e){sp=null}
      var msg='';if(!sp||!sp.amount||sp.amount<=0)msg=(sp&&sp.noval)||'Zero amount - nothing to post';
      else{var miss=[];sp.lines.forEach(function(l){if(!l[1]&&!l[2])return;var a=M[l[0]];if(!a||!C[a]||C[a].status==='Blocked')miss.push(PURP.filter(function(p){return p[0]===l[0]})[0][1])});if(miss.length)msg='GL account not mapped / not found: '+miss.filter(function(x,i,a){return a.indexOf(x)===i}).join(', ')}
      if(msg){var st=(sp&&sp.amount>0)?'Error':'Skipped';if(!e0||e0.status!==st||e0.msg!==msg){log[sid]={sid:sid,mod:S.mod,src:(sp&&sp.label)||S.name,ref:ref,date:(sp&&sp.date)||'',amount:sp?sp.amount:0,status:st,msg:msg,at:new Date().toISOString()};chg=1}return}
      sp.company=sp.company||r.company||'';sp.bu=r.bu||'';sp.pc=r.pc||r.profit_center||'';
-     var je=writeJe(sp.date||today(),sp.company||r.company,(sp.label||S.name)+' '+ref+(sp.party?' - '+sp.party:''),sp.lines.map(function(l){return [M[l[0]],l[1],l[2]]}),S.mod,{source_ref:ref,bu:r.bu||'',profit_center:r.pc||r.profit_center||''});
+     var je=writeJe(sp.date||today(),sp.company||r.company,(sp.label||S.name)+' '+ref+(sp.party?' - '+sp.party:''),sp.lines.map(function(l){return [M[l[0]],l[1],l[2]]}),S.mod,Object.assign({source_ref:ref,bu:r.bu||'',profit_center:r.pc||r.profit_center||''},sp.extra||{}));
      try{subPost(S,ref,sp,je)}catch(x){}
-     log[sid]={sid:sid,mod:S.mod,src:sp.label||S.name,ref:ref,date:sp.date||'',amount:sp.amount,je:je,sub:sp.sub?sp.sub.t:'',status:'Posted',msg:'',at:new Date().toISOString(),by:currentUser.name||currentUser.id};chg=1;
+     log[sid]={sid:sid,mod:S.mod,src:sp.label||S.name,ref:ref,date:sp.date||'',amount:sp.amount,je:je,grir:(sp.grir?1:0),party:sp.party||'',sig:(S.track&&sp.info)?JSON.stringify([sp.amount,sp.date,sp.party,sp.info]):'',sub:sp.sub?sp.sub.t:'',status:'Posted',msg:'',at:new Date().toISOString(),by:currentUser.name||currentUser.id};chg=1;
    } else if(!act&&e0&&e0.status==='Posted'){revert(log,sid);chg=1}
    else if(!act&&e0&&(e0.status==='Error'||e0.status==='Skipped')){delete log[sid];chg=1}
   })});
@@ -45277,12 +45852,12 @@ return btns;
  function close(){var o=E('fpOv');if(o)o.classList.remove('on')}
  function draw(){ensure();var o=E('fpOv');[].forEach.call(o.querySelectorAll('.fp-tab'),function(t){t.classList.toggle('on',t.getAttribute('data-t')===tab)});var b=E('fpBody');
   if(tab==='setup'){var m=map(),c=coa(),codes=Object.keys(c).sort().filter(function(k){return c[k].status!=='Blocked'});
-   b.innerHTML='<div class="fp-note">When a transaction in <b>SD</b> (Sales Invoice, Payment Receipt, Credit/Debit Memo, Return Receive), <b>MM</b> (GRN, Direct GRN, Purchase Return, LC Payment, Stock Adjustment), <b>Production</b> (RM issue / return, FG receive) or <b>HR</b> (Payslip paid) is submitted / completed, a balanced Journal Entry is <b>posted automatically</b> using the accounts below. Revert or delete the transaction and the entry is <b>reversed automatically</b>.</div><table><tr><th>Purpose</th><th>Used by</th><th>GL Account</th></tr>'+PURP.map(function(p){return '<tr><td><b>'+p[1]+'</b></td><td>'+p[2]+'</td><td><select data-k="'+p[0]+'"><option value="">-- Select --</option>'+codes.map(function(k){return '<option value="'+k+'"'+(m[p[0]]===k?' selected':'')+'>'+k+' - '+esc(c[k].name)+'</option>'}).join('')+'</select></td></tr>'}).join('')+'</table><div style="margin-top:12px;display:flex;gap:8px"><button class="fp-btn" onclick="__fpost.saveMap()">💾 Save Mapping</button><button class="fp-btn g" onclick="__fpost.seedDefaults()">➕ Create Missing Default Accounts</button><span id="fpMsg" style="align-self:center;font-size:12.5px;color:#065f46"></span></div>'}
+   b.innerHTML='<div class="fp-note">When a transaction in <b>SD</b> (Sales Invoice, Payment Receipt, Credit/Debit Memo, Return Receive), <b>MM</b> (GRN, Direct GRN, Purchase Return, LC Payment, Stock Adjustment), <b>Production</b> (RM issue / return, FG receive) or <b>HR</b> (Payslip paid) is submitted / completed, a balanced Journal Entry is <b>posted automatically</b> using the accounts below. Revert or delete the transaction and the entry is <b>reversed automatically</b>.</div><label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-size:13px"><input type="checkbox" id="fpGrir" style="margin-top:3px"'+(grirOn()?' checked':'')+'><span><b>Post GRN through GR/IR Clearing</b> (3-way match): GRN posts <i>Dr Inventory / Cr GR/IR</i>; the supplier bill is then entered in <b>Vendor Invoice &rarr; Against GRN</b> (<i>Dr GR/IR / Cr Accounts Payable</i>, any price difference to Purchase Price Variance). Untick to post a GRN straight to Accounts Payable as before.</span></label><table><tr><th>Purpose</th><th>Used by</th><th>GL Account</th></tr>'+PURP.map(function(p){return '<tr><td><b>'+p[1]+'</b></td><td>'+p[2]+'</td><td><select data-k="'+p[0]+'"><option value="">-- Select --</option>'+codes.map(function(k){return '<option value="'+k+'"'+(m[p[0]]===k?' selected':'')+'>'+k+' - '+esc(c[k].name)+'</option>'}).join('')+'</select></td></tr>'}).join('')+'</table><div style="margin-top:12px;display:flex;gap:8px"><button class="fp-btn" onclick="__fpost.saveMap()">💾 Save Mapping</button><button class="fp-btn g" onclick="__fpost.seedDefaults()">➕ Create Missing Default Accounts</button><span id="fpMsg" style="align-self:center;font-size:12.5px;color:#065f46"></span></div>'}
   else{var log=J(LOGK,{}),rows=Object.values(log).sort(function(a,b){return (b.at||'').localeCompare(a.at||'')});
    b.innerHTML='<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center"><select id="fpF" onchange="__fpost.tab(\'log\')"><option value="">All status</option><option>Posted</option><option>Reversed</option><option>Error</option><option>Skipped</option></select><button class="fp-btn" onclick="__fpost.rerun()">🔄 Post Pending Now</button><span style="font-size:12px;color:#64748b">'+rows.length+' entries</span></div><table><tr><th>Module</th><th>Source</th><th>Ref</th><th>Date</th><th>Amount</th><th>Journal Entry</th><th>Status</th><th>Note</th></tr>'+(rows.length?rows.map(function(r){return '<tr data-s="'+r.status+'"><td>'+r.mod+'</td><td>'+esc(r.src)+'</td><td><b>'+esc(r.ref)+'</b></td><td>'+esc(r.date)+'</td><td style="text-align:right">'+(N(r.amount)).toLocaleString('en-US',{minimumFractionDigits:2})+'</td><td>'+(r.je||'')+(r.rev?' <span style="color:#64748b">↩ '+r.rev+'</span>':'')+'</td><td><span class="fp-st '+r.status+'">'+r.status+'</span></td><td style="font-size:12px;color:#64748b">'+esc(r.msg||'')+'</td></tr>'}).join(''):'<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px">No auto-postings yet.</td></tr>')+'</table>';
    var f=E('fpF');if(f&&window.__fpFv){f.value=window.__fpFv}if(f){f.onchange=function(){window.__fpFv=f.value;[].forEach.call(E('fpBody').querySelectorAll('tr[data-s]'),function(t){t.style.display=(!f.value||t.getAttribute('data-s')===f.value)?'':'none'})};f.onchange()}}}
  window.__fpost={open:function(t){tab=t||'setup';ensure();E('fpOv').classList.add('on');draw()},close:close,tab:function(t){tab=t;draw()},
-  saveMap:function(){var m={};[].forEach.call(E('fpBody').querySelectorAll('select[data-k]'),function(s){m[s.getAttribute('data-k')]=s.value});localStorage.setItem(MAPK,JSON.stringify(m));E('fpMsg').textContent='✅ Mapping saved.';setTimeout(run,200)},
+  saveMap:function(){var m={};[].forEach.call(E('fpBody').querySelectorAll('select[data-k]'),function(s){m[s.getAttribute('data-k')]=s.value});m.__grir=(E('fpGrir')&&!E('fpGrir').checked)?'0':'1';localStorage.setItem(MAPK,JSON.stringify(m));E('fpMsg').textContent='✅ Mapping saved.';setTimeout(run,200)},
   seedDefaults:function(){var n=seed();draw();var mm=E('fpMsg');if(mm)mm.textContent=n?('✅ '+n+' default account(s) created in Chart of Accounts.'):'All default accounts already exist.'},
   rerun:function(){run();draw()},run:run,map:map};
  // seed defaults once on first login so the module works out of the box
@@ -46420,6 +46995,7 @@ return btns;
    var nm=$('pr_item_name_'+id),cs=$('pr_item_cat_'+id);
    if(nm&&nm.value!==(r.name||l.name)){nm.insertAdjacentHTML('beforeend','<option>'+esc(r.name||l.name)+'</option>');nm.value=r.name||l.name}
    if(cs&&!cs.value&&(r.group||l.cat)){cs.insertAdjacentHTML('beforeend','<option>'+esc(r.group||l.cat)+'</option>');cs.value=r.group||l.cat}
+   if(typeof jeSyncSearch==='function'){jeSyncSearch(nm);jeSyncSearch(cs)}
    var c=$('pr_item_code_'+id),u=$('pr_item_uom_'+id);if(c&&!c.value)c.value=r.code||l.code||'';if(u&&!u.value)u.value=r.uom||l.uom||'';
    var a=$('pr_item_actual_'+id);if(a)a.placeholder='Actual (plan '+l.qty+')'});
   if(typeof recalcPrGrandTotal==='function')recalcPrGrandTotal();
