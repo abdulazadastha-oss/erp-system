@@ -3250,9 +3250,13 @@ footer{background:#fff;border-top:1px solid #e2e8f0}
  <div class="tile" data-ws="724"><span class="ci">🧪</span><div class="ct">FG Wise RM Consumption</div><div class="cd">Raw Material Usage</div><span class="bg b5">REPORT</span></div>
  <div class="tile" data-ws="725"><span class="ci">📉</span><div class="ct">Process Loss Report</div><div class="cd">Variance Analysis</div><span class="bg b6">LOSS</span></div>
 </div></main></div><div id="views"></div>
-<footer><span id="st">Ready</span></footer>
+<footer><span id="st">Ready</span><span id="gs" style="font-size:11px"></span><button class="btn" id="gsb" title="Push all Production data (plans, forecast, recipes, batches, QC ...) to the Google Sheet now" style="padding:1px 10px">☁ Sync to Google Sheet</button></footer>
 `;
       root.appendChild(shell);
+      try {
+        window.__prodSheetStatusEl = shell.querySelector('#gs');
+        shell.querySelector('#gsb').addEventListener('click', function() { if (typeof pushProductionModuleToGoogleSheet === 'function') pushProductionModuleToGoogleSheet(true); });
+      } catch (e) {}
       const run = new Function('root', `
 const st=root.querySelector('#' + ('st')),base='/Erp/UI/Dynamic_Production.aspx?Worksheet=';
 root.querySelectorAll('[data-ws]').forEach(e=>{
@@ -4520,7 +4524,7 @@ go('home');
       <div id="sdCmFormView" style="display:none; padding:20px; background:#fff;">
         <input type="hidden" id="sdCmId">
         <div class="erp-field-grid">
-          <div class="erp-field"><div class="erp-field-label-row"><label for="sdCmRefNo">Credit Memo No</label><span class="erp-info-icon">i</span></div><input type="text" id="sdCmRefNo" readonly style="font-weight:700; color:#2563eb;"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmDate">Memo Date</label><span class="erp-info-icon">i</span></div><input type="date" id="sdCmDate"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmInvRef">Invoice Ref</label><span class="erp-info-icon">i</span></div><select id="sdCmInvRef" onchange="onSdCmInvChange()"><option>-- Select Invoice --</option></select></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmCustomer">Customer</label><span class="erp-info-icon">i</span></div><input type="text" id="sdCmCustomer" readonly style="font-weight:700; color:#2563eb;"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmItem">Item / Product</label><span class="erp-info-icon">i</span></div><input type="text" id="sdCmItem"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmQty">Qty</label><span class="erp-info-icon">i</span></div><input type="number" id="sdCmQty" step="0.01"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmRate">Rate</label><span class="erp-info-icon">i</span></div><input type="number" id="sdCmRate" step="0.01"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmReason">Reason</label><span class="erp-info-icon">i</span></div><select id="sdCmReason"><option selected>Sales Return</option><option>Price Adjustment</option><option>Discount Given</option><option>Billing Error</option><option>Other</option></select></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmStatus">Status</label><span class="erp-info-icon">i</span></div><select id="sdCmStatus"><option selected>Draft</option><option>Approved</option><option>Posted</option><option>Cancelled</option></select></div><div class="erp-field" style="grid-column: span 3;"><div class="erp-field-label-row"><label for="sdCmRemarks">Remarks</label><span class="erp-info-icon">i</span></div><textarea id="sdCmRemarks" rows="2" style="border:1px solid #c7cdd4; border-radius:2px; padding:7px 10px; font-size:0.85rem; font-family:inherit;"></textarea></div>
+          <div class="erp-field"><div class="erp-field-label-row"><label for="sdCmRefNo">Credit Memo No</label><span class="erp-info-icon">i</span></div><input type="text" id="sdCmRefNo" readonly style="font-weight:700; color:#2563eb;"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmDate">Memo Date</label><span class="erp-info-icon">i</span></div><input type="date" id="sdCmDate"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmInvRef">Invoice Ref</label><span class="erp-info-icon">i</span></div><select id="sdCmInvRef" onchange="onSdCmInvChange()"><option>-- Select Invoice --</option></select></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmCustomer">Customer</label><span class="erp-info-icon">i</span></div><input type="text" id="sdCmCustomer" readonly style="font-weight:700; color:#2563eb;"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmItem">Item / Product</label><span class="erp-info-icon">i</span></div><input type="text" id="sdCmItem"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmQty">Qty</label><span class="erp-info-icon">i</span></div><input type="number" id="sdCmQty" step="0.01"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmRate">Rate</label><span class="erp-info-icon">i</span></div><input type="number" id="sdCmRate" step="0.01"></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmReason">Reason</label><span class="erp-info-icon">i</span></div><select id="sdCmReason"><option selected>Sales Return</option><option>Price Adjustment</option><option>Discount Given</option><option>Billing Error</option><option>Other</option></select></div><div class="erp-field"><div class="erp-field-label-row"><label for="sdCmStatus">Status</label><span class="erp-info-icon">i</span></div><select id="sdCmStatus"><option selected>Draft</option><option>Approved</option><option>Posted</option><option>Cancelled</option></select></div><div class="erp-field" style="grid-column: span 3;"><div class="erp-field-label-row"><label for="sdCmRrRef">Return Receive Ref (if this credit is for a return already received)</label><span class="erp-info-icon">i</span></div><input type="text" id="sdCmRrRef" list="sdCmRrList" autocomplete="off" placeholder="Leave blank for a price / quantity adjustment"><datalist id="sdCmRrList"></datalist></div><div class="erp-field" style="grid-column: span 3;"><div class="erp-field-label-row"><label for="sdCmRemarks">Remarks</label><span class="erp-info-icon">i</span></div><textarea id="sdCmRemarks" rows="2" style="border:1px solid #c7cdd4; border-radius:2px; padding:7px 10px; font-size:0.85rem; font-family:inherit;"></textarea></div>
         </div>
         <div style="display:flex; gap:10px; margin-top:18px;">
           <button onclick="saveSdCm()" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; cursor:pointer;">💾 Save</button>
@@ -12886,9 +12890,9 @@ go('home');
       }
       showDataMsg('mfgSheetSyncStatus', 'info', 'Pushing all MFG module data to Google Sheet...');
       MFG_SHEET_SYNC_KEYS.forEach(function(key) { pushMfgModuleToGoogleSheet(key); });
-      pushProductionModuleToGoogleSheet();
+      pushProductionModuleToGoogleSheet(false);
       setTimeout(function() {
-        showDataMsg('mfgSheetSyncStatus', 'success', (MFG_SHEET_SYNC_KEYS.length + 4) + ' module(s) pushed to Google Sheet — check your Sheet tabs (incl. ProdPlan, ProdProcess, ProdConsumption, ProdFGReceive).');
+        showDataMsg('mfgSheetSyncStatus', 'success', (MFG_SHEET_SYNC_KEYS.length + 4) + ' module(s) pushed to Google Sheet — check your Sheet tabs (incl. ProdPlan, ProdRMPlan, ProdRecipe, ProdProcess, ProdConsumption, ProdFGReceive, ProdQC, ProdReturn, ProdQCStd, ProdFGStock).');
       }, 1200);
     }
 
@@ -12932,36 +12936,112 @@ go('home');
       });
       var rmp = [];
       (D.rmplans || []).forEach(function(p) {
-        (p.bd || []).forEach(function(b) {
-          (b.lines || []).forEach(function(l) {
-            rmp.push({
-              rm_plan_no: p.no, date: p.date, start_time: p.s, end_time: p.e, company: p.co || '', business_unit: p.bu || '', profit_center: p.pc || '',
-              status: p.st || '', remarks: p.rm || '', plant: b.pl || '', product: b.fg, formula_id: b.rc, formula_date: b.fd || '', plan_qty_kg: b.qty,
-              rm_category: l.cat || '', rm_code: l.code || '', rm_name: l.name, uom: l.uom || '', formula_qty: l.per, required_qty: l.req
-            });
+        var hdr = {
+          rm_plan_no: p.no, date: p.date, start_time: p.s, end_time: p.e, company: p.co || '', business_unit: p.bu || '', profit_center: p.pc || '',
+          status: p.st || '', remarks: p.rm || ''
+        };
+        var blank = { plant: '', product: '', formula_id: '', formula_date: '', plan_qty_kg: '', rm_category: '', rm_code: '', rm_name: '', uom: '', formula_qty: '', required_qty: '' };
+        var bds = (p.bd && p.bd.length) ? p.bd : [null];
+        bds.forEach(function(b) {
+          if (!b) { rmp.push(Object.assign({}, hdr, blank)); return; }
+          var prod = { plant: b.pl || '', product: b.fg, formula_id: b.rc, formula_date: b.fd || '', plan_qty_kg: b.qty };
+          var lines = (b.lines && b.lines.length) ? b.lines : [null];
+          lines.forEach(function(l) {
+            rmp.push(Object.assign({}, hdr, prod, l
+              ? { rm_category: l.cat || '', rm_code: l.code || '', rm_name: l.name, uom: l.uom || '', formula_qty: l.per, required_qty: l.req }
+              : { rm_category: '', rm_code: '', rm_name: '', uom: '', formula_qty: '', required_qty: '' }));
           });
         });
       });
-      return { ProdPlan: plans, ProdProcess: proc, ProdConsumption: cons, ProdFGReceive: rcv, ProdRMPlan: rmp };
+
+      // Recipes (BOM / formula): one row per ingredient line
+      var recipe = [];
+      (D.recipes || []).forEach(function(r) {
+        var lines = (r.lines && r.lines.length) ? r.lines : [[]];
+        lines.forEach(function(l) {
+          recipe.push({
+            recipe_id: r.id, product: r.fg, product_code: r.code || '', category: r.cat || '', batch_size_kg: (r.size == null ? '' : r.size), formula_date: r.fd || '',
+            rm_name: l[0] || '', rm_category: l[2] || '', rm_code: l[3] || '', qty_per_batch_kg: (l[1] == null ? '' : l[1])
+          });
+        });
+      });
+
+      // QC checks: one row per tested parameter
+      var qc = [];
+      (D.qcc || []).forEach(function(q) {
+        var res = (q.res && q.res.length) ? q.res : [{}];
+        res.forEach(function(x) {
+          qc.push({
+            qc_no: q.no, date: q.date, batch_no: q.bn, production_no: q.pro || '', rfp_no: q.rfp || '', product: q.fg, fg_warehouse: q.wh || '',
+            received_qty_kg: q.rq, deliverable_qty_kg: q.pass, reprocessable_qty_kg: q.hold, remarks: q.rem || '',
+            parameter: x.n || '', unit: x.u || '', min: (x.min == null ? '' : x.min), max: (x.max == null ? '' : x.max), value: (x.val == null ? '' : x.val),
+            result: x.n ? (x.ok ? 'Pass' : 'Fail') : ''
+          });
+        });
+      });
+
+      // Reprocess / return
+      var ret = [];
+      (D.rpc || []).forEach(function(r) {
+        ret.push({ return_no: r.no, date: r.date, fg_warehouse: r.wh, product: r.fg, qty_kg: r.qty, remarks: r.rem || '', source_ref: r.src_rr || '' });
+      });
+
+      // QC standards (per finished product)
+      var qcstd = [];
+      (D.qcstd || []).forEach(function(sd) {
+        (sd.p && sd.p.length ? sd.p : [{}]).forEach(function(x) {
+          qcstd.push({ product: sd.fg, parameter: x.n || '', unit: x.u || '', min: (x.min == null ? '' : x.min), max: (x.max == null ? '' : x.max), updated_on: sd.at || '' });
+        });
+      });
+
+      // FG stock per warehouse + QC deliverable / reprocessable split
+      var stk = [], seen = {};
+      var addStk = function(w, f) {
+        var k = w + '||' + f;
+        if (seen[k]) return;
+        seen[k] = 1;
+        var q = ((D.qcs || {})[w] || {})[f] || {};
+        stk.push({ fg_warehouse: w, product: f, stock_qty_kg: +((D.stock || {})[w] || {})[f] || 0, qc_deliverable_kg: (q.ok == null ? '' : q.ok), qc_reprocessable_kg: (q.hold == null ? '' : q.hold) });
+      };
+      Object.keys(D.stock || {}).forEach(function(w) { Object.keys(D.stock[w] || {}).forEach(function(f) { addStk(w, f); }); });
+      Object.keys(D.qcs || {}).forEach(function(w) { Object.keys(D.qcs[w] || {}).forEach(function(f) { addStk(w, f); }); });
+
+      return { ProdPlan: plans, ProdRMPlan: rmp, ProdRecipe: recipe, ProdProcess: proc, ProdConsumption: cons, ProdFGReceive: rcv, ProdQC: qc, ProdReturn: ret, ProdQCStd: qcstd, ProdFGStock: stk };
     }
 
-    function pushProductionModuleToGoogleSheet() {
-      if (!MFG_GAS_WEB_APP_URL || MFG_GAS_WEB_APP_URL === '#' || MFG_GAS_WEB_APP_URL.indexOf('PASTE_') === 0) return;
+    function pushProductionModuleToGoogleSheet(manual, isRetry) {
+      var setSt = function(t, bad) { var e = window.__prodSheetStatusEl; if (e) { e.textContent = t; e.style.color = bad ? '#d9342b' : ''; } };
+      if (!MFG_GAS_WEB_APP_URL || MFG_GAS_WEB_APP_URL === '#' || MFG_GAS_WEB_APP_URL.indexOf('PASTE_') === 0) {
+        if (manual === true) setSt('☁ Google Sheet URL not configured (MFG_GAS_WEB_APP_URL)', true);
+        return Promise.resolve();
+      }
       var D;
-      try { D = JSON.parse(_origGetItem.call(localStorage, 'erpProd1') || 'null'); } catch (e) { return; }
-      if (!D) return;
+      try { D = JSON.parse(_origGetItem.call(localStorage, 'erpProd1') || 'null'); } catch (e) { return Promise.resolve(); }
+      if (!D) return Promise.resolve();
       var tabs = buildProductionSheetTabs(D);
-      Object.keys(tabs).forEach(function(tab) {
-        if (!tabs[tab].length) return;
-        fetch(MFG_GAS_WEB_APP_URL, {
+      var names = Object.keys(tabs).filter(function(t) { return tabs[t].length; }), failed = [], rows = 0;
+      if (!names.length) { if (manual === true) setSt('☁ Nothing to sync yet'); return Promise.resolve(); }
+      setSt('☁ Syncing to Google Sheet…');
+      return Promise.all(names.map(function(tab) {
+        rows += tabs[tab].length;
+        return fetch(MFG_GAS_WEB_APP_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'bulkSync', form: tab, rows: tabs[tab] })
         }).then(function(res) {
-          if (!res.ok) console.warn('Production Google Sheet sync HTTP ' + res.status + ' for ' + tab);
+          if (!res.ok) { failed.push(tab); console.warn('Production Google Sheet sync HTTP ' + res.status + ' for ' + tab); }
         }).catch(function(err) {
+          failed.push(tab);
           console.warn('Production Google Sheet sync failed for ' + tab + ':', err);
         });
+      })).then(function() {
+        window.__prodSheetLast = { at: new Date().toISOString(), tabs: names.length, rows: rows, failed: failed.slice() };
+        if (failed.length) {
+          setSt('⚠ Google Sheet sync failed: ' + failed.join(', ') + (isRetry ? '' : ' — retrying in 20 s'), true);
+          if (!isRetry) setTimeout(function() { pushProductionModuleToGoogleSheet(false, true); }, 20000);
+        } else {
+          setSt('☁ Synced to Google Sheet ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + names.length + ' tabs, ' + rows + ' rows)');
+        }
       });
     }
 
@@ -20945,7 +21025,7 @@ return btns;
       fields: {
         sdCmDate: 'date', sdCmInvRef: 'inv_ref', sdCmCustomer: 'customer',
         sdCmItem: 'item', sdCmQty: 'qty', sdCmRate: 'rate',
-        sdCmReason: 'reason', sdCmStatus: 'status', sdCmRemarks: 'remarks'
+        sdCmReason: 'reason', sdCmStatus: 'status', sdCmRemarks: 'remarks', sdCmRrRef: 'rr_ref'
       },
       requiredFields: ['sdCmInvRef', 'sdCmItem', 'sdCmQty', 'sdCmRate'],
       searchFields: ['ref_no', 'inv_ref', 'customer', 'item', 'reason', 'status'],
@@ -31136,7 +31216,7 @@ return btns;
       var current = sel.value;
       var customerNames = [];
       getAllArInvRecords().forEach(function(r) { if (r.customer_name && customerNames.indexOf(r.customer_name) === -1) customerNames.push(r.customer_name); });
-      getAllJeRecords().forEach(function(je) { if (je.status !== 'Posted' || !je.manual_je) return; (je.items || []).forEach(function(it) { if (it.party_type === 'Customer' && it.party_name && customerNames.indexOf(it.party_name) === -1) customerNames.push(it.party_name); }); });
+      getAllJeRecords().forEach(function(je) { if (je.status !== 'Posted' || !(je.manual_je || je.ar_ledger) || je.reversal_of || je.reversed_by) return; (je.items || []).forEach(function(it) { if (it.party_type === 'Customer' && it.party_name && customerNames.indexOf(it.party_name) === -1) customerNames.push(it.party_name); }); });
       customerNames.sort();
       sel.innerHTML = '<option value="">[ Select Customer ]</option>' + customerNames.map(function(v) {
         return '<option value="' + v + '">' + v + '</option>';
@@ -31176,7 +31256,7 @@ return btns;
       });
       var arCtl = jeControlAccounts().ar;
       getAllJeRecords().forEach(function(je) {
-        if (je.status !== 'Posted' || !je.manual_je) return;
+        if (je.status !== 'Posted' || !(je.manual_je || je.ar_ledger) || je.reversal_of || je.reversed_by) return;
         var d = je.posting_date || '';
         if (fromDate && d && d < fromDate) return;
         if (toDate && d && d > toDate) return;
@@ -44392,6 +44472,34 @@ return btns;
  var t=setInterval(function(){if(typeof sdOpenForm==='function'&&typeof sdSaveRecord==='function'&&sdSaveRecord._f){install();clearInterval(t)}},700);
 })();
 </script>
+<script id="sdReturnLinkJs">
+(function(){
+ var J=function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+ var E=function(i){return document.getElementById(i)};
+ var done=function(r){return r&&r.doc_state!=='Draft'&&r.doc_state!=='Cancelled'};
+ /* A Return Receive already credits Accounts Receivable (net + VAT/tax). A Credit Memo for the SAME return must be linked to it, otherwise AR is reduced twice. */
+ function usedRr(exceptRef){var u={};Object.values(J('erp_sdcm_records',{})).forEach(function(c){if(c.rr_ref&&c.ref_no!==exceptRef&&c.status!=='Cancelled')u[c.rr_ref]=1});return u}
+ function openRrs(exceptRef){var u=usedRr(exceptRef);return Object.values(J('erp_sdrr_records',{})).filter(function(r){return r.ref_no&&done(r)&&!u[r.ref_no]})}
+ function fillList(){var dl=E('sdCmRrList');if(!dl)return;var cust=(E('sdCmCustomer')||{}).value||'',inv=(E('sdCmInvRef')||{}).value||'',me=(E('sdCmRefNo')||{}).value||'';
+  var a=openRrs(me).filter(function(r){return (!cust||r.customer===cust)&&(!inv||r.inv_ref===inv)});
+  dl.innerHTML=a.map(function(r){return '<option value="'+r.ref_no+'">'+r.ref_no+' | '+(r.item||'')+' | '+(r.recv_qty||'')+'</option>'}).join('')}
+ function check(){var rr=((E('sdCmRrRef')||{}).value||'').trim(),inv=(E('sdCmInvRef')||{}).value||'',item=(E('sdCmItem')||{}).value||'',me=(E('sdCmRefNo')||{}).value||'',cust=(E('sdCmCustomer')||{}).value||'';
+  if(rr){var r=Object.values(J('erp_sdrr_records',{})).filter(function(x){return x.ref_no===rr})[0];
+   if(!r||!done(r)){alert('Return Receive "'+rr+'" not found (or not completed).');return false}
+   if(usedRr(me)[rr]){alert('Return Receive '+rr+' is already linked to another Credit Memo.');return false}
+   if((r.inv_ref&&inv&&r.inv_ref!==inv)||(r.item&&item&&r.item!==item)||(r.customer&&cust&&r.customer!==cust)){alert('Return Receive '+rr+' belongs to a different Invoice / Item / Customer.');return false}
+   return true}
+  var hit=openRrs(me).filter(function(r){return r.inv_ref===inv&&r.item===item});
+  if(hit.length)return confirm('Return Receive '+hit.map(function(r){return r.ref_no+' ('+r.recv_qty+')'}).join(', ')+' has already reduced the customer\'s receivable for this Invoice / Item.\n\nIf this Credit Memo is for the same return, press Cancel and select it in "Return Receive Ref" - otherwise the receivable is reduced twice.\n\nSave as a separate credit (price / quantity adjustment)?');
+  return true}
+ function install(){if(typeof sdSaveRecord!=='function'||!sdSaveRecord._f3||sdSaveRecord._rl)return;var os=sdSaveRecord;
+  window.sdSaveRecord=sdSaveRecord=function(key){if(key==='cm'&&window.__sdMode!=='Draft'){if(check()===false)return}return os.apply(this,arguments)};for(var q in os){try{sdSaveRecord[q]=os[q]}catch(e){}}sdSaveRecord._rl=1;
+  var oo=sdOpenForm;window.sdOpenForm=sdOpenForm=function(key,id){var r=oo.apply(this,arguments);try{if(key==='cm')fillList()}catch(e){}return r};for(var p in oo){try{sdOpenForm[p]=oo[p]}catch(e){}}
+  ['sdCmInvRef','sdCmCustomer'].forEach(function(i){var e=E(i);if(e&&!e._rl){e._rl=1;e.addEventListener('change',fillList)}})}
+ window.__sdReturnLink={check:check,fill:fillList};
+ var t=setInterval(function(){if(typeof sdSaveRecord==='function'&&sdSaveRecord._f3){install();if(sdSaveRecord._rl)clearInterval(t)}},700);
+})();
+</script>
 <script id="sdFlow3Js">
 (function(){
  var J=function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
@@ -44772,7 +44880,10 @@ return btns;
  var invTot=function(r){var a=0;LN(r).forEach(function(l){a+=(+l.qty||0)*(+l.rate||0)});return a*(1+(+r.tax_pct||0)/100)};
  window.__sdInvTot=invTot;
  function sumBy(key,f,cond){var m={};Object.values(J(key,{})).forEach(function(r){if(!ok(r)||!cond(r))return;var k=r[f];m[k]=(m[k]||0)+(+r.amount||((+r.qty||0)*(+r.rate||0)))});return m}
- function maps(){var pay=sumBy('erp_sdpay_records','inv',function(){return true}),live=function(r){return r.status!=='Cancelled'&&r.status!=='Rejected'};return{pay:pay,cm:sumBy('erp_sdcm_records','inv_ref',live),dm:sumBy('erp_sddm_records','inv_ref',live)}}
+ function cmGross(live){var lg=J('erp_fpost_log',{}),tx={},m={};Object.values(J('erp_sdinv_records',{})).forEach(function(i){tx[i.ref_no]=+i.tax_pct||0});
+  Object.values(J('erp_sdcm_records',{})).forEach(function(r){if(!ok(r)||!live(r))return;var net=+r.amount||((+r.qty||0)*(+r.rate||0)),e=lg['SD-CM|'+r.ref_no],g=e&&e.tx;if(!g&&r.rr_ref){var e2=lg['SD-RR|'+r.rr_ref];g=e2&&e2.tx}
+   var k=r.inv_ref;m[k]=(m[k]||0)+(g?net*(1+(tx[k]||0)/100):net)});return m}
+ function maps(){var pay=sumBy('erp_sdpay_records','inv',function(){return true}),live=function(r){return r.status!=='Cancelled'&&r.status!=='Rejected'};return{pay:pay,cm:cmGross(live),dm:sumBy('erp_sddm_records','inv_ref',live)}}
  function dueOf(r,M){M=M||maps();var t=invTot(r),p=M.pay[r.ref_no]||0;if(r.status==='Paid'&&p<t-0.005&&!(p>0))p=t;return Math.max(0,t-p-(M.cm[r.ref_no]||0)+(M.dm[r.ref_no]||0))}
  window.__sdPaidOf=function(r){return maps().pay[r.ref_no]||0};
  window.__sdDue=function(r){return dueOf(r)};
@@ -45728,6 +45839,7 @@ return btns;
  function poRate(po,name,code){var P=J('erp_po_records',{})[po];if(!P)return 0;var L=P.items||P.lines||[];var r=0;if(!L.length&&N(P.rate)>0)return N(P.rate);
   L.forEach(function(l){if(!r&&((name&&l.item_name===name)||(code&&l.item_code===code))){r=N(l.rate)||N(l.unit_price)||N(l.price)||N(l.est_unit_price)}});
   if(!r&&L.length===1)r=N(L[0].rate)||N(L[0].unit_price)||N(L[0].price)||N(L[0].est_unit_price);return r}
+ function taxPart(inv,a){if(!inv)return {v:0,t:0};var v=R2(a*N(inv.vat_pct)/100),t=R2(a*(N(inv.tx_pct)+N(inv.ait_pct))/100);if(!N(inv.vat_pct)&&!N(inv.tx_pct)&&!N(inv.ait_pct)&&N(inv.tax_pct))t=R2(a*N(inv.tax_pct)/100);return {v:v,t:t}}
  function lastRate(code,name){var r=0,d='';Object.values(J('erp_ret_records',{})).forEach(function(x){if(x&&x.kind==='direct_grn'&&x.status==='Completed')(x.items||[]).forEach(function(i){if(((code&&i.item_code===code)||(name&&i.item_name===name))&&N(i.rate)>0&&(x.date||'')>=d){r=N(i.rate);d=x.date||''}})});return r}
  // each source: key, id, active(r), spec(r)->{date,company,label,party,lines:[[acct,dr,cr]],sub:{type,...}}
  var SRC=[
@@ -45736,10 +45848,10 @@ return btns;
    return {date:r.date,party:r.customer,amount:R2(a+v+t),lines:[['ar',R2(a+v+t),0],['rev',0,a],['vat',0,v],['tax',0,t]],sub:{t:'arinv',amt:R2(a+v+t),cust:r.customer}}}},
  {id:'SD-PAY',mod:'SD',name:'Payment Receipt',key:'erp_sdpay_records',active:done,spec:function(r){var a=R2(N(r.amount)),cash=/^cash$/i.test(r.method||'');
    return {date:r.date,party:r.customer,amount:a,lines:[[cash?'cash':'bank',a,0],['ar',0,a]],sub:{t:'arrec',inv:r.inv,amt:a,cust:r.customer,method:r.method}}}},
- {id:'SD-CM',mod:'SD',name:'Credit Memo',key:'erp_sdcm_records',active:function(r){return r&&r.doc_state!=='Draft'&&r.status==='Posted'},spec:function(r){var a=R2(N(r.qty)*N(r.rate));return {date:r.date,party:r.customer,amount:a,lines:[['sret',a,0],['ar',0,a]]}}},
- {id:'SD-DM',mod:'SD',name:'Debit Memo',key:'erp_sddm_records',active:function(r){return r&&r.doc_state!=='Draft'&&r.status==='Posted'},spec:function(r){var a=R2(N(r.qty)*N(r.rate));return {date:r.date,party:r.customer,amount:a,lines:[['ar',a,0],['rev',0,a]]}}},
+ {id:'SD-CM',mod:'SD',name:'Credit Memo',key:'erp_sdcm_records',active:function(r){return r&&r.doc_state!=='Draft'&&r.status==='Posted'&&!r.rr_ref},spec:function(r){var a=R2(N(r.qty)*N(r.rate)),tp=taxPart(invByRef(r.inv_ref),a),tot=R2(a+tp.v+tp.t);return {date:r.date,party:r.customer,amount:tot,tx:1,lines:[['sret',a,0],['vat',tp.v,0],['tax',tp.t,0],['ar',0,tot]],extra:{ar_ledger:1,ar_party:r.customer}}}},
+ {id:'SD-DM',mod:'SD',name:'Debit Memo',key:'erp_sddm_records',active:function(r){return r&&r.doc_state!=='Draft'&&r.status==='Posted'},spec:function(r){var a=R2(N(r.qty)*N(r.rate));return {date:r.date,party:r.customer,amount:a,lines:[['ar',a,0],['rev',0,a]],extra:{ar_ledger:1,ar_party:r.customer}}}},
  {id:'SD-RR',mod:'SD',name:'Sales Return (Received)',key:'erp_sdrr_records',active:done,spec:function(r){var rate=0,inv=invByRef(r.inv_ref);if(inv)LN(inv).forEach(function(l){if(!rate&&l.item===r.item)rate=N(l.rate)});
-   var a=R2(N(r.recv_qty)*rate);return {date:r.date,party:r.customer,amount:a,lines:[['sret',a,0],['ar',0,a]]}}},
+   var a=R2(N(r.recv_qty)*rate),tp=taxPart(inv,a),tot=R2(a+tp.v+tp.t);return {date:r.date,party:r.customer,amount:tot,tx:1,lines:[['sret',a,0],['vat',tp.v,0],['tax',tp.t,0],['ar',0,tot]],extra:{ar_ledger:1,ar_party:r.customer}}}},
  {id:'MM-GRN',mod:'MM',name:'GRN',key:'erp_grn_records',active:function(r){return r&&r.status==='Approved'},spec:function(r){var q=N(r.invoice_qty)||N(r.inventory_qty),rate=poRate(r.po_no,r.item_name,r.item_code),a=R2(q*rate);
    var g=grirOn();return {date:(r.approved_date||'').slice(0,10)||r.date||r.grn_date||today(),company:r.company,party:r.supplier,amount:a,grir:g,lines:g?[['inv',a,0],['grir',0,a]]:[['inv',a,0],['ap',0,a]],sub:g?null:{t:'apinv',amt:a,vendor:r.supplier},noval:'No PO rate found for this GRN'}}},
  {id:'MM-RET',mod:'MM',name:'Direct GRN / Purchase Return',key:'erp_ret_records',active:function(r){return r&&r.status==='Completed'&&(r.kind==='direct_grn'||r.kind==='purchase_return')},spec:function(r){var a=0;(r.items||[]).forEach(function(i){a+=N(i.qty)*N(i.rate)});a=R2(a);var g=r.kind==='direct_grn';
@@ -45771,7 +45883,7 @@ return btns;
  // ---- posting ----
  function nextJe(){var n=parseInt(localStorage.getItem('erp_je_serial')||'0',10)+1;localStorage.setItem('erp_je_serial',String(n));return 'JV-'+String(n).padStart(6,'0')}
  function writeJe(date,company,ref,lines,mod,extra){var je=J('erp_je_records',{}),c=coa(),id=nextJe(),items=[],td=0,tc=0;
-  lines.forEach(function(l,i){if(!l[1]&&!l[2])return;items.push({line_no:String(items.length+1),gl_account:l[0],account_name:c[l[0]]?c[l[0]].name:'',debit:l[1]||0,credit:l[2]||0,narration:(extra&&extra.line_narr)||ref});td+=l[1]||0;tc+=l[2]||0});
+  lines.forEach(function(l,i){if(!l[1]&&!l[2])return;items.push(Object.assign({line_no:String(items.length+1),gl_account:l[0],account_name:c[l[0]]?c[l[0]].name:'',debit:l[1]||0,credit:l[2]||0,narration:(extra&&extra.line_narr)||ref},(extra&&extra.ar_party&&M.ar&&l[0]===M.ar)?{party_type:'Customer',party_code:'',party_name:extra.ar_party}:{}));td+=l[1]||0;tc+=l[2]||0});
   je[id]=Object.assign({ref:id,posting_date:date,doc_date:date,company:company||'',currency:'BDT',reference:ref,status:'Posted',items:items,total_debit:R2(td),total_credit:R2(tc),submitted_by:(typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'',auto_post:1,source_module:mod},extra||{});
   localStorage.setItem('erp_je_records',JSON.stringify(je));return id}
  function subPost(S,sref,sp,jeRef){var s=sp.sub;if(!s)return;var u=(typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'';
@@ -45826,7 +45938,7 @@ return btns;
      sp.company=sp.company||r.company||'';sp.bu=r.bu||'';sp.pc=r.pc||r.profit_center||'';
      var je=writeJe(sp.date||today(),sp.company||r.company,(sp.label||S.name)+' '+ref+(sp.party?' - '+sp.party:''),sp.lines.map(function(l){return [M[l[0]],l[1],l[2]]}),S.mod,Object.assign({source_ref:ref,bu:r.bu||'',profit_center:r.pc||r.profit_center||''},sp.extra||{}));
      try{subPost(S,ref,sp,je)}catch(x){}
-     log[sid]={sid:sid,mod:S.mod,src:sp.label||S.name,ref:ref,date:sp.date||'',amount:sp.amount,je:je,grir:(sp.grir?1:0),party:sp.party||'',sig:(S.track&&sp.info)?JSON.stringify([sp.amount,sp.date,sp.party,sp.info]):'',sub:sp.sub?sp.sub.t:'',status:'Posted',msg:'',at:new Date().toISOString(),by:currentUser.name||currentUser.id};chg=1;
+     log[sid]={sid:sid,mod:S.mod,src:sp.label||S.name,ref:ref,date:sp.date||'',amount:sp.amount,je:je,tx:(sp.tx?1:0),grir:(sp.grir?1:0),party:sp.party||'',sig:(S.track&&sp.info)?JSON.stringify([sp.amount,sp.date,sp.party,sp.info]):'',sub:sp.sub?sp.sub.t:'',status:'Posted',msg:'',at:new Date().toISOString(),by:currentUser.name||currentUser.id};chg=1;
    } else if(!act&&e0&&e0.status==='Posted'){revert(log,sid);chg=1}
    else if(!act&&e0&&(e0.status==='Error'||e0.status==='Skipped')){delete log[sid];chg=1}
   })});
@@ -45944,6 +46056,7 @@ return btns;
   {t:'FICO Depreciation',k:'erp_asset_dep_records',drafts:1},
   {t:'FICO Depreciation Run',k:'erp_dep_run_records',drafts:1},
   {t:'Production Plans',k:'erpProd1',sub:'plans',idf:function(r){return r.no},cof:function(r){return r.co}},
+  {t:'Production Forecast',k:'erpProd1',sub:'rmplans',idf:function(r){return r.no},cof:function(r){return r.co}},
   {t:'Production Batches',k:'erpProd1',sub:'batches',idf:function(r){return r.no},cof:function(r){return PCO.b[r.no]}},
   {t:'Production Consumption',k:'erpProd1',sub:'cons',idf:function(r){return r.b+'|'+r.rm+'|'+r.date},cof:function(r){return PCO.b[r.b]}},
   {t:'Production FG Receive',k:'erpProd1',sub:'rcv',idf:function(r){return r.no},cof:function(r){return PCO.b[r.bn]}},
