@@ -10786,17 +10786,34 @@ go('home');
             <select id="erpsetup_userid" required><option value="">-- Select Login User ID --</option></select>
           </div>
           <div class="erp-field">
-            <div class="erp-field-label-row"><label for="erpsetup_company">Company</label><span class="erp-info-icon">i</span></div>
+            <div class="erp-field-label-row"><label for="erpsetup_company">Company (limits this user)</label><span class="erp-info-icon">i</span></div>
             <select id="erpsetup_company" class="org-company-select" onchange="onErpSetupCompanyChange()"><option value="">-- Select Company --</option></select>
           </div>
           <div class="erp-field">
-            <div class="erp-field-label-row"><label for="erpsetup_bu">Business Unit</label><span class="erp-info-icon">i</span></div>
+            <div class="erp-field-label-row"><label for="erpsetup_bu">Business Unit (limits this user; blank = all)</label><span class="erp-info-icon">i</span></div>
             <select id="erpsetup_bu" onchange="onErpSetupBuChange()"><option value="">-- Select BU --</option></select>
           </div>
           <div class="erp-field">
-            <div class="erp-field-label-row"><label for="erpsetup_pc">Profit Center</label><span class="erp-info-icon">i</span></div>
+            <div class="erp-field-label-row"><label for="erpsetup_pc">Profit Center (limits this user; blank = all)</label><span class="erp-info-icon">i</span></div>
             <select id="erpsetup_pc"><option value="">-- Select Profit Center --</option></select>
           </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="erpsetup_plants">Plant (limits this user; none selected = all)</label><span class="erp-info-icon">i</span></div>
+            <select id="erpsetup_plants" multiple size="4" style="min-height:96px"></select>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="erpsetup_whs">Warehouse (limits this user; none selected = all)</label><span class="erp-info-icon">i</span></div>
+            <select id="erpsetup_whs" multiple size="4" style="min-height:96px"></select>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="erpsetup_ccs">Cost Center (limits this user; none selected = all)</label><span class="erp-info-icon">i</span></div>
+            <select id="erpsetup_ccs" multiple size="4" style="min-height:96px"></select>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field-label-row"><label for="erpsetup_cats">Item Group (limits this user; none selected = all)</label><span class="erp-info-icon">i</span></div>
+            <select id="erpsetup_cats" multiple size="4" style="min-height:96px"></select>
+          </div>
+          <div class="erp-field" style="grid-column:1 / -1;font-size:12px;color:#64748b">Hold Ctrl (Cmd on Mac) and click to select several. The lists follow the Company / BU / Profit Center chosen above.</div>
           <div class="erp-field">
             <div class="erp-field-label-row"><label for="erpsetup_workstation">Workstation</label><span class="erp-info-icon">i</span></div>
             <input type="text" id="erpsetup_workstation" placeholder="e.g. PC-Store-01 / Counter-3">
@@ -33905,11 +33922,13 @@ return btns;
         document.getElementById('erpsetup_bu').value = record.bu || '';
         onErpSetupBuChange();
         document.getElementById('erpsetup_pc').value = record.pc || '';
+        if (window.__esFill) window.__esFill(record);
       } else {
         document.getElementById('erpsetup_employee').value = '';
         document.getElementById('erpsetup_userid').value = '';
         document.getElementById('erpsetup_workstation').value = '';
         prPopulateCompanySelect();
+        if (window.__esFill) window.__esFill(null);
       }
 
       renderErpAccessTree(record);
@@ -33944,6 +33963,10 @@ return btns;
         company: document.getElementById('erpsetup_company').value,
         bu: document.getElementById('erpsetup_bu').value,
         pc: document.getElementById('erpsetup_pc').value,
+        plants: window.__esVals ? window.__esVals('erpsetup_plants') : [],
+        whs: window.__esVals ? window.__esVals('erpsetup_whs') : [],
+        ccs: window.__esVals ? window.__esVals('erpsetup_ccs') : [],
+        cats: window.__esVals ? window.__esVals('erpsetup_cats') : [],
         workstation: document.getElementById('erpsetup_workstation').value,
         modules: access.modules,
         menu: access.menu,
@@ -46382,10 +46405,25 @@ window.__sdDueMap=function(){var M=maps(),o={};Object.values(J('erp_sdinv_record
  var E=function(i){return document.getElementById(i)};
  var SYNC_RE=/saveToFirebase|syncAllToFirebase|push\w*ToGoogleSheet|sharedStock\w*|rebuildAndSyncLeaveBalance|syncLeaveBalanceToHrSheet|syncRecord|syncPrRecordToUser|syncLeaveRecordToUser|loadFromFirebase|bulkSync/;
  // ---- scope of current user ----
- var lastS=null,lastU=null,SC=null,SCSIG='';
+ var lastS=null,lastE=null,lastU=null,SC=null,SCSIG='';
  function scope(){var u=(typeof currentUser!=='undefined'&&currentUser)?String(currentUser.id):'';if(!u){return null}
-  var s=og('erp_userid_records');if(s!==lastS||u!==lastU){lastS=s;lastU=u;var all=JP(s,{}),rec=all[u];if(!rec)Object.keys(all).forEach(function(k){if(!rec&&String(all[k].user_id)===u)rec=all[k]});
-   var sc=rec&&!rec.super_admin&&rec.scope;SC=(sc&&((sc.companies||[]).length||(sc.bus||[]).length||(sc.pcs||[]).length||(sc.whs||[]).length||(sc.cats||[]).length))?sc:null;SCSIG=SC?JSON.stringify(SC):''}
+  var s=og('erp_userid_records'),es=og('erp_erpsetup_records');if(s!==lastS||es!==lastE||u!==lastU){lastS=s;lastE=es;lastU=u;var all=JP(s,{}),rec=all[u];if(!rec)Object.keys(all).forEach(function(k){if(!rec&&String(all[k].user_id)===u)rec=all[k]});
+   var isSA=!!(rec&&rec.super_admin);try{if(!rec&&typeof isSuperAdminId==='function'&&isSuperAdminId(u))isSA=true}catch(e){}
+   var out=null;
+   if(!isSA){
+    var sc=rec&&rec.scope,b={companies:[],bus:[],pcs:[],whs:[],cats:[],plants:[],ccs:[],strict:true};
+    if(sc){b.companies=(sc.companies||[]).slice();b.bus=(sc.bus||[]).slice();b.pcs=(sc.pcs||[]).slice();b.whs=(sc.whs||[]).slice();b.cats=(sc.cats||[]).slice();b.plants=(sc.plants||[]).slice();b.ccs=(sc.ccs||[]).slice();b.strict=sc.strict===false?false:true}
+    /* the Company / Business Unit / Profit Center / Plant / Warehouse / Cost Center / Item Group chosen for this login in Employee ERP Setup limit the user too (blank = no limit); an explicit Access Scope level wins */
+    var ex=JP(es,{})[u];
+    if(ex){
+     if(ex.company){if(!b.companies.length)b.companies=[ex.company];if(ex.bu&&!b.bus.length)b.bus=[ex.company+'|'+ex.bu];if(ex.bu&&ex.pc&&!b.pcs.length)b.pcs=[ex.company+'|'+ex.bu+'|'+ex.pc]}
+     if(!b.whs.length&&Array.isArray(ex.whs))b.whs=ex.whs.slice();
+     if(!b.cats.length&&Array.isArray(ex.cats))b.cats=ex.cats.slice();
+     if(!b.plants.length&&Array.isArray(ex.plants))b.plants=ex.plants.slice();
+     if(!b.ccs.length&&Array.isArray(ex.ccs))b.ccs=ex.ccs.slice()}
+    if(b.ccs.length){var ccm=JP(og('erp_cc_records'),{}),more=[];b.ccs.forEach(function(c){var r=ccm[c];if(r&&r.name)more.push(r.name)});b.ccs=b.ccs.concat(more)}
+    out=(b.companies.length||b.bus.length||b.pcs.length||b.whs.length||b.cats.length||b.plants.length||b.ccs.length)?b:null}
+   SC=out;SCSIG=SC?JSON.stringify(SC):''}
   return SC}
  // ---- rule ----
  function has(a,v){return (a||[]).some(function(x){return lc(x)===lc(v)})}
@@ -46416,6 +46454,11 @@ window.__sdDueMap=function(){var M=maps(),o={};Object.values(J('erp_sdinv_record
   if(k==='erp_fsetup_company'){c=r.name;b=p=''}else if(k==='erp_fsetup_bu'){b=r.name}else if(k==='erp_fsetup_pc'){p=r.name}else if(k==='erp_fsetup_warehouse'){w=r.name}else if(k==='erp_fsetup_plant'){}
   if(!okCBP(sc,c,b,p))return false;
   if(w&&(sc.whs||[]).length&&!has(sc.whs,w))return false;
+  if(k==='erp_fsetup_plant'&&(sc.plants||[]).length&&!has(sc.plants,r.name))return false;
+  if(k==='erp_cc_records'&&(sc.ccs||[]).length&&!has(sc.ccs,r.code))return false;
+  if((sc.plants||[]).length||(sc.ccs||[]).length){for(var f2 in r){var v2=r[f2];if(typeof v2!=='string'||!v2)continue;
+    if((sc.plants||[]).length&&/^(plant|plant_name|production_plant)$/i.test(f2)&&!has(sc.plants,v2))return false;
+    if((sc.ccs||[]).length&&/^(cost_center|cost_centre)$/i.test(f2)&&!has(sc.ccs,v2))return false}}
   if(!catOK(sc,k,r))return false;
   if(sc.strict!==false&&STRICT(k)){if((sc.companies||[]).length&&!c)return false;if((sc.bus||[]).length&&!b)return false;if((sc.pcs||[]).length&&!p)return false}
   for(var f in r){if(/^(warehouse|wh|store|from_warehouse|to_warehouse|receiving_warehouse|good_wh|dmg_wh|delivery_warehouse)$/i.test(f)&&r[f]&&typeof r[f]==='string'&&!okWh(sc,r[f]))return false}
@@ -46449,9 +46492,9 @@ window.__sdDueMap=function(){var M=maps(),o={};Object.values(J('erp_sdinv_record
  var PK='erpProd1',PHID=null;
  function prodSplit(d,sc){var rc={};(d.recipes||[]).forEach(function(r){rc[lc(r.fg)]=r});
   var catBad=function(fg){var r=rc[lc(fg)];return !!(r&&r.cat&&(sc.cats||[]).length&&!has(sc.cats,r.cat))};
-  var pOK=function(p){if(!okCBP(sc,p.co,p.bu,p.pc))return false;var it=p.items||[];if(it.length&&it.every(function(x){return catBad(x.fg)}))return false;return true};
+  var pOK=function(p){if(!okCBP(sc,p.co,p.bu,p.pc))return false;if((sc.plants||[]).length&&p.pl&&!has(sc.plants,p.pl))return false;var it=p.items||[];if(it.length&&it.every(function(x){return catBad(x.fg)}))return false;return true};
   var pm={};(d.plans||[]).forEach(function(p){pm[p.no]=pOK(p)});
-  var bOK=function(b){if(b.dpp&&b.dpp in pm&&!pm[b.dpp])return false;if(catBad(b.fg))return false;return okWh(sc,b.fgwh)};
+  var bOK=function(b){if(b.dpp&&b.dpp in pm&&!pm[b.dpp])return false;if((sc.plants||[]).length&&b.pl&&!has(sc.plants,b.pl))return false;if(catBad(b.fg))return false;return okWh(sc,b.fgwh)};
   var bm={};(d.batches||[]).forEach(function(b){bm[b.no]=bOK(b)});
   var byB=function(f){return function(x){var n=x.b||x.bn;if(n in bm)return bm[n];return catBad(x.fg)?false:okWh(sc,x.wh)}};
   var ok={plans:pOK,batches:bOK,cons:byB(),rcv:byB(),qcc:byB(),
@@ -46478,8 +46521,9 @@ window.__sdDueMap=function(){var M=maps(),o={};Object.values(J('erp_sdinv_record
   Object.keys(d).forEach(function(k){if(k!=='companies'&&k!=='hierarchy')o[k]=d[k]});
   (d.companies||[]).forEach(function(c){if(!okCBP(sc,c))return;var h=d.hierarchy[c];if(!h){o.companies.push(c);return}
    var n=Object.assign({},h);n.bus=(h.bus||[]).filter(function(b){return okCBP(sc,c,b)});n.buMap={};n.bus.forEach(function(b){n.buMap[b]=((h.buMap||{})[b]||[]).filter(function(p){return okCBP(sc,c,b,p)})});
-   Object.keys(h).forEach(function(k){if(Array.isArray(h[k])&&k!=='bus'&&k!=='plants'){}});
-   if(h.plants)n.plants=h.plants.slice();o.companies.push(c);o.hierarchy[c]=n});return o}
+   if(h.ccMap){n.ccMap={};n.bus.forEach(function(b){var m=h.ccMap[b];if(!m)return;n.ccMap[b]={};Object.keys(m).forEach(function(p){if(okCBP(sc,c,b,p))n.ccMap[b][p]=(sc.ccs||[]).length?(m[p]||[]).filter(function(x){return has(sc.ccs,x)}):m[p]})})}
+   if((sc.plants||[]).length&&Array.isArray(h.plants))n.plants=h.plants.filter(function(x){return has(sc.plants,x)});
+   if(h.plants&&!(sc.plants||[]).length)n.plants=h.plants.slice();o.companies.push(c);o.hierarchy[c]=n});return o}
  (function(){var ob=window.prBuildOrgHierarchy;if(typeof ob==='function'&&!ob.__us){window.prBuildOrgHierarchy=function(){return filterOrg(ob.apply(this,arguments))};window.prBuildOrgHierarchy.__us=1}})();
  // ---- dropdown filter (company / bu / pc / warehouse) ----
  function whAllowed(sc,v){var m=whMaster()[lc(v)];if(m)return okWh(sc,v);return !(sc.whs||[]).length||has(sc.whs,v)}
@@ -46523,7 +46567,7 @@ window.__sdDueMap=function(){var M=maps(),o={};Object.values(J('erp_sdinv_record
   var col=function(t,items,sel,lab,key){return '<div class="us-c"><h4>'+t+'</h4>'+(items.length?items.map(function(x){return '<label><input type="checkbox" data-g="'+key+'" value="'+esc(x)+'"'+ck(sel,x)+'> '+esc(lab?lab(x):x)+'</label>'}).join(''):'<div style="color:#94a3b8">No data in Setup</div>')+'</div>'};
   if(!E('usOv')){var d=document.createElement('div');d.id='usOv';d.className='us-ov';d.innerHTML=CSS+'<div class="us-box"><div class="us-h"><h2 id="usTitle"></h2><button class="us-x" onclick="document.getElementById(\'usOv\').classList.remove(\'on\')">✕</button></div><div class="us-b" id="usBody"></div></div>';document.body.appendChild(d)}
   E('usTitle').textContent='📍 Access Scope — User '+uid+(rec.employee_name?' ('+rec.employee_name+')':'');
-  E('usBody').innerHTML='<div class="us-n">Tick the locations this user may work in. The user will see <b>only</b> these in dropdowns, lists and reports. <b>Leave a column empty = no restriction at that level.</b> Item Category limits the item groups/items the user can pick and see. Example: tick only Company A → all BUs/PCs/warehouses of Company A. Tick BU “Food” too → only that BU of Company A.</div><div class="us-g">'
+  E('usBody').innerHTML='<div class="us-n">The Company / BU / Profit Center chosen in <b>Employee ERP Setup</b> for this login already limits the user too; ticks here (more detailed, plus warehouse and item category) take priority. Tick the locations this user may work in. The user will see <b>only</b> these in dropdowns, lists and reports. <b>Leave a column empty = no restriction at that level.</b> Item Category limits the item groups/items the user can pick and see. Example: tick only Company A → all BUs/PCs/warehouses of Company A. Tick BU “Food” too → only that BU of Company A.</div><div class="us-g">'
    +col('🏛 Company',O.cs,sc.companies,null,'co')+col('🏷 Business Unit',O.bus,sc.bus,function(x){return x.split('|').join(' › ')},'bu')+col('📈 Profit Center',O.pcs,sc.pcs,function(x){return x.split('|').join(' › ')},'pc')+col('🏬 Warehouse',O.whs,sc.whs,null,'wh')+col('📦 Item Category',O.cats,sc.cats,null,'cat')
    +'</div><div style="margin-top:10px"><label style="cursor:pointer"><input type="checkbox" id="usStrict"'+(sc.strict===false?'':' checked')+'> Also hide records that have <b>no</b> Company / BU / Profit Center information (older data) — recommended so reports show only this user\'s locations</label></div><div style="margin-top:12px"><button class="us-btn" onclick="__uscope.save()">💾 Save Scope</button><button class="us-btn g" onclick="__uscope.clear()">Remove all restrictions</button><span id="usMsg" style="color:#065f46;font-weight:600"></span></div>';
   E('usOv').classList.add('on')}
@@ -47284,6 +47328,166 @@ window.__sdDueMap=function(){var M=maps(),o={};Object.values(J('erp_sdinv_record
   var ds=$('pr_description');if(ds&&!ds.value)ds.value='RM requirement for '+p.no;
  }
  setInterval(function(){setup();var el=$('pr_planning_ref');if(el&&el._pp&&document.activeElement!==el)fillList();if(el&&el._pp&&document.activeElement!==el&&!el.value)el._applied=''},1000);
+})();
+</script>
+<script id="erpSetupExtraJs">
+(function(){
+ var J=function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+ var E=function(i){return document.getElementById(i)};
+ var live=function(r){return r&&r.doc_state!=='Draft'&&r.status!=='Inactive'};
+ function sel(id){var e=E(id);return e?[].slice.call(e.options).filter(function(o){return o.selected}).map(function(o){return o.value}):[]}
+ function fit(r,co,bu,pc){if(co&&r.company&&r.company!==co)return false;if(bu&&r.bu&&r.bu!==bu)return false;var rp=r.pc||r.profit_center;if(pc&&rp&&rp!==pc)return false;return true}
+ var last={};function put(id,items,keep){var e=E(id);if(!e)return;var want=keep||(e.options.length?sel(id):(last[id]||[]));e.innerHTML=items.map(function(it){return '<option value="'+String(it[0]).replace(/"/g,'&quot;')+'"'+(want.indexOf(it[0])>=0?' selected':'')+'>'+String(it[1]).replace(/</g,'&lt;')+'</option>'}).join('')}
+ function uniq(a){var s={};return a.filter(function(x){var k=x[0];if(!k||s[k])return false;s[k]=1;return true})}
+ function refresh(keep){
+  var co=(E('erpsetup_company')||{}).value||'',bu=(E('erpsetup_bu')||{}).value||'',pc=(E('erpsetup_pc')||{}).value||'';keep=keep||{};
+  var by=function(a,b){return String(a[1]).localeCompare(String(b[1]))};
+  put('erpsetup_plants',uniq(Object.values(J('erp_fsetup_plant',{})).filter(function(r){return live(r)&&r.name&&fit(r,co,bu,pc)}).map(function(r){return [r.name,r.name]})).sort(by),keep.plants);
+  put('erpsetup_whs',uniq(Object.values(J('erp_fsetup_warehouse',{})).filter(function(r){return live(r)&&r.name&&fit(r,co,bu,pc)}).map(function(r){return [r.name,r.name]})).sort(by),keep.whs);
+  put('erpsetup_ccs',uniq(Object.values(J('erp_cc_records',{})).filter(function(r){return r&&r.code&&fit(r,co,bu,pc)}).map(function(r){return [r.code,r.code+(r.name?' - '+r.name:'')]})).sort(by),keep.ccs);
+  var g=[];try{if(typeof PR_ITEM_DATA!=='undefined'&&PR_ITEM_DATA&&PR_ITEM_DATA.groups)g=g.concat(PR_ITEM_DATA.groups)}catch(e){}
+  Object.values(J('erp_item_master',{})).forEach(function(r){if(r&&r.group)g.push(r.group)});
+  var seen={};g=g.filter(function(x){if(!x||seen[x])return false;seen[x]=1;return true}).sort();
+  put('erpsetup_cats',g.map(function(x){return [x,x]}),keep.cats)}
+ window.__esVals=sel;
+ window.__esFill=function(rec){last={erpsetup_plants:rec?rec.plants||[]:[],erpsetup_whs:rec?rec.whs||[]:[],erpsetup_ccs:rec?rec.ccs||[]:[],erpsetup_cats:rec?rec.cats||[]:[]};refresh(rec?{plants:rec.plants||[],whs:rec.whs||[],ccs:rec.ccs||[],cats:rec.cats||[]}:{plants:[],whs:[],ccs:[],cats:[]})};
+ window.__esRefresh=function(){refresh()};
+ function wire(){var c=E('erpsetup_cats');if(c&&!c.options.length){try{if(typeof PR_ITEM_DATA!=='undefined'&&PR_ITEM_DATA&&(PR_ITEM_DATA.groups||[]).length)refresh()}catch(e){}}
+  ['erpsetup_company','erpsetup_bu','erpsetup_pc'].forEach(function(i){var e=E(i);if(e&&!e.__es){e.__es=1;e.addEventListener('change',function(){refresh()})}})}
+ setInterval(wire,1000);
+})();
+</script>
+<script id="deleteAccessJs">
+(function () {
+  if (window.__daInit) return; window.__daInit = 1;
+  /* ===== Delete Access: only users who were given "Delete Access" (and the Super Admin) can delete records. =====
+     Everyone else: delete buttons are hidden, and a click on one is stopped. Kept for everybody:
+       - "Request deletion" (the creator asks, an approver decides - a request is not a deletion)
+       - deleting your own DRAFT (not yet submitted), removing a line inside a form, deleting your own chat messages.            */
+  var UK = 'erp_userid_records';
+  var J = function (k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+  var E = function (i) { return document.getElementById(i); };
+  function me() { try { return (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null; } catch (e) { return null; } }
+  function isSA(u) { try { return !!(u && (isSuperAdminId(u.id) || (J(UK, {})[u.id] || {}).super_admin)); } catch (e) { return !!(u && (J(UK, {})[u.id] || {}).super_admin); } }
+  function canDelete() {
+    var u = me(); if (!u) return false;
+    if (isSA(u)) return true;
+    var r = J(UK, {})[u.id] || {};
+    return r.can_delete === true;
+  }
+  /* what counts as a delete control (by the function its button calls) */
+  var DEL_CALL = /(?:^|[^A-Za-z0-9_$])(?:delete[A-Z][A-Za-z0-9_]*|[A-Za-z]*(?:Confirm|Current)Delete[A-Za-z0-9_]*|(?:sd|mfg)Delete[A-Za-z0-9_]*|__[A-Za-z0-9]+\.del)\s*\(/;
+  var KEEP = /Draft|msgDel|requestRecordDeletion|removeJeItemRow|remove[A-Z]\w*Row|deleteSdTc\b.*never/i;   // drafts, chat, requests, form rows
+  function isDeleteControl(el) {
+    if (!el || !el.getAttribute) return false;
+    var oc = el.getAttribute('onclick') || '';
+    if (oc) {
+      if (KEEP.test(oc)) return false;
+      if (/goLiveReset|confirmResetAll/.test(oc)) return false;   // these have their own Super Admin lock
+      if (DEL_CALL.test(oc)) return true;
+    }
+    return false;
+  }
+  function denyMsg() { return 'You do not have Delete Access. Ask the Super Admin to give you the "Delete Access" permission (User ID Setup > 🗑 Delete Access).'; }
+  var lastAlert = 0;
+  function deny() { var t = Date.now(); if (t - lastAlert > 800) { lastAlert = t; alert(denyMsg()); } }
+
+  /* 1) stop the click before the button's own handler runs */
+  document.addEventListener('click', function (ev) {
+    var el = ev.target && ev.target.closest ? ev.target.closest('[onclick]') : null;
+    while (el) {
+      if (isDeleteControl(el)) {
+        if (!canDelete()) { ev.stopImmediatePropagation(); ev.preventDefault(); deny(); }
+        return;
+      }
+      el = el.parentElement && el.parentElement.closest ? el.parentElement.closest('[onclick]') : null;
+    }
+  }, true);
+
+  /* 2) hide the delete buttons for users without the permission */
+  function sweep() {
+    var allow = canDelete(), list = document.querySelectorAll('[onclick]');
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      if (!isDeleteControl(el)) continue;
+      if (allow) { if (el.__daHidden) { el.style.display = el.__daOld || ''; el.__daHidden = 0; } }
+      else if (!el.__daHidden) { el.__daOld = el.style.display; el.style.display = 'none'; el.__daHidden = 1; }
+    }
+  }
+  /* the Production module lives in a shadow DOM and uses data-act buttons; "Delete QC standard" is its only real delete
+     (deleting a DRAFT forecast and removing rows inside forms stay open to everyone) */
+  var PROD_DEL = '[data-act="qsdel"]';
+  function prodRoot() { var h = E('productionEmbeddedRoot'); return h && h.shadowRoot; }
+  function prodSweep() {
+    var r = prodRoot(); if (!r) return;
+    var allow = canDelete(), list = r.querySelectorAll(PROD_DEL);
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      if (allow) { if (el.__daHidden) { el.style.display = el.__daOld || ''; el.__daHidden = 0; } }
+      else if (!el.__daHidden) { el.__daOld = el.style.display; el.style.display = 'none'; el.__daHidden = 1; }
+    }
+    if (!r.__daBound) {
+      r.__daBound = 1;
+      r.addEventListener('click', function (ev) {
+        var t = ev.target && ev.target.closest ? ev.target.closest(PROD_DEL) : null;
+        if (t && !canDelete()) { ev.stopImmediatePropagation(); ev.preventDefault(); deny(); }
+      }, true);
+    }
+  }
+  setInterval(function () { sweep(); prodSweep(); }, 800);
+
+  /* 3) function-level guard (covers calls that do not come from a button) */
+  var NAMES = ['sdConfirmDelete', 'sdDeleteCurrent', 'mfgConfirmDelete', 'mfgDeleteCurrent', 'deleteSdTarget', 'deleteOb', 'deleteRt', 'deleteQt', 'deleteVa', 'deleteLc', 'deleteLcm', 'deleteVm', 'deleteIm', 'deleteErpSetup', 'deleteErpSetupFromForm', 'deleteUserIdSetup', 'deleteUserIdSetupFromForm'];
+  document.addEventListener('DOMContentLoaded', function () {});
+  function wrapAll() {
+    NAMES.concat(Object.keys(window).filter(function (n) { return /^delete(Sd|Mfg)[A-Z]/.test(n); })).forEach(function (n) {
+      var f = window[n];
+      if (typeof f !== 'function' || f.__da) return;
+      var w = function () { if (!canDelete()) { deny(); return false; } return f.apply(this, arguments); };
+      w.__da = 1; try { window[n] = w; } catch (e) {}
+    });
+    ['__sdx', '__fgo', '__fl', '__fsx', '__sq', '__de'].forEach(function (o) {
+      var ob = window[o]; if (!ob || typeof ob.del !== 'function' || ob.del.__da) return;
+      var f = ob.del, w = function () { if (!canDelete()) { deny(); return false; } return f.apply(this, arguments); };
+      w.__da = 1; try { ob.del = w; } catch (e) {}
+    });
+  }
+  setInterval(wrapAll, 1500);
+
+  /* 4) admin UI: "🗑 Delete Access" button in User ID Setup */
+  function openDlg(uid) {
+    var all = J(UK, {}), rec = all[uid];
+    if (!uid || !rec) { alert('Save the User ID first, then give it Delete Access.'); return; }
+    if (rec.super_admin) { alert('Super Admin can always delete.'); return; }
+    var ov = E('daOv'); if (ov) ov.remove();
+    ov = document.createElement('div'); ov.id = 'daOv';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100020;display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.innerHTML = '<div style="background:#fff;color:#0f172a;border-radius:10px;width:min(480px,100%);padding:16px 18px;font-family:inherit">' +
+      '<h3 style="margin:0 0 6px;color:#b91c1c">🗑 Delete Access — ' + uid + (rec.employee_name ? ' (' + String(rec.employee_name).replace(/</g, '&lt;') + ')' : '') + '</h3>' +
+      '<div style="font-size:12.5px;color:#475569;margin-bottom:10px">By default nobody except the Super Admin can delete records. Tick this to let <b>this user</b> delete records in every module. They can always delete their own <i>Draft</i> and ask for a deletion approval.</div>' +
+      '<label style="display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer"><input type="checkbox" id="daChk" ' + (rec.can_delete === true ? 'checked' : '') + '> <b>Allow this user to delete records</b></label>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button type="button" id="daCancel" style="padding:7px 14px;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer">Close</button><button type="button" id="daSave" style="padding:7px 14px;border:0;background:#0f766e;color:#fff;border-radius:6px;cursor:pointer">💾 Save</button></div>' +
+      '<div id="daMsg" style="margin-top:8px;color:#065f46;font-weight:600;font-size:13px"></div></div>';
+    document.body.appendChild(ov);
+    E('daCancel').onclick = function () { ov.remove(); };
+    E('daSave').onclick = function () {
+      var a = J(UK, {}), r = a[uid]; if (!r) return;
+      r.can_delete = E('daChk').checked; r.can_delete_updated = new Date().toISOString(); r.can_delete_by = me() ? me().id : '';
+      a[uid] = r; localStorage.setItem(UK, JSON.stringify(a));
+      E('daMsg').textContent = '✅ Saved. Takes effect at the user\'s next login / refresh.';
+      try { if (typeof renderUserIdSetupTable === 'function') renderUserIdSetupTable(); } catch (e) {}
+    };
+  }
+  function hookForm() {
+    var o = E('userIdSetupFormOverlay'); if (!o || E('daBtn')) return;
+    var bar = o.querySelector('.erp-form-actions'); if (!bar) return;
+    var b = document.createElement('button'); b.type = 'button'; b.id = 'daBtn'; b.className = 'erp-btn'; b.style.cssText = 'background:#b91c1c;color:#fff';
+    b.textContent = '🗑 Delete Access';
+    b.onclick = function () { var v = (E('useridsetup_userid') || {}).value; openDlg(v && v.trim()); };
+    bar.insertBefore(b, bar.firstChild);
+  }
+  setInterval(hookForm, 1000);
+  window.__deleteAccess = { can: canDelete, isDeleteControl: isDeleteControl, open: openDlg, sweep: function () { sweep(); prodSweep(); }, wrap: wrapAll };
 })();
 </script>
 </body></html>
