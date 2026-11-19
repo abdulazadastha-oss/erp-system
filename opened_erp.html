@@ -13514,19 +13514,20 @@ go('home');
     // Every approval request goes to master approver 2422 and, when present,
     // the creator's custom Approval ID. Duplicates are removed safely.
     function getApprovalRecipientIdsForUser(userId) {
-      var ids = getSuperAdminIds().slice();
-      var customId = getCustomApprovalIdForUser(userId);
-      if (customId && ids.indexOf(customId) === -1) ids.push(customId);
+      var u = String(userId || '').trim(), ids = [];
+      var add = function(x) { x = String(x || '').trim(); if (x && x !== u && ids.indexOf(x) === -1) ids.push(x); };
+      add(getCustomApprovalIdForUser(userId));
       var dyn = getDynamicLoginRecord(userId);
-      ((dyn && dyn.approval_ids) || []).forEach(function(x) { x = String(x || '').trim(); if (x && ids.indexOf(x) === -1) ids.push(x); });
+      ((dyn && dyn.approval_ids) || []).forEach(add);
+      if (!ids.length) getSuperAdminIds().forEach(add);   // nobody configured -> the master approver, so a request is never lost
+      if (!ids.length) add(masterApproverId());
       return ids;
     }
 
     // Backward-compatible single-ID helper: custom ID takes precedence when a
     // record needs one primary approval_id, while notifications use the full list above.
     function getConfiguredApprovalIdForUser(userId) {
-      var ids = getApprovalRecipientIdsForUser(userId);
-      return ids.length > 1 ? ids[1] : ids[0];
+      return getApprovalRecipientIdsForUser(userId)[0];
     }
 
     function getPrApprovalIdForRecord(record) {
@@ -13535,6 +13536,7 @@ go('home');
     }
 
     function isPrApproverForRecord(record, userId) {
+      try { if (currentUser && isSuperAdminId(String(arguments[1] != null ? arguments[1] : currentUser.id))) return true; } catch (e) {}
       if (!record || !userId) return false;
       var creatorId = record.raised_by_id || record.submitted_by || record.from_user_id || '';
       return getApprovalRecipientIdsForUser(creatorId).indexOf(String(userId)) !== -1 || getPrApprovalIdForRecord(record) === String(userId) ||
@@ -15106,7 +15108,7 @@ go('home');
 
     var prListMode = 'draft';
     function setPrMode(m) { prListMode = m; document.getElementById('prStatusFilter').value = ''; renderPrTable(); }
-    function prInMode(status) { var isDraft = ['Draft', 'Rejected', 'Reverted'].indexOf(status) !== -1; return (prListMode === 'draft') === isDraft; }
+    function prInMode(status) { var isDraft = ['Draft', 'Reverted'].indexOf(status) !== -1; return (prListMode === 'draft') === isDraft; }
     function openPrList() {
       prListMode = 'draft';
       document.getElementById('prModeSel').value = 'draft';
@@ -15207,7 +15209,7 @@ go('home');
       if (typeof vfButtons === 'function') btns += vfButtons('PR', record.ref, record);
       // A rejected/reverted PR can be corrected and resubmitted only by its
       // original creator. It is never editable by the approver or other IDs.
-      if ((record.status === 'Rejected' || record.status === 'Reverted') && isRaiser) {
+      if (record.status === 'Reverted' && isRaiser) {
         btns += '<button class="pr-action-btn" style="background:#f59e0b;color:#fff;" onclick="viewPr(\'' + record.ref + '\')" title="Edit and re-forward">✏️ Edit &amp; Re-forward</button>';
       }
 
@@ -15215,8 +15217,9 @@ go('home');
       if (record.status === 'Pending' && isAssignedApprover) {
         btns += '<button class="pr-action-btn pr-btn-approve" onclick="changePrStatus(\'' + record.ref + '\', \'Approved\')" title="Approve">✅ Approve</button>';
         btns += '<button class="pr-action-btn pr-btn-reject" onclick="changePrStatus(\'' + record.ref + '\', \'Rejected\')" title="Reject">❌ Reject</button>';
+        btns += '<button class="pr-action-btn pr-btn-revert" onclick="changePrStatus(\'' + record.ref + '\', \'Reverted\')" title="Send back to Draft">↩ Revert</button>';
       }
-      if ((record.status === 'Approved' || record.status === 'Rejected') && isAssignedApprover) {
+      if (record.status === 'Approved' && isAssignedApprover) {
         btns += '<button class="pr-action-btn pr-btn-revert" onclick="changePrStatus(\'' + record.ref + '\', \'Reverted\')" title="Revert Back">↩ Revert</button>';
       }
             btns += getDeleteRequestButton('PR', record.ref, record);
@@ -15231,7 +15234,7 @@ return btns;
       if (!record || record.status !== 'Draft' || !userId || String(record.raised_by_id || '') !== userId) return;
 
       var approvalIds = getApprovalRecipientIdsForUser(userId).filter(function(id) { return String(id) !== userId; });
-      var approvalId = approvalIds.length > 1 ? approvalIds[1] : (approvalIds[0] || masterApproverId());
+      var approvalId = (approvalIds[0] || masterApproverId());
       if (!approvalIds.length) {
         alert('❌ এই PR-এর জন্য সঠিক Approval ID নির্ধারিত নেই। আগে User ID Setup-এ Approval ID সেট করুন।');
         return;
@@ -15315,7 +15318,7 @@ return btns;
         return false;
       }
       if (approvalAction && newStatus !== 'Reverted' && record.status !== 'Pending') return false;
-      if (newStatus === 'Reverted' && ['Approved', 'Rejected'].indexOf(record.status) === -1) return false;
+      if (newStatus === 'Reverted' && ['Approved', 'Pending'].indexOf(record.status) === -1) return false;
 
       var wasApproved = record.status === 'Approved';
       record.status = newStatus;
@@ -15414,7 +15417,7 @@ return btns;
         // Submitted PRs are view-only. A Draft remains editable only by its
         // raiser; the assigned approver and all other User IDs can only view it.
         var currentId = currentUser ? String(currentUser.id) : '';
-        var canEditByCreator = ['Draft', 'Rejected', 'Reverted'].indexOf(record.status) !== -1 &&
+        var canEditByCreator = ['Draft', 'Reverted'].indexOf(record.status) !== -1 &&
           String(record.raised_by_id || '') === currentId;
         setPrFormReadOnly(!canEditByCreator);
         document.getElementById(cfg.overlay).classList.add('active');
@@ -23499,7 +23502,7 @@ return btns;
     // ===== Open STR List =====
     var strListMode = 'draft';
     function setStrMode(m) { strListMode = m; document.getElementById('strStatusFilter').value = ''; renderStrTable(); }
-    function strInMode(status) { var isDraft = ['Draft', 'Rejected', 'Reverted'].indexOf(status) !== -1; return (strListMode === 'draft') === isDraft; }
+    function strInMode(status) { var isDraft = ['Draft', 'Reverted'].indexOf(status) !== -1; return (strListMode === 'draft') === isDraft; }
     function openStrList() {
       strListMode = 'draft';
       document.getElementById('strModeFilter').value = 'draft';
@@ -24145,7 +24148,7 @@ return btns;
     // ===== Open TO List =====
     var toListMode = 'draft';
     function setToMode(m) { toListMode = m; document.getElementById('toStatusFilter').value = ''; renderToTable(); }
-    function toInMode(status) { var isDraft = ['Draft', 'Rejected', 'Reverted'].indexOf(status) !== -1; return (toListMode === 'draft') === isDraft; }
+    function toInMode(status) { var isDraft = ['Draft', 'Reverted'].indexOf(status) !== -1; return (toListMode === 'draft') === isDraft; }
     // Approved Transfer Requisitions that do not have a Transfer Order yet
     function getToPendingStrs() {
       var strs = JSON.parse(localStorage.getItem(STR_STORAGE_KEY) || '{}'), tos = JSON.parse(localStorage.getItem(TO_STORAGE_KEY) || '{}'), used = {};
@@ -24693,7 +24696,7 @@ return btns;
     // ===== SR List =====
     var srListMode = 'draft';
     function setSrMode(m) { srListMode = m; document.getElementById('srStatusFilter').value = ''; renderSrTable(); }
-    function srInMode(status) { var isDraft = ['Draft', 'Rejected', 'Reverted'].indexOf(status) !== -1; return (srListMode === 'draft') === isDraft; }
+    function srInMode(status) { var isDraft = ['Draft', 'Reverted'].indexOf(status) !== -1; return (srListMode === 'draft') === isDraft; }
     function openSrList() {
       srListMode = 'draft';
       document.getElementById('srModeFilter').value = 'draft';
@@ -25747,7 +25750,7 @@ return btns;
     // ===== MR List =====
     var mrListMode = 'draft';
     function setMrMode(m) { mrListMode = m; document.getElementById('mrStatusFilter').value = ''; renderMrTable(); }
-    function mrInMode(status) { var isDraft = ['Draft', 'Rejected', 'Reverted'].indexOf(status) !== -1; return (mrListMode === 'draft') === isDraft; }
+    function mrInMode(status) { var isDraft = ['Draft', 'Reverted'].indexOf(status) !== -1; return (mrListMode === 'draft') === isDraft; }
     function deleteMrDraft(ref) {
       var o = JSON.parse(localStorage.getItem(MR_STORAGE_KEY) || '{}');
       if (!o[ref] || o[ref].status !== 'Draft') return;
@@ -27331,12 +27334,12 @@ return btns;
         // Approvers see pending requests
         unreadCount = notifs.filter(function(n) {
           return !n.read && (n.type === 'pr_request' || n.type === 'str_request' || n.type === 'sr_request' || n.type === 'mr_request' || n.type === 'po_request' || n.type === 'po_verify' || n.type === 'sr_verify' || n.type === 'mr_verify' || n.type === 'pr_verify' || n.type === 'leave_verify' || n.type === 'grn_request' || n.type === 'go_request' || n.type === 'leave_request' || n.type === 'delete_request') && n.status === 'pending' && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim();
-        }).length;
+        }).length + (window.gwStatusUnread ? window.gwStatusUnread(notifs) : 0);
       } else {
         // Non-approvers see status updates (approved/rejected) for their submissions
         unreadCount = notifs.filter(function(n) {
           return currentUser && !n.read && String(n.to_user_id || '').trim() === String(currentUser.id || '').trim() && (
-            n.type === 'pr_approved' || n.type === 'pr_rejected' ||
+            /^[a-z]+_reverted$/.test(n.type || '') || n.type === 'pr_approved' || n.type === 'pr_rejected' ||
             n.type === 'str_approved' || n.type === 'str_rejected' ||
             n.type === 'sr_approved' || n.type === 'sr_rejected' ||
             n.type === 'mr_approved' || n.type === 'mr_rejected' || n.type === 'po_approved' || n.type === 'po_rejected' ||
@@ -27373,7 +27376,12 @@ return btns;
             var title = '';
             var desc = '';
 
-            if (n.type === 'pr_approved') {
+            if (/^[a-z]+_reverted$/.test(n.type || '')) {
+              var rvK = n.type.split('_')[0], rvRef = n[rvK + '_ref'] || n.grn_no || n.leave_ref || '';
+              icon = '↩'; iconClass = 'rejected';
+              title = rvK.toUpperCase() + ' ' + rvRef + ' Reverted to Draft';
+              desc = 'Sent back to Draft by ' + (n.from_user || n.from_user_id || 'the approver') + (n.remark ? ' - ' + n.remark : '') + '. Edit it and send it again.';
+            } else if (n.type === 'pr_approved') {
               icon = '✅'; iconClass = 'approved';
               title = 'PR ' + n.pr_ref + ' Approved';
               desc = 'Your Purchase Requisition has been approved.';
@@ -27475,7 +27483,7 @@ return btns;
       }).slice(0, 20);
 
       if (pendingNotifs.length === 0) {
-        notifList.innerHTML = '<div class="notification-empty">No pending requests.</div>';
+        notifList.innerHTML = (window.gwStatusHtml ? window.gwStatusHtml(notifs) : '') || '<div class="notification-empty">No pending requests.</div>';
         return;
       }
 
@@ -27515,10 +27523,11 @@ return btns;
           '<div class="time">' + time + ' <a href="#" onclick="dismissNotification(\'' + n.id + '\');return false;" style="color:#b91c1c;margin-left:10px;text-decoration:none;">🗑 delete</a></div>' +
           '<div class="notification-action-btns">' +
           '<button class="notif-btn-approve" data-action="' + approveFn + '" data-label="' + (isDelete ? n.delete_key : label).replace(/"/g, '&quot;') + '" data-notif-id="' + n.id + '">' + (isVF ? '✅ Verify' : '✅ Approve') + '</button>' +
-          '<button class="notif-btn-reject" data-action="' + rejectFn + '" data-label="' + (isDelete ? n.delete_key : label).replace(/"/g, '&quot;') + '" data-notif-id="' + n.id + '">' + (isVF ? '↩ Return' : '❌ Reject') + '</button>' +
+          '<button class="notif-btn-reject" data-action="' + (isVF ? 'gwRejectFromNotif' : rejectFn) + '" data-label="' + (isDelete ? n.delete_key : label).replace(/"/g, '&quot;') + '" data-notif-id="' + n.id + '" title="Reject: the request is cancelled">❌ Reject</button>' +
+          (window.gwReverts && window.gwReverts(n) ? '<button class="notif-btn-revert" data-action="gwRevertFromNotif" data-label="' + String(label).replace(/"/g, '&quot;') + '" data-notif-id="' + n.id + '" title="Revert: send it back to the requester as a Draft">↩ Revert</button>' : '') +
           '</div>' +
           '</div></div>';
-      }).join('');
+      }).join('') + (window.gwStatusHtml ? window.gwStatusHtml(notifs) : '');
     }
 
     function toggleNotificationPanel() {
@@ -35719,7 +35728,7 @@ return btns;
       var saveBtn = document.getElementById('lvSaveBtn');
       // Leave approval decisions are made only from the assigned approver's
       // notification. Creators can edit only a rejected application.
-      var editable = !isEdit || status === 'Rejected';
+      var editable = !isEdit || status === 'Draft' || status === 'Reverted';
       saveBtn.style.display = editable ? '' : 'none';
       document.querySelectorAll('#leaveForm input, #leaveForm select').forEach(function(el) {
         if (el.id === 'lv_ref' || el.id === 'lv_days' || el.id === 'lv_status') return;
@@ -35727,7 +35736,7 @@ return btns;
           el.disabled = true;
           return;
         }
-        el.disabled = isEdit && status !== 'Rejected';
+        el.disabled = isEdit && !(status === 'Draft' || status === 'Reverted');
       });
     }
 
@@ -47355,6 +47364,152 @@ window.__sdDueMap=function(){var M=maps(),o={};Object.values(J('erp_sdinv_record
  function wire(){var c=E('erpsetup_cats');if(c&&!c.options.length){try{if(typeof PR_ITEM_DATA!=='undefined'&&PR_ITEM_DATA&&(PR_ITEM_DATA.groups||[]).length)refresh()}catch(e){}}
   ['erpsetup_company','erpsetup_bu','erpsetup_pc'].forEach(function(i){var e=E(i);if(e&&!e.__es){e.__es=1;e.addEventListener('change',function(){refresh()})}})}
  setInterval(wire,1000);
+})();
+</script>
+<script id="approvalGatewayJs">
+(function () {
+  if (window.__gwInit) return; window.__gwInit = 1;
+  /* ===== Approval gateway =====
+     Who is notified : exactly the IDs set on the requester's User ID (Verifier ID(s) first, then Approval ID + Additional ID(s)).
+     Approve / Verify: goes on to the next step (existing logic).
+     Reject          : the request is cancelled (final).
+     Revert          : the request goes back to the requester in DRAFT mode, with the reason. */
+  var NK = 'erp_str_notifications';
+  var J = function (k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+  var KINDS = {
+    pr:    { key: 'erp_pr_records',    ref: 'pr_ref',    render: 'renderPrTable' },
+    str:   { key: 'erp_str_records',   ref: 'str_ref',   render: 'renderStrTable' },
+    sr:    { key: 'erp_sr_records',    ref: 'sr_ref',    render: 'renderSrTable' },
+    mr:    { key: 'erp_mr_records',    ref: 'mr_ref',    render: 'renderMrTable' },
+    po:    { key: 'erp_po_records',    ref: 'po_ref',    render: 'renderPoTable' },
+    grn:   { key: 'erp_grn_records',   ref: 'grn_no',    render: 'renderGrnTable' },
+    go:    { key: 'erp_go_records',    ref: 'go_ref',    render: 'renderGoTable' },
+    leave: { key: 'erp_leave_records', ref: 'leave_ref', render: 'renderLeaveTable' }
+  };
+  var REQ = /^(pr|str|sr|mr|po|grn|go|leave)_(request|verify)$/;
+  var STATUS = /^(pr|str|sr|mr|po|grn|go|leave)_(approved|rejected|reverted)$/;
+  var FINAL = ['Approved', 'Rejected', 'Draft', 'Cancelled', 'Completed'];
+  function me() { try { return (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null; } catch (e) { return null; } }
+  function find(id) { var a = J(NK, []); return Array.isArray(a) ? a.filter(function (x) { return x && x.id === id; })[0] || null : null; }
+  function info(n) { var m = n && REQ.exec(n.type || ''); return m ? { kind: m[1], K: KINDS[m[1]], stage: m[2] } : null; }
+  window.gwReverts = function (n) { return !!(n && REQ.test(n.type || '')); };
+
+  function closeLocal(K, ref, by, how) {
+    var a = J(NK, []); if (!Array.isArray(a)) return;
+    a.forEach(function (x) { if (x && REQ.test(x.type || '') && x[K.ref] === ref && x.status === 'pending') { x.status = 'done'; x.read = true; x.closed_by = by; x.closed_action = how; } });
+    localStorage.setItem(NK, JSON.stringify(a));
+  }
+  function cloud() { try { return (typeof db !== 'undefined' && db) ? db : null; } catch (e) { return null; } }
+  function closeRemote(uid, K, ref, by, how) {
+    var d = cloud(); if (!d || !uid) return;
+    try {
+      d.ref('users/' + uid + '/data/' + NK).transaction(function (cur) {
+        var a = []; try { a = JSON.parse(cur) || []; } catch (e) { a = []; } if (!Array.isArray(a)) a = [];
+        a.forEach(function (x) { if (x && REQ.test(x.type || '') && x[K.ref] === ref && x.status === 'pending') { x.status = 'done'; x.read = true; x.closed_by = by; x.closed_action = how; } });
+        return JSON.stringify(a);
+      });
+    } catch (e) {}
+  }
+  function pushRecord(uid, K, ref, rec) {
+    var d = cloud(); if (!d || !uid) return;
+    try {
+      d.ref('users/' + uid + '/data/' + K.key).transaction(function (cur) {
+        var o = {}; try { o = JSON.parse(cur) || {}; } catch (e) { o = {}; } if (typeof o !== 'object' || Array.isArray(o)) o = {};
+        o[ref] = rec; return JSON.stringify(o);
+      });
+    } catch (e) {}
+  }
+  function refresh(K) {
+    try { if (typeof window[K.render] === 'function') window[K.render](); } catch (e) {}
+    try { if (typeof loadNotifications === 'function') loadNotifications(); } catch (e) {}
+  }
+
+  /* status: 'Draft' (revert) or 'Rejected' (cancel) */
+  function decide(ref, notifId, status) {
+    var u = me(), n = find(notifId), i = info(n);
+    if (!u || !i) { alert('This request is no longer available.'); return false; }
+    if (String(n.to_user_id) !== String(u.id) || n.status !== 'pending') { alert('This request is not waiting for your action.'); return false; }
+    var K = i.K, recs = J(K.key, {}), rec = recs[ref];
+    if (!rec && n.record) rec = JSON.parse(JSON.stringify(n.record));
+    if (!rec) { alert('The record could not be found.'); return false; }
+    if (FINAL.indexOf(rec.status) !== -1) { closeLocal(K, ref, String(u.id), 'stale'); alert('This request is already ' + rec.status + '.'); refresh(K); return false; }
+    var revert = status === 'Draft';
+    var remark = prompt(revert ? 'Reason for sending it back to Draft (the requester will see this):' : 'Reason for rejecting (the request will be cancelled):', '');
+    if (remark === null) return false;
+    remark = String(remark).trim();
+    if (!remark) { alert('Please write a reason.'); return false; }
+    var by = u.name || u.id, now = new Date().toISOString();
+    var raiser = String(n.from_user_id || rec.raised_by_id || rec.returned_by_id || rec.submitted_by_id || rec.applied_by || '').trim();
+    var stage = i.stage === 'verify' ? 'Verification' : 'Approval';
+    rec.status = status;
+    if (revert) { rec.reverted_by = by; rec.reverted_by_id = String(u.id); rec.reverted_at = now; rec.revert_reason = remark; rec.revert_stage = stage; }
+    else { rec.rejected_by = by; rec.rejected_by_id = String(u.id); rec.rejected_at = now; rec.reject_reason = remark; rec.reject_stage = stage; }
+    recs[ref] = rec; localStorage.setItem(K.key, JSON.stringify(recs));
+    closeLocal(K, ref, String(u.id), revert ? 'revert' : 'reject');
+    // everybody else who was asked about this request is released
+    var others = [];
+    [].concat(rec.verifier_ids || [], rec.approver_ids || [], [rec.approval_id], (typeof getApprovalRecipientIdsForUser === 'function' && raiser) ? getApprovalRecipientIdsForUser(raiser) : []).forEach(function (x) {
+      x = String(x || '').trim(); if (x && x !== String(u.id) && x !== raiser && others.indexOf(x) === -1) others.push(x);
+    });
+    others.forEach(function (uid) { closeRemote(uid, K, ref, String(u.id), revert ? 'revert' : 'reject'); });
+    // the requester gets the answer and the record
+    if (raiser) {
+      var nt = { type: i.kind + '_' + (revert ? 'reverted' : 'rejected'), from_user: by, from_user_id: String(u.id), to_user_id: raiser, remark: remark, status: 'done', item_name: rec.item_name || rec.material_name || '' };
+      nt[K.ref] = ref;
+      try { if (typeof createNotification === 'function') createNotification(nt); } catch (e) { console.warn('gateway notify', e); }
+      pushRecord(raiser, K, ref, rec);
+    }
+    pushRecord(String(u.id), K, ref, rec);
+    refresh(K);
+    alert(revert ? ('Sent back to ' + (raiser || 'the requester') + ' as a Draft.') : 'Request rejected and cancelled.');
+    return true;
+  }
+  window.gwRevertFromNotif = function (ref, notifId) { return decide(ref, notifId, 'Draft'); };
+  window.gwRejectFromNotif = function (ref, notifId) { return decide(ref, notifId, 'Rejected'); };
+
+  /* approvers (and everybody) also see the answers to their own requests */
+  function mine(notifs) {
+    var u = me(); if (!u) return [];
+    return (notifs || []).filter(function (n) { return n && STATUS.test(n.type || '') && String(n.to_user_id || '').trim() === String(u.id).trim(); });
+  }
+  window.gwStatusUnread = function (notifs) { return mine(notifs).filter(function (n) { return !n.read; }).length; };
+  window.gwStatusHtml = function (notifs) {
+    var list = mine(notifs).sort(function (a, b) { return String(b.timestamp || '').localeCompare(String(a.timestamp || '')); }).slice(0, 10);
+    if (!list.length) return '';
+    var esc = function (t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+    return '<div style="padding:6px 12px;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;background:#f8fafc">Answers to your own requests</div>' + list.map(function (n) {
+      var m = STATUS.exec(n.type), k = m[1], what = m[2], K = KINDS[k], ref = n[K.ref] || '';
+      var icon = what === 'approved' ? '✅' : (what === 'reverted' ? '↩' : '❌'), cls = what === 'approved' ? 'approved' : 'rejected';
+      var title = k.toUpperCase() + ' ' + esc(ref) + ' ' + (what === 'reverted' ? 'Reverted to Draft' : (what === 'approved' ? 'Approved' : 'Rejected'));
+      var desc = (what === 'approved' ? 'Approved by ' : (what === 'reverted' ? 'Sent back to Draft by ' : 'Rejected (cancelled) by ')) + esc(n.from_user || n.from_user_id || 'the approver') + (n.remark ? ' - ' + esc(n.remark) : '');
+      var time = n.timestamp ? new Date(n.timestamp).toLocaleString('en-GB') : '';
+      return '<div class="notification-item ' + (n.read ? '' : 'unread') + '"><div class="notification-icon ' + cls + '">' + icon + '</div><div class="notification-content"><div class="title">' + title + '</div><div class="desc">' + desc + '</div><div class="time">' + time + ' <a href="#" onclick="dismissNotification(\'' + n.id + '\');return false;" style="color:#b91c1c;margin-left:10px;text-decoration:none;">🗑 delete</a></div></div></div>';
+    }).join('');
+  };
+
+  /* every revert (from the PR list, STR, SR, MR, TO ...) lands in Draft mode, not in a separate "Reverted" state */
+  [['changePrStatus', 'erp_pr_records'], ['changeStrStatus', 'erp_str_records'], ['changeSrStatus', 'erp_sr_records'], ['changeMrStatus', 'erp_mr_records'], ['changeToStatus', 'erp_to_records']].forEach(function (p) {
+    var f = window[p[0]]; if (typeof f !== 'function' || f.__gw) return;
+    var w = function (ref, st) {
+      var r = f.apply(this, arguments);
+      if (st === 'Reverted') {
+        try {
+          var all = J(p[1], {}), rec = all[ref];
+          if (rec && rec.status === 'Reverted') {
+            rec.status = 'Draft'; rec.reverted_at = rec.reverted_at || new Date().toISOString();
+            var u = me(); if (u) { rec.reverted_by = rec.reverted_by || (u.name || u.id); rec.reverted_by_id = rec.reverted_by_id || String(u.id); }
+            all[ref] = rec; localStorage.setItem(p[1], JSON.stringify(all));
+            var raiser = String(rec.raised_by_id || rec.returned_by_id || '').trim();
+            pushRecord(raiser, { key: p[1] }, ref, rec);
+            try { if (typeof window[({ erp_pr_records: 'renderPrTable', erp_str_records: 'renderStrTable', erp_sr_records: 'renderSrTable', erp_mr_records: 'renderMrTable', erp_to_records: 'renderToTable' })[p[1]]] === 'function') window[({ erp_pr_records: 'renderPrTable', erp_str_records: 'renderStrTable', erp_sr_records: 'renderSrTable', erp_mr_records: 'renderMrTable', erp_to_records: 'renderToTable' })[p[1]]](); } catch (e) {}
+          }
+        } catch (e) {}
+      }
+      return r;
+    };
+    w.__gw = 1; try { window[p[0]] = w; } catch (e) {}
+  });
+  window.__gateway = { decide: decide, info: info, KINDS: KINDS };
 })();
 </script>
 <script id="deleteAccessJs">
